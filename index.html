@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0042)file:///C:/Users/Noor/Downloads/index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Wayfare — A Life, Lived</title>
+<title>Wayfare ΓÇö A Life, Lived</title>
 
 <!-- PWA: installability -->
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="file:///C:/Users/Noor/Downloads/manifest.json">
 <meta name="theme-color" content="#c2542f">
 
 <!-- iOS: Safari ignores manifest.json almost entirely, needs its own tags -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Wayfare">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="file:///C:/Users/Noor/Downloads/icons/apple-touch-icon.png">
 
 <!-- favicon -->
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="file:///C:/Users/Noor/Downloads/icons/icon-192.png">
 
 <style>
   :root {
@@ -307,6 +307,29 @@
     border: 1px solid var(--line);
     color: var(--ink);
   }
+  .panel-action.danger {
+    background: transparent;
+    border: 1px solid #c0392b;
+    color: #c0392b;
+  }
+  .panel-action.small {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  .rel-card .panel-row { align-items: flex-start; }
+  .rel-meta { font-size: 11px; color: #8a7d6b; margin-top: 2px; }
+  .rel-closeness-track {
+    width: 64px;
+    height: 5px;
+    border-radius: 3px;
+    background: #eee3d2;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .rel-closeness-fill {
+    height: 100%;
+    background: var(--accent);
+  }
 
   .furniture-grid {
     display: grid;
@@ -431,6 +454,48 @@
     padding: 7px 8px;
     text-align: center;
   }
+
+  .will-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .will-row-name { font-size: 13.5px; font-weight: 600; }
+  .will-row-sub { font-size: 11px; color: #8a7d6b; }
+  .will-stepper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .will-stepper button {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .will-stepper button:disabled { opacity: 0.35; cursor: default; }
+  .will-pct { font-size: 14px; font-weight: 700; width: 38px; text-align: center; }
+  .will-total-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--paper-dim);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 12.5px;
+  }
+  .will-total-bar .over { color: #c0392b; font-weight: 700; }
   .price-opt-label { font-size: 9px; text-transform: uppercase; color: #8a7d6b; letter-spacing: 0.4px; }
   .price-opt-val { font-size: 13px; font-weight: 700; margin-top: 1px; }
 
@@ -495,42 +560,42 @@
 
   <div id="header">
     <div id="header-top">
-      <div id="char-name">—</div>
-      <div id="char-age">Age —</div>
+      <div id="char-name">Sage Delgado</div>
+      <div id="char-age">Age 3</div>
     </div>
     <div id="stats-row">
       <div class="stat-pill">
         <div class="stat-label"><span>Health</span></div>
-        <div class="stat-track"><div class="stat-fill fill-health" id="bar-health" style="width:100%"></div></div>
+        <div class="stat-track"><div class="stat-fill fill-health" id="bar-health" style="width: 97%;"></div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-label"><span>Happy</span></div>
-        <div class="stat-track"><div class="stat-fill fill-happy" id="bar-happy" style="width:100%"></div></div>
+        <div class="stat-track"><div class="stat-fill fill-happy" id="bar-happy" style="width: 88%;"></div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-label"><span>Smarts</span></div>
-        <div class="stat-track"><div class="stat-fill fill-smarts" id="bar-smarts" style="width:100%"></div></div>
+        <div class="stat-track"><div class="stat-fill fill-smarts" id="bar-smarts" style="width: 30%;"></div></div>
       </div>
       <div class="stat-pill">
         <div class="stat-label"><span>Looks</span></div>
-        <div class="stat-track"><div class="stat-fill fill-looks" id="bar-looks" style="width:100%"></div></div>
+        <div class="stat-track"><div class="stat-fill fill-looks" id="bar-looks" style="width: 42%;"></div></div>
       </div>
     </div>
     <div id="money-row">
       <span style="color:#8a7d6b;">Balance</span>
-      <span id="money-amt">$0</span>
+      <span id="money-amt" class="">$0</span>
     </div>
   </div>
 
-  <div id="main"></div>
+  <div id="main"><div class="event-card"><div class="event-age">Age 3</div><div class="event-text">Sage Delgado got hooked on a cartoon about a dragon.</div><div><span class="event-delta delta-pos">Happiness +4</span></div></div><div class="event-card"><div class="event-age">Age 2</div><div class="event-text">Sage Delgado volunteered at a local shelter.</div><div><span class="event-delta delta-pos">Happiness +3</span></div></div><div class="event-card"><div class="event-age">Age 1</div><div class="event-text">Sage Delgado took their first wobbly steps.</div><div><span class="event-delta delta-pos">Happiness +3</span></div></div><div class="event-card"><div class="event-age">Age 0</div><div class="event-text">Sage Delgado was born today. A whole life, waiting to happen.</div></div></div>
 
-  <button id="ageup-btn">⏵ Age Up</button>
+  <button id="ageup-btn" style="display: flex;">ΓÅ╡ Age Up</button>
 
   <div id="bottom-nav">
-    <button class="nav-btn active" data-tab="story"><span class="nav-icon">📜</span><span class="nav-label">Story</span></button>
-    <button class="nav-btn" data-tab="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
-    <button class="nav-btn" data-tab="job"><span class="nav-icon">💼</span><span class="nav-label">Career</span></button>
-    <button class="nav-btn" data-tab="people"><span class="nav-icon">👥</span><span class="nav-label">People</span></button><button class="nav-btn" data-tab="education"><span class="nav-icon">🎓</span><span class="nav-label">Education</span></button><button class="nav-btn" data-tab="vehicles"><span class="nav-icon">🚗</span><span class="nav-label">Vehicles</span></button>
+    <button class="nav-btn active" data-tab="story"><span class="nav-icon">≡ƒô£</span><span class="nav-label">Story</span></button>
+    <button class="nav-btn" data-tab="home"><span class="nav-icon">≡ƒÅá</span><span class="nav-label">Home</span></button>
+    <button class="nav-btn" data-tab="job"><span class="nav-icon">≡ƒÆ╝</span><span class="nav-label">Career</span></button>
+    <button class="nav-btn" data-tab="people"><span class="nav-icon">≡ƒæÑ</span><span class="nav-label">People</span></button><button class="nav-btn" data-tab="education"><span class="nav-icon">≡ƒÄô</span><span class="nav-label">Education</span></button><button class="nav-btn" data-tab="vehicles"><span class="nav-icon">≡ƒÜù</span><span class="nav-label">Vehicles</span></button>
   </div>
 
   <div id="modal-overlay">
@@ -549,19 +614,29 @@
 
 <script>
 /* =========================================================
-   WAYFARE — a solo-buildable life sim
+   WAYFARE ΓÇö a solo-buildable life sim
    Single state object drives every screen. Read top to bottom.
    ========================================================= */
 
 const FIRST_NAMES = ["Riley","Jordan","Sam","Casey","Avery","Quinn","Morgan","Reese","Sage","Rowan","Skyler","Dakota","Finley","Emerson","Hayden"];
 const LAST_NAMES = ["Vance","Okafor","Mercer","Lindqvist","Park","Delgado","Whitfield","Tanaka","Brennan","Costa","Singh","Novak","Reyes","Holt","Marsh"];
 
+const FRIEND_CONTEXTS = [
+  "at the coffee shop", "through a mutual friend", "at a party", "in the building elevator",
+  "at the gym", "online in a hobby group", "at work", "at a community event", "walking the same dog park",
+];
+
+function nextRelId() {
+  if (!state.nextRelId) state.nextRelId = 1;
+  return state.nextRelId++;
+}
+
 const PROPERTIES = [
   { id:"studio", name:"Studio Apartment", desc:"A cozy single room. Everyone starts somewhere.", tier:1, roomCount:1,
     buyPrice:38000, rentWeek:140, financeDown:0.10, financeYears:15, happyBonus:2 },
   { id:"onebed", name:"One-Bedroom Flat", desc:"A real bedroom door you can close.", tier:2, roomCount:1,
     buyPrice:72000, rentWeek:240, financeDown:0.12, financeYears:20, happyBonus:5 },
-  { id:"twobed", name:"Two-Bedroom Apartment", desc:"Room to grow — or room for a roommate's rent split.", tier:3, roomCount:2,
+  { id:"twobed", name:"Two-Bedroom Apartment", desc:"Room to grow ΓÇö or room for a roommate's rent split.", tier:3, roomCount:2,
     buyPrice:125000, rentWeek:380, financeDown:0.15, financeYears:25, happyBonus:8 },
   { id:"townhouse", name:"Townhouse", desc:"Your own front door at street level.", tier:4, roomCount:3,
     buyPrice:240000, rentWeek:620, financeDown:0.18, financeYears:25, happyBonus:13 },
@@ -572,19 +647,19 @@ const PROPERTIES = [
 ];
 
 // The 8 possible room types, in the order they're unlocked as roomCount grows.
-// Studio (roomCount 1) gets the "studio" type — a bedroom that doubles as a living room.
+// Studio (roomCount 1) gets the "studio" type ΓÇö a bedroom that doubles as a living room.
 const ROOM_SEQUENCE = ["bedroom","living","kitchen","bathroom","dining","office","game","garden"];
 
 const ROOM_TYPES = {
-  studio:  { name:"Studio", icon:"🛏️", slots:["bed","sofa","tv","plant","art","rug"] },
-  bedroom: { name:"Bedroom", icon:"🛏️", slots:["bed","art","plant","rug"] },
-  living:  { name:"Living Room", icon:"🛋️", slots:["sofa","tv","art","plant","rug","big"] },
-  kitchen: { name:"Kitchen", icon:"🍳", slots:["stove","fridge","counter","kitchenplant"] },
-  bathroom:{ name:"Bathroom", icon:"🛁", slots:["tub","sink","towel"] },
-  dining:  { name:"Dining Room", icon:"🍽️", slots:["table","chairs","chandelier"] },
-  office:  { name:"Office", icon:"🗄️", slots:["desk","bookshelf","officechair"] },
-  game:    { name:"Game Room", icon:"🎮", slots:["big","arcade","bar"] },
-  garden:  { name:"Garden", icon:"🌿", slots:["gardenset","gardenplant","fountain"] },
+  studio:  { name:"Studio", icon:"≡ƒ¢Å∩╕Å", slots:["bed","sofa","tv","plant","art","rug"] },
+  bedroom: { name:"Bedroom", icon:"≡ƒ¢Å∩╕Å", slots:["bed","art","plant","rug"] },
+  living:  { name:"Living Room", icon:"≡ƒ¢ï∩╕Å", slots:["sofa","tv","art","plant","rug","big"] },
+  kitchen: { name:"Kitchen", icon:"≡ƒì│", slots:["stove","fridge","counter","kitchenplant"] },
+  bathroom:{ name:"Bathroom", icon:"≡ƒ¢ü", slots:["tub","sink","towel"] },
+  dining:  { name:"Dining Room", icon:"≡ƒì╜∩╕Å", slots:["table","chairs","chandelier"] },
+  office:  { name:"Office", icon:"≡ƒùä∩╕Å", slots:["desk","bookshelf","officechair"] },
+  game:    { name:"Game Room", icon:"≡ƒÄ«", slots:["big","arcade","bar"] },
+  garden:  { name:"Garden", icon:"≡ƒî┐", slots:["gardenset","gardenplant","fountain"] },
 };
 
 // Which room type occupies each room slot for a given roomCount.
@@ -596,61 +671,61 @@ function roomLayoutFor(roomCount) {
 
 const FURNITURE = [
   // bedroom
-  { id:"bed_basic", name:"Mattress", icon:"🛏️", price:0, slot:"bed", minTier:1, grade:"low" },
-  { id:"bed_frame", name:"Bed Frame", icon:"🛌", price:600, slot:"bed", minTier:1, grade:"high" },
-  { id:"bed_canopy", name:"Canopy Bed", icon:"👑", price:4200, slot:"bed", minTier:3, grade:"high" },
+  { id:"bed_basic", name:"Mattress", icon:"≡ƒ¢Å∩╕Å", price:0, slot:"bed", minTier:1, grade:"low" },
+  { id:"bed_frame", name:"Bed Frame", icon:"≡ƒ¢î", price:600, slot:"bed", minTier:1, grade:"high" },
+  { id:"bed_canopy", name:"Canopy Bed", icon:"≡ƒææ", price:4200, slot:"bed", minTier:3, grade:"high" },
   // living room
-  { id:"sofa_thrift", name:"Thrifted Sofa", icon:"🛋️", price:150, slot:"sofa", minTier:1, grade:"low" },
-  { id:"sofa_nice", name:"Sectional Sofa", icon:"🛋️", price:2800, slot:"sofa", minTier:2, grade:"high" },
-  { id:"tv_old", name:"Old TV", icon:"📺", price:80, slot:"tv", minTier:1, grade:"low" },
-  { id:"tv_flat", name:"Flatscreen", icon:"📺", price:1200, slot:"tv", minTier:1, grade:"high" },
-  { id:"big_piano", name:"Piano", icon:"🎹", price:8500, slot:"big", minTier:4, grade:"high" },
-  { id:"big_pool", name:"Pool Table", icon:"🎱", price:5200, slot:"big", minTier:3, grade:"high" },
+  { id:"sofa_thrift", name:"Thrifted Sofa", icon:"≡ƒ¢ï∩╕Å", price:150, slot:"sofa", minTier:1, grade:"low" },
+  { id:"sofa_nice", name:"Sectional Sofa", icon:"≡ƒ¢ï∩╕Å", price:2800, slot:"sofa", minTier:2, grade:"high" },
+  { id:"tv_old", name:"Old TV", icon:"≡ƒô║", price:80, slot:"tv", minTier:1, grade:"low" },
+  { id:"tv_flat", name:"Flatscreen", icon:"≡ƒô║", price:1200, slot:"tv", minTier:1, grade:"high" },
+  { id:"big_piano", name:"Piano", icon:"≡ƒÄ╣", price:8500, slot:"big", minTier:4, grade:"high" },
+  { id:"big_pool", name:"Pool Table", icon:"≡ƒÄ▒", price:5200, slot:"big", minTier:3, grade:"high" },
   // shared decor (bedroom + living)
-  { id:"plant_1", name:"Houseplant", icon:"🪴", price:40, slot:"plant", minTier:1, grade:"low" },
-  { id:"art_1", name:"Wall Art", icon:"🖼️", price:300, slot:"art", minTier:1, grade:"low" },
-  { id:"art_2", name:"Fine Painting", icon:"🖼️", price:3500, slot:"art", minTier:3, grade:"high" },
-  { id:"rug_1", name:"Area Rug", icon:"🟫", price:220, slot:"rug", minTier:1, grade:"low" },
+  { id:"plant_1", name:"Houseplant", icon:"≡ƒ¬┤", price:40, slot:"plant", minTier:1, grade:"low" },
+  { id:"art_1", name:"Wall Art", icon:"≡ƒû╝∩╕Å", price:300, slot:"art", minTier:1, grade:"low" },
+  { id:"art_2", name:"Fine Painting", icon:"≡ƒû╝∩╕Å", price:3500, slot:"art", minTier:3, grade:"high" },
+  { id:"rug_1", name:"Area Rug", icon:"≡ƒƒ½", price:220, slot:"rug", minTier:1, grade:"low" },
   // kitchen
-  { id:"stove_basic", name:"Basic Stove", icon:"🍳", price:400, slot:"stove", minTier:3, grade:"low" },
-  { id:"stove_chef", name:"Chef's Range", icon:"🔥", price:3800, slot:"stove", minTier:5, grade:"high" },
-  { id:"fridge_basic", name:"Mini Fridge", icon:"🧊", price:250, slot:"fridge", minTier:3, grade:"low" },
-  { id:"fridge_smart", name:"Smart Fridge", icon:"❄️", price:2600, slot:"fridge", minTier:5, grade:"high" },
-  { id:"counter_basic", name:"Counter", icon:"🪟", price:180, slot:"counter", minTier:3, grade:"low" },
-  { id:"counter_marble", name:"Marble Island", icon:"💎", price:3200, slot:"counter", minTier:5, grade:"high" },
-  { id:"kitchenplant_1", name:"Herb Garden", icon:"🌱", price:60, slot:"kitchenplant", minTier:3, grade:"low" },
+  { id:"stove_basic", name:"Basic Stove", icon:"≡ƒì│", price:400, slot:"stove", minTier:3, grade:"low" },
+  { id:"stove_chef", name:"Chef's Range", icon:"≡ƒöÑ", price:3800, slot:"stove", minTier:5, grade:"high" },
+  { id:"fridge_basic", name:"Mini Fridge", icon:"≡ƒºè", price:250, slot:"fridge", minTier:3, grade:"low" },
+  { id:"fridge_smart", name:"Smart Fridge", icon:"Γ¥ä∩╕Å", price:2600, slot:"fridge", minTier:5, grade:"high" },
+  { id:"counter_basic", name:"Counter", icon:"≡ƒ¬ƒ", price:180, slot:"counter", minTier:3, grade:"low" },
+  { id:"counter_marble", name:"Marble Island", icon:"≡ƒÆÄ", price:3200, slot:"counter", minTier:5, grade:"high" },
+  { id:"kitchenplant_1", name:"Herb Garden", icon:"≡ƒî▒", price:60, slot:"kitchenplant", minTier:3, grade:"low" },
   // bathroom
-  { id:"tub_basic", name:"Standard Tub", icon:"🛁", price:300, slot:"tub", minTier:5, grade:"low" },
-  { id:"tub_jacuzzi", name:"Jacuzzi Tub", icon:"💦", price:4500, slot:"tub", minTier:5, grade:"high" },
-  { id:"sink_basic", name:"Basic Sink", icon:"🚰", price:150, slot:"sink", minTier:5, grade:"low" },
-  { id:"sink_double", name:"Double Vanity", icon:"🪞", price:1800, slot:"sink", minTier:5, grade:"high" },
-  { id:"towel_basic", name:"Towel Rack", icon:"🧻", price:30, slot:"towel", minTier:5, grade:"low" },
+  { id:"tub_basic", name:"Standard Tub", icon:"≡ƒ¢ü", price:300, slot:"tub", minTier:5, grade:"low" },
+  { id:"tub_jacuzzi", name:"Jacuzzi Tub", icon:"≡ƒÆª", price:4500, slot:"tub", minTier:5, grade:"high" },
+  { id:"sink_basic", name:"Basic Sink", icon:"≡ƒÜ░", price:150, slot:"sink", minTier:5, grade:"low" },
+  { id:"sink_double", name:"Double Vanity", icon:"≡ƒ¬₧", price:1800, slot:"sink", minTier:5, grade:"high" },
+  { id:"towel_basic", name:"Towel Rack", icon:"≡ƒº╗", price:30, slot:"towel", minTier:5, grade:"low" },
   // dining room
-  { id:"table_basic", name:"Dinner Table", icon:"🍽️", price:350, slot:"table", minTier:5, grade:"low" },
-  { id:"table_oak", name:"Oak Dining Set", icon:"🪵", price:3600, slot:"table", minTier:5, grade:"high" },
-  { id:"chairs_basic", name:"Folding Chairs", icon:"🪑", price:80, slot:"chairs", minTier:5, grade:"low" },
-  { id:"chairs_upholstered", name:"Upholstered Chairs", icon:"💺", price:1400, slot:"chairs", minTier:5, grade:"high" },
-  { id:"chandelier_1", name:"Chandelier", icon:"💡", price:2200, slot:"chandelier", minTier:6, grade:"high" },
+  { id:"table_basic", name:"Dinner Table", icon:"≡ƒì╜∩╕Å", price:350, slot:"table", minTier:5, grade:"low" },
+  { id:"table_oak", name:"Oak Dining Set", icon:"≡ƒ¬╡", price:3600, slot:"table", minTier:5, grade:"high" },
+  { id:"chairs_basic", name:"Folding Chairs", icon:"≡ƒ¬æ", price:80, slot:"chairs", minTier:5, grade:"low" },
+  { id:"chairs_upholstered", name:"Upholstered Chairs", icon:"≡ƒÆ║", price:1400, slot:"chairs", minTier:5, grade:"high" },
+  { id:"chandelier_1", name:"Chandelier", icon:"≡ƒÆí", price:2200, slot:"chandelier", minTier:6, grade:"high" },
   // office
-  { id:"desk_basic", name:"Simple Desk", icon:"🗄️", price:200, slot:"desk", minTier:4, grade:"low" },
-  { id:"desk_executive", name:"Executive Desk", icon:"🖋️", price:2800, slot:"desk", minTier:6, grade:"high" },
-  { id:"bookshelf_basic", name:"Bookshelf", icon:"📚", price:150, slot:"bookshelf", minTier:4, grade:"low" },
-  { id:"bookshelf_library", name:"Library Wall", icon:"📖", price:3000, slot:"bookshelf", minTier:6, grade:"high" },
-  { id:"officechair_basic", name:"Office Chair", icon:"🪑", price:120, slot:"officechair", minTier:4, grade:"low" },
+  { id:"desk_basic", name:"Simple Desk", icon:"≡ƒùä∩╕Å", price:200, slot:"desk", minTier:4, grade:"low" },
+  { id:"desk_executive", name:"Executive Desk", icon:"≡ƒûï∩╕Å", price:2800, slot:"desk", minTier:6, grade:"high" },
+  { id:"bookshelf_basic", name:"Bookshelf", icon:"≡ƒôÜ", price:150, slot:"bookshelf", minTier:4, grade:"low" },
+  { id:"bookshelf_library", name:"Library Wall", icon:"≡ƒôû", price:3000, slot:"bookshelf", minTier:6, grade:"high" },
+  { id:"officechair_basic", name:"Office Chair", icon:"≡ƒ¬æ", price:120, slot:"officechair", minTier:4, grade:"low" },
   // game room
-  { id:"arcade_basic", name:"Arcade Cabinet", icon:"🕹️", price:2400, slot:"arcade", minTier:6, grade:"high" },
-  { id:"bar_basic", name:"Home Bar", icon:"🍸", price:1800, slot:"bar", minTier:6, grade:"low" },
+  { id:"arcade_basic", name:"Arcade Cabinet", icon:"≡ƒò╣∩╕Å", price:2400, slot:"arcade", minTier:6, grade:"high" },
+  { id:"bar_basic", name:"Home Bar", icon:"≡ƒì╕", price:1800, slot:"bar", minTier:6, grade:"low" },
   // garden
-  { id:"gardenset_basic", name:"Patio Set", icon:"🪑", price:400, slot:"gardenset", minTier:6, grade:"low" },
-  { id:"gardenset_lounge", name:"Lounge Set", icon:"🏖️", price:2800, slot:"gardenset", minTier:6, grade:"high" },
-  { id:"gardenplant_1", name:"Flower Beds", icon:"🌸", price:150, slot:"gardenplant", minTier:6, grade:"low" },
-  { id:"fountain_1", name:"Stone Fountain", icon:"⛲", price:3500, slot:"fountain", minTier:6, grade:"high" },
+  { id:"gardenset_basic", name:"Patio Set", icon:"≡ƒ¬æ", price:400, slot:"gardenset", minTier:6, grade:"low" },
+  { id:"gardenset_lounge", name:"Lounge Set", icon:"≡ƒÅû∩╕Å", price:2800, slot:"gardenset", minTier:6, grade:"high" },
+  { id:"gardenplant_1", name:"Flower Beds", icon:"≡ƒî╕", price:150, slot:"gardenplant", minTier:6, grade:"low" },
+  { id:"fountain_1", name:"Stone Fountain", icon:"Γ¢▓", price:3500, slot:"fountain", minTier:6, grade:"high" },
 ];
 
 // Move-in furniture packs offered at purchase time.
 // "low" = cheapest available piece per slot (often free), "high" = nicest piece the property tier allows.
 const FURNITURE_PACKS = {
-  low: { label:"Basic Move-in", blurb:"Just the essentials — a mattress and a couch. You can upgrade piece by piece later." },
+  low: { label:"Basic Move-in", blurb:"Just the essentials ΓÇö a mattress and a couch. You can upgrade piece by piece later." },
   high: { label:"Furnished Move-in", blurb:"Move in fully furnished with the best pieces this place can hold." },
 };
 
@@ -739,9 +814,10 @@ function newGame() {
     ownedFurniture: ["bed_basic","sofa_thrift","tv_old"],
     activeRoomIndex: null, // null = on floor plan; a number = inside that room
     relationships: [
-      { name: pick(FIRST_NAMES), type: "Parent", closeness: 70 },
-      { name: pick(FIRST_NAMES), type: "Parent", closeness: 70 },
+      { id: 1, name: pick(FIRST_NAMES), type: "Parent", closeness: 70, lastInteractedAge: 0 },
+      { id: 2, name: pick(FIRST_NAMES), type: "Parent", closeness: 70, lastInteractedAge: 0 },
     ],
+    nextRelId: 3,
     partner: null,
     children: [],
     feed: [],
@@ -749,6 +825,7 @@ function newGame() {
     educationLevel: "None",
     studentLoans: 0,
     vehicles: [],
+    will: {}, // relationshipId -> percentage of estate
     activeTab: "story",
     pendingChoice: null,
   };
@@ -770,7 +847,7 @@ function applyDelta(field, amount) {
 const EVENTS = [
   // ---- childhood ----
   { cond: s => s.age>=1 && s.age<=4, weight: 3, build: s => {
-      const r = pick(["took their first wobbly steps","said their first word — it was 'no'","got hooked on a cartoon about a dragon","threw the world's tidiest tantrum in a grocery store"]);
+      const r = pick(["took their first wobbly steps","said their first word ΓÇö it was 'no'","got hooked on a cartoon about a dragon","threw the world's tidiest tantrum in a grocery store"]);
       return { text:`${s.name} ${r}.`, deltas:[["happiness", rand(1,4)]] };
   }},
   { cond: s => s.age>=5 && s.age<=12, weight: 3, build: s => {
@@ -857,6 +934,22 @@ const EVENTS = [
         { label:"Not yet", deltas:[], result:"Decided to wait." },
       ]
   })},
+  { cond: s => {
+      if (!s.partner) return false;
+      const p = s.relationships.find(r => r.name===s.partner && (r.type==="Spouse"||r.type==="Partner"));
+      return p && p.closeness <= 25;
+    }, weight: 1.5, build: s => {
+      const p = s.relationships.find(r => r.name===s.partner && (r.type==="Spouse"||r.type==="Partner"));
+      const married = p.type==="Spouse";
+      return {
+        text: `Things have been rocky with ${s.partner} lately. It might be time for a hard conversation.`,
+        choices: [
+          { label:"Work it out", deltas:[["happiness", rand(2,5)]], result:`${s.name} and ${s.partner} talked it through and decided to try harder.`, flag:"reconcile" },
+          { label: married ? "File for divorce" : "End things", deltas:[["happiness", rand(-10,-5)], ["money", married ? -2500 : 0]],
+            result: married ? `${s.name} and ${s.partner} divorced. It's a fresh, lonelier start.` : `${s.name} and ${s.partner} broke up.`, flag:"breakup" },
+        ]
+      };
+  }},
 
   // ---- health / random life ----
   { cond: s => true, weight: 1, build: s => {
@@ -921,6 +1014,29 @@ function ageUp() {
   applyDelta("health", -rand(0,2));
   applyDelta("happiness", -rand(0,2));
   if (state.age > 65) applyDelta("health", -rand(1,3));
+
+  // relationships drift apart if neglected this year
+  state.relationships.forEach(r => {
+    const neglected = (r.lastInteractedAge === undefined) || (r.lastInteractedAge < state.age - 1);
+    if (neglected) {
+      const decay = r.type === "Spouse" || r.type === "Partner" ? rand(2,5) : rand(1,4);
+      r.closeness = clamp(r.closeness - decay);
+    }
+  });
+  // friends (not family/partner/kids) can drift away entirely if the bond goes cold
+  const before = state.relationships.length;
+  state.relationships = state.relationships.filter(r => {
+    if (r.type === "Friend" && r.closeness <= 5) {
+      log(`${state.name} and ${r.name} drifted apart. Haven't spoken in ages.`);
+      return false;
+    }
+    return true;
+  });
+
+  // kids get older too
+  if (state.children.length) {
+    state.children.forEach(kid => { kid.age++; });
+  }
 
   // income & housing costs (weekly * 52, simplified to once per year)
   if (state.salary) applyDelta("money", state.salary * 52);
@@ -988,12 +1104,27 @@ function resolveChoice(choiceIndex) {
       }
     }
   }
-  if (c.flag === "newPartner") state.partner = pick(FIRST_NAMES);
-  if (c.flag === "marry") state.relationships.push({name:state.partner, type:"Spouse", closeness:85});
+  if (c.flag === "newPartner") {
+    state.partner = pick(FIRST_NAMES);
+    state.relationships.push({ id: nextRelId(), name: state.partner, type: "Partner", closeness: 60, lastInteractedAge: state.age });
+  }
+  if (c.flag === "marry") {
+    const p = state.relationships.find(r => r.name === state.partner && r.type === "Partner");
+    if (p) { p.type = "Spouse"; p.closeness = Math.max(p.closeness, 85); p.lastInteractedAge = state.age; }
+    else state.relationships.push({ id: nextRelId(), name: state.partner, type: "Spouse", closeness: 85, lastInteractedAge: state.age });
+  }
   if (c.flag === "baby") {
     const kid = pick(FIRST_NAMES);
     state.children.push({name:kid, age:0});
-    state.relationships.push({name:kid, type:"Child", closeness:90});
+    state.relationships.push({ id: nextRelId(), name: kid, type: "Child", closeness: 90, lastInteractedAge: state.age });
+  }
+  if (c.flag === "reconcile") {
+    const p = state.relationships.find(r => r.name === state.partner && (r.type==="Spouse"||r.type==="Partner"));
+    if (p) { p.closeness = clamp(p.closeness + 20); p.lastInteractedAge = state.age; }
+  }
+  if (c.flag === "breakup") {
+    state.relationships = state.relationships.filter(r => !(r.name === state.partner && (r.type==="Spouse"||r.type==="Partner")));
+    state.partner = null;
   }
 
   state.pendingChoice = null;
@@ -1004,9 +1135,28 @@ function resolveChoice(choiceIndex) {
 function handleDeath() {
   state.alive = false;
   document.getElementById("go-title").textContent = state.age > 95 ? "A Long Life" : "The End";
-  const cause = state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : "");
+  const cause = state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "ΓÇö health finally gave out" : "");
+
+  pruneWill();
+  let willText = "";
+  if (state.money > 0 && Object.keys(state.will).length) {
+    const estate = state.money;
+    const totalPctRaw = Object.values(state.will).reduce((a,b)=>a+b,0);
+    const scale = totalPctRaw > 100 ? 100/totalPctRaw : 1; // never pay out more than the estate
+    const shares = Object.entries(state.will).map(([id,pct]) => {
+      const r = state.relationships.find(x=>x.id==id);
+      const amount = Math.round(estate * (pct*scale/100));
+      return r ? `${fmtMoney(amount)} to ${r.name}` : null;
+    }).filter(Boolean);
+    const totalPct = Math.min(100, totalPctRaw);
+    if (totalPct < 100) shares.push(`${fmtMoney(Math.round(estate*((100-totalPct)/100)))} unclaimed`);
+    willText = ` Per their will, the estate was split: ${shares.join(", ")}.`;
+  } else if (state.money > 0) {
+    willText = " With no will on file, the estate goes unclaimed.";
+  }
+
   document.getElementById("go-text").textContent =
-    `${state.name} lived to ${state.age}. They leaves behind ${fmtMoney(state.money)} and ${state.relationships.length} people who knew them. ${cause}`;
+    `${state.name} lived to ${state.age}. They leave behind ${fmtMoney(state.money)} and ${state.relationships.length} people who knew them. ${cause}${willText}`;
   saveGame();
   document.getElementById("gameover").classList.add("show");
 }
@@ -1056,7 +1206,7 @@ function buyProperty(propId, mode, furnitureGrade) {
   closeModal();
   const modeLabel = mode==="rent" ? "renting" : mode==="finance" ? "financing" : "bought outright";
   toast(`Moved into the ${prop.name} (${modeLabel}).`);
-  log(`${state.name} moved into a new place: the ${prop.name}${furnitureGrade ? ` — ${FURNITURE_PACKS[furnitureGrade].label}` : ""}.`);
+  log(`${state.name} moved into a new place: the ${prop.name}${furnitureGrade ? ` ΓÇö ${FURNITURE_PACKS[furnitureGrade].label}` : ""}.`);
   saveGame();
   render();
 }
@@ -1200,7 +1350,7 @@ function renderFloorPlan(main, prop, layout) {
   const stage = document.createElement("div");
   stage.id = "room-stage";
   stage.innerHTML = `<div id="room-label-bar" style="border-top:none;">
-      <div><div id="room-name">${prop.name}</div><div id="room-tier">Tier ${prop.tier} · ${ownershipLabel()} · ${layout.length} rooms</div></div>
+      <div><div id="room-name">${prop.name}</div><div id="room-tier">Tier ${prop.tier} ┬╖ ${ownershipLabel()} ┬╖ ${layout.length} rooms</div></div>
     </div>`;
   main.appendChild(stage);
 
@@ -1244,7 +1394,7 @@ function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
     const back = document.createElement("button");
     back.className = "panel-action secondary";
     back.style.marginBottom = "10px";
-    back.textContent = "← Floor Plan";
+    back.textContent = "ΓåÉ Floor Plan";
     back.onclick = () => { state.activeRoomIndex = null; render(); };
     main.appendChild(back);
   }
@@ -1253,7 +1403,7 @@ function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
   stage.id = "room-stage";
   stage.innerHTML = `<div id="room-canvas-wrap">${renderRoomSVG(prop, roomType, roomIndex)}</div>
     <div id="room-label-bar">
-      <div><div id="room-name">${roomDef.icon} ${roomType==="studio"?prop.name:roomDef.name}</div><div id="room-tier">Tier ${prop.tier} · ${ownershipLabel()}</div></div>
+      <div><div id="room-name">${roomDef.icon} ${roomType==="studio"?prop.name:roomDef.name}</div><div id="room-tier">Tier ${prop.tier} ┬╖ ${ownershipLabel()}</div></div>
     </div>`;
   main.appendChild(stage);
 
@@ -1273,7 +1423,7 @@ function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
   // furniture for this room's slots only
   const ftitle = document.createElement("div");
   ftitle.className = "section-title";
-  ftitle.textContent = `Decorate · ${roomType==="studio"?"Studio":roomDef.name}`;
+  ftitle.textContent = `Decorate ┬╖ ${roomType==="studio"?"Studio":roomDef.name}`;
   main.appendChild(ftitle);
 
   const placed = state.placedFurniture[roomIndex] || {};
@@ -1317,7 +1467,7 @@ function financeStatusCard(main, prop) {
     fc.className = "panel-card";
     fc.innerHTML = `<div class="panel-row">
         <div><div class="panel-title">Fully Owned</div><div class="panel-sub">No payments. It's all yours.</div></div>
-        <div style="font-size:18px;">🔑</div>
+        <div style="font-size:18px;">≡ƒöæ</div>
       </div>`;
     main.appendChild(fc);
   }
@@ -1416,47 +1566,139 @@ function renderPeople(main) {
   title.textContent = "Relationships";
   main.appendChild(title);
 
+  // Meet New People action
+  const meetCard = document.createElement("div");
+  meetCard.className = "panel-card";
+  meetCard.innerHTML = `<div class="panel-row">
+      <div><div class="panel-title">Out and About</div><div class="panel-sub">Meet someone new this year</div></div>
+    </div>`;
+  const meetBtn = document.createElement("button");
+  meetBtn.className = "panel-action";
+  meetBtn.style.marginTop = "8px";
+  meetBtn.textContent = "Meet Someone";
+  meetBtn.onclick = () => {
+    const name = pick(FIRST_NAMES);
+    const context = pick(FRIEND_CONTEXTS);
+    state.relationships.push({ id: nextRelId(), name, type: "Friend", closeness: rand(20,35), lastInteractedAge: state.age });
+    log(`${state.name} met ${name} ${context}.`);
+    saveGame(); render();
+  };
+  meetCard.appendChild(meetBtn);
+  main.appendChild(meetCard);
+
+  // Last Will & Testament summary card
+  if (!state.will) state.will = {};
+  pruneWill();
+  const willTotal = Object.values(state.will).reduce((a,b)=>a+b,0);
+  const willCard = document.createElement("div");
+  willCard.className = "panel-card";
+  if (willTotal === 0) {
+    willCard.innerHTML = `<div class="panel-row">
+        <div><div class="panel-title">Last Will & Testament</div><div class="panel-sub">No will on file. Your estate would go unclaimed.</div></div>
+      </div>`;
+  } else {
+    const heirNames = Object.entries(state.will).map(([id,pct]) => {
+      const r = state.relationships.find(x=>x.id==id);
+      return r ? `${r.name} (${pct}%)` : null;
+    }).filter(Boolean).join(", ");
+    willCard.innerHTML = `<div class="panel-row">
+        <div><div class="panel-title">Last Will & Testament</div><div class="panel-sub">${willTotal}% allocated ΓÇö ${heirNames}</div></div>
+      </div>`;
+  }
+  const willBtn = document.createElement("button");
+  willBtn.className = "panel-action secondary";
+  willBtn.style.marginTop = "8px";
+  willBtn.textContent = willTotal === 0 ? "Write a Will" : "Edit Will";
+  willBtn.onclick = openWillModal;
+  willCard.appendChild(willBtn);
+  main.appendChild(willCard);
+
   if (state.relationships.length === 0) {
     main.innerHTML += `<div class="empty-hint">No one in your life yet. That tends to change.</div>`;
     return;
   }
 
-  state.relationships.forEach(r=>{
+  // sort: family/partner first, then friends, by closeness desc within group
+  const order = { "Spouse":0, "Partner":0, "Parent":1, "Child":1, "Friend":2 };
+  const sorted = [...state.relationships].sort((a,b) => {
+    const oa = order[a.type] ?? 3, ob = order[b.type] ?? 3;
+    if (oa !== ob) return oa - ob;
+    return b.closeness - a.closeness;
+  });
+
+  sorted.forEach(r=>{
     const c = document.createElement("div");
-    c.className = "panel-card";
+    c.className = "panel-card rel-card";
+    const ageLabel = r.type === "Child" ? `, age ${r.age}` : "";
     c.innerHTML = `<div class="panel-row">
-        <div><div class="panel-title">${r.name}</div><div class="panel-sub">${r.type}</div></div>
-        <div style="font-size:12px; color:#8a7d6b;">❤ ${r.closeness}</div>
+        <div>
+          <div class="panel-title">${r.name}</div>
+          <div class="panel-sub">${r.type}${ageLabel}</div>
+          <div class="rel-closeness-track"><div class="rel-closeness-fill" style="width:${r.closeness}%"></div></div>
+          <div class="rel-meta">Closeness ${r.closeness}</div>
+        </div>
       </div>`;
 
     const actions = document.createElement('div');
-    actions.style.marginTop='8px';
+    actions.style.marginTop='10px';
     actions.style.display='flex';
+    actions.style.flexWrap='wrap';
     actions.style.gap='6px';
 
-    const spend=document.createElement('button');
-    spend.className='panel-action secondary';
-    spend.textContent='Spend Time';
-    spend.onclick=()=>{
-      r.closeness=Math.min(100,r.closeness+8);
-      state.happiness=Math.min(100,state.happiness+3);
-      log(`${state.name} spent time with ${r.name}.`);
+    const interact = (amount, happyAmount, verb) => {
+      r.closeness = clamp(r.closeness + amount, 0, 100);
+      r.lastInteractedAge = state.age;
+      if (happyAmount) state.happiness = clamp(state.happiness + happyAmount);
+      log(`${state.name} ${verb} ${r.name}.`);
       saveGame(); render();
     };
 
-    const gift=document.createElement('button');
-    gift.className='panel-action';
-    gift.textContent='Gift';
-    gift.onclick=()=>{
-      if(state.money<50){toast('Need $50');return;}
-      state.money-=50;
-      r.closeness=Math.min(100,r.closeness+12);
-      log(`${state.name} bought a gift for ${r.name}.`);
-      saveGame(); render();
-    };
+    const call = document.createElement('button');
+    call.className = 'panel-action secondary small';
+    call.textContent = 'Call';
+    call.onclick = () => interact(rand(2,5), 1, "called");
+    actions.appendChild(call);
 
+    const spend = document.createElement('button');
+    spend.className = 'panel-action secondary small';
+    spend.textContent = 'Spend Time';
+    spend.onclick = () => interact(rand(6,10), 3, "spent time with");
     actions.appendChild(spend);
+
+    const gift = document.createElement('button');
+    gift.className = 'panel-action small';
+    gift.textContent = 'Gift ($50)';
+    gift.onclick = () => {
+      if (state.money < 50) { toast('Need $50'); return; }
+      state.money -= 50;
+      interact(rand(10,14), 1, "bought a gift for");
+    };
     actions.appendChild(gift);
+
+    if (r.type === "Partner" || r.type === "Spouse") {
+      const date = document.createElement('button');
+      date.className = 'panel-action small';
+      date.textContent = 'Plan a Date ($80)';
+      date.onclick = () => {
+        if (state.money < 80) { toast('Need $80'); return; }
+        state.money -= 80;
+        interact(rand(8,14), 4, "took on a date ΓÇö");
+      };
+      actions.appendChild(date);
+    }
+
+    if (r.type === "Friend") {
+      const drift = document.createElement('button');
+      drift.className = 'panel-action danger small';
+      drift.textContent = 'Drift Apart';
+      drift.onclick = () => {
+        state.relationships = state.relationships.filter(x => x.id !== r.id);
+        log(`${state.name} and ${r.name} drifted apart.`);
+        saveGame(); render();
+      };
+      actions.appendChild(drift);
+    }
+
     c.appendChild(actions);
     main.appendChild(c);
   });
@@ -1547,6 +1789,86 @@ function renderEducation(main) {
 }
 /* ---------------- MODALS ---------------- */
 
+/* ---------------- WILL ---------------- */
+function pruneWill() {
+  if (!state.will) { state.will = {}; return; }
+  const liveIds = new Set(state.relationships.map(r=>r.id));
+  Object.keys(state.will).forEach(id => {
+    if (!liveIds.has(Number(id)) || state.will[id] <= 0) delete state.will[id];
+  });
+}
+
+function openWillModal() {
+  pruneWill();
+  const sheet = document.getElementById("modal-sheet");
+  sheet.innerHTML = `<div id="modal-title">Last Will & Testament</div><div id="modal-sub">Decide how your estate is split when you're gone. Unallocated percentage goes unclaimed.</div>`;
+
+  if (state.relationships.length === 0) {
+    sheet.innerHTML += `<div class="empty-hint">No one to leave anything to yet.</div>`;
+    document.getElementById("modal-overlay").classList.add("show");
+    return;
+  }
+
+  const totalBar = document.createElement("div");
+  totalBar.className = "will-total-bar";
+  sheet.appendChild(totalBar);
+
+  function currentTotal() {
+    return Object.values(state.will).reduce((a,b)=>a+b,0);
+  }
+  function refreshTotalBar() {
+    const t = currentTotal();
+    totalBar.innerHTML = `<span>Allocated</span><span class="${t>100?'over':''}">${t}% / 100%</span>`;
+  }
+
+  const sorted = [...state.relationships].sort((a,b)=>b.closeness-a.closeness);
+  sorted.forEach(r => {
+    const row = document.createElement("div");
+    row.className = "will-row";
+    const pct = state.will[r.id] || 0;
+    row.innerHTML = `
+      <div><div class="will-row-name">${r.name}</div><div class="will-row-sub">${r.type}</div></div>
+      <div class="will-stepper">
+        <button data-act="minus">ΓêÆ</button>
+        <div class="will-pct">${pct}%</div>
+        <button data-act="plus">+</button>
+      </div>
+    `;
+    const pctEl = row.querySelector(".will-pct");
+    const minusBtn = row.querySelector('[data-act="minus"]');
+    const plusBtn = row.querySelector('[data-act="plus"]');
+
+    function update(delta) {
+      const cur = state.will[r.id] || 0;
+      const next = clamp(cur + delta, 0, 100);
+      if (delta > 0 && currentTotal() + delta > 100) { toast("That's over 100% of the estate."); return; }
+      if (next === 0) delete state.will[r.id];
+      else state.will[r.id] = next;
+      pctEl.textContent = (state.will[r.id]||0) + "%";
+      minusBtn.disabled = !state.will[r.id];
+      refreshTotalBar();
+      saveGame();
+    }
+    minusBtn.disabled = !pct;
+    minusBtn.onclick = () => update(-5);
+    plusBtn.onclick = () => update(5);
+
+    sheet.appendChild(row);
+  });
+
+  refreshTotalBar();
+
+  const done = document.createElement("button");
+  done.className = "panel-action";
+  done.style.width = "100%";
+  done.style.marginTop = "4px";
+  done.textContent = "Done";
+  done.onclick = () => { closeModal(); render(); };
+  sheet.appendChild(done);
+
+  document.getElementById("modal-overlay").classList.add("show");
+}
+
 function openPropertyModal() {
   const sheet = document.getElementById("modal-sheet");
   sheet.innerHTML = `<div id="modal-title">Property Listings</div><div id="modal-sub">Rent for flexibility. Finance to build equity slowly. Buy outright if you can afford it.</div>`;
@@ -1611,7 +1933,7 @@ function openFurnitureStep(propId, mode) {
   back.className = "panel-action secondary";
   back.style.width = "100%";
   back.style.marginTop = "4px";
-  back.textContent = "← Back to Listings";
+  back.textContent = "ΓåÉ Back to Listings";
   back.onclick = openPropertyModal;
   sheet.appendChild(back);
 }
@@ -1656,5 +1978,6 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
   });
 }
 </script>
-</body>
-</html>
+
+
+</body></html>
