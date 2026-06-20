@@ -1509,12 +1509,58 @@ function renderRoomSVG(prop, roomType, roomIndex) {
     furniture += textIcon(emojiFor(itemId), pos.x, pos.y, pos.size);
   });
 
-  return `<svg viewBox="0 0 480 360" preserveAspectRatio="xMidYMid slice">
-    <rect x="0" y="0" width="480" height="240" fill="${wallColor}"/>
-    <rect x="0" y="240" width="480" height="120" fill="${floorColor}"/>
-    <rect x="0" y="236" width="480" height="6" fill="${wallColor}" opacity="0.6"/>
-    <rect x="30" y="30" width="80" height="60" rx="2" fill="#fff" opacity="0.5" stroke="#00000022"/>
-    <rect x="380" y="40" width="50" height="100" rx="2" fill="#8a6a4a" opacity="0.7"/>
+  const shade = (hex, n) => {
+    const num = parseInt(hex.slice(1), 16);
+    const r = Math.min(255, Math.max(0, ((num >> 16) & 0xff) + n));
+    const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + n));
+    const b = Math.min(255, Math.max(0, (num & 0xff) + n));
+    return `rgb(${r},${g},${b})`;
+  };
+  const wallDark = shade(wallColor, -28);
+  const wallLight = shade(wallColor, 28);
+  const floorDark = shade(floorColor, -28);
+  const floorLight = shade(floorColor, 28);
+
+  const ts = 20;
+  let wallTiles = "";
+  for (let y = 0; y < 240; y += ts) {
+    for (let x = 0; x < 480; x += ts) {
+      const inStripe = (x % 80) < 14;
+      wallTiles += `<rect x="${x}" y="${y}" width="${ts}" height="${ts}" fill="${inStripe ? wallLight : wallColor}"/>`;
+    }
+  }
+  let floorTiles = "";
+  for (let y = 240; y < 360; y += ts) {
+    for (let x = 0; x < 480; x += ts) {
+      const col = Math.floor(x / ts);
+      const row = Math.floor((y - 240) / ts);
+      floorTiles += `<rect x="${x}" y="${y}" width="${ts}" height="${ts}" fill="${(col + row) % 2 === 0 ? floorDark : floorLight}"/>`;
+    }
+  }
+
+  const baseboardY = 236;
+  const baseboardH = 8;
+  const wx = 28, wy = 28, ww = 72, wh = 72;
+  const ax = 120, ay = 205;
+
+  const avatar = `
+    <rect x="${ax + 2}" y="${ay}" width="10" height="10" fill="#f1c27d"/>
+    <rect x="${ax - 4}" y="${ay + 10}" width="22" height="16" fill="#e74c3c"/>
+    <rect x="${ax - 4}" y="${ay + 26}" width="8" height="14" fill="#2c3e50"/>
+    <rect x="${ax + 10}" y="${ay + 26}" width="8" height="14" fill="#2c3e50"/>
+    <rect x="${ax - 6}" y="${ay + 38}" width="10" height="5" fill="#2c3e50"/>
+    <rect x="${ax + 8}" y="${ay + 38}" width="10" height="5" fill="#2c3e50"/>`;
+
+  return `<svg viewBox="0 0 480 360" preserveAspectRatio="xMidYMid slice" shape-rendering="crispEdges">
+    ${wallTiles}
+    <rect x="0" y="${baseboardY}" width="480" height="${baseboardH}" fill="${wallDark}"/>
+    <rect x="0" y="${baseboardY}" width="480" height="2" fill="${wallLight}"/>
+    ${floorTiles}
+    <rect x="${wx}" y="${wy}" width="${ww}" height="${wh}" fill="${wallDark}"/>
+    <rect x="${wx + 4}" y="${wy + 4}" width="${ww - 8}" height="${wh - 8}" fill="#7ec8e3"/>
+    <rect x="${wx + ww / 2 - 2}" y="${wy + 4}" width="4" height="${wh - 8}" fill="${wallDark}"/>
+    <rect x="${wx + 4}" y="${wy + wh / 2 - 2}" width="${ww - 8}" height="4" fill="${wallDark}"/>
+    ${avatar}
     ${furniture}
   </svg>`;
 }
