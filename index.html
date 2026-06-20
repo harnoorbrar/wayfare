@@ -573,6 +573,30 @@
            padding-right: env(safe-area-inset-right, 0px);
            padding-bottom: env(safe-area-inset-bottom, 0px); }
   }
+  #tombstone{background:var(--ink);color:var(--paper);position:absolute;inset:0;z-index:70;display:none;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;}
+  #tombstone.show{display:flex;}
+  .tomb{width:100%;max-width:300px;margin:10px auto 0;background:linear-gradient(180deg,#b8b2a8,#9a9388);border-radius:140px 140px 14px 14px;padding:34px 26px 28px;text-align:center;box-shadow:0 14px 30px rgba(0,0,0,.45),inset 0 2px 6px rgba(255,255,255,.35),inset 0 -8px 16px rgba(0,0,0,.18);position:relative;animation:tombRise .8s cubic-bezier(.22,1,.36,1);}
+  @keyframes tombRise{from{opacity:0;transform:translateY(40px);}to{opacity:1;transform:translateY(0);}}
+  .tomb::before{content:"";position:absolute;inset:12px;border:2px solid rgba(43,36,32,.18);border-radius:120px 120px 8px 8px;pointer-events:none;}
+  .tomb-cross{font-size:16px;color:#6a6258;margin-bottom:8px;}
+  .rip{font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:6px;color:#5a544c;margin-bottom:14px;}
+  .tomb-name{font-family:var(--font-display);font-size:23px;font-weight:700;color:#3a342d;line-height:1.2;margin-bottom:6px;position:static;}
+  .tomb-dates{font-size:13px;color:#5a544c;margin-bottom:16px;}
+  .tomb-epitaph{font-family:var(--font-display);font-style:italic;font-size:13.5px;color:#48423b;line-height:1.5;}
+  .cause{margin:22px auto 0;max-width:320px;font-size:14px;font-style:italic;color:var(--accent-dim);text-align:center;line-height:1.5;opacity:.9;}
+  .legacy-panel{width:100%;max-width:340px;margin:24px auto 0;background:rgba(244,237,225,.06);border:1px solid rgba(244,237,225,.12);border-radius:14px;padding:16px 18px;}
+  .legacy-h{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#a89a82;text-align:center;margin-bottom:12px;}
+  .final-stats{display:flex;gap:8px;margin-bottom:16px;}
+  .fs{flex:1;text-align:center;}
+  .fs-bar{height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-bottom:5px;}
+  .fs-fill{height:100%;border-radius:3px;}
+  .fs-label{font-size:9px;color:#a89a82;text-transform:uppercase;}
+  .fs-val{font-size:12px;font-weight:700;color:var(--paper);}
+  .tally{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;}
+  .tally-item{display:flex;justify-content:space-between;font-size:13px;border-bottom:1px dotted rgba(255,255,255,.12);padding-bottom:5px;}
+  .tally-k{color:#a89a82;}
+  .tally-v{color:var(--paper);font-weight:600;text-align:right;}
+  #gameover{justify-content:flex-start!important;overflow-y:auto;}
 </style>
 </head>
 <body>
@@ -625,8 +649,7 @@
   <div id="toast"></div>
 
   <div id="gameover">
-    <h1 id="go-title">The End</h1>
-    <p id="go-text"></p>
+    <div id="legacy-content"></div>
     <button id="restart-btn">Begin a New Life</button>
   </div>
 
@@ -846,6 +869,7 @@ function newGame() {
     studentLoans: 0,
     vehicles: [],
     will: {}, // relationshipId -> percentage of estate
+    peakMoney: 0,
     activeTab: "story",
     pendingChoice: null,
   };
@@ -858,7 +882,7 @@ function log(text, deltas) {
 }
 
 function applyDelta(field, amount) {
-  if (field === "money") { state.money += amount; return; }
+  if (field === "money") { state.money += amount; if (state.money > (state.peakMoney||0)) state.peakMoney = state.money; return; }
   state[field] = clamp(Math.round(state[field] + amount));
 }
 
@@ -1152,6 +1176,42 @@ function resolveChoice(choiceIndex) {
   render();
 }
 
+function buildLegacy(){
+  const age=state.age;
+  let cause;
+  if(age>95) cause="Died peacefully of old age, mid-nap, mid-dream.";
+  else if(state.health<=0){const f=["Health finally filed its resignation.","The body called it a day.","Ran out of hit points the old-fashioned way."];cause=f[Math.floor(Math.random()*f.length)];}
+  else cause="Cause unknown. The universe shrugged.";
+  let epitaph;
+  if(state.happiness>70) epitaph="Lived gladly, loved loudly, left light.";
+  else if((state.peakMoney||state.money)>500000) epitaph="Built much, kept more, took none of it along.";
+  else if(state.children.length) epitaph="Remembered most by those they raised.";
+  else epitaph="A quiet life, fully their own.";
+  const kids=state.children.length;
+  const married=state.relationships.some(r=>r.type==="Spouse");
+  const peak=state.peakMoney||state.money;
+  const job=state.job||"None";
+  const stats=[["Health",state.health,"var(--bad)"],["Happy",state.happiness,"var(--gold)"],["Smarts",state.smarts,"#4a6c8c"],["Looks",state.looks,"#8c5a9c"]];
+  const statRow=stats.map(([n,v,c])=>`<div class="fs"><div class="fs-bar"><div class="fs-fill" style="width:${Math.max(0,Math.min(100,v))}%;background:${c}"></div></div><div class="fs-val">${Math.round(v)}</div><div class="fs-label">${n}</div></div>`).join("");
+  document.getElementById("legacy-content").innerHTML=`
+    <div class="tomb"><div class="tomb-cross">✝</div><div class="rip">R · I · P</div>
+    <div class="tomb-name">${state.name}</div>
+    <div class="tomb-dates">lived to ${age}</div>
+    <div class="tomb-epitaph">"${epitaph}"</div></div>
+    <div class="cause">${cause}</div>
+    <div class="legacy-panel"><div class="legacy-h">Final Stats</div>
+    <div class="final-stats">${statRow}</div>
+    <div class="legacy-h">A Life Lived</div>
+    <div class="tally">
+      <div class="tally-item"><span class="tally-k">Career</span><span class="tally-v">${job}</span></div>
+      <div class="tally-item"><span class="tally-k">Peak wealth</span><span class="tally-v">${fmtMoney(peak)}</span></div>
+      <div class="tally-item"><span class="tally-k">Married</span><span class="tally-v">${married?"Yes":"Never"}</span></div>
+      <div class="tally-item"><span class="tally-k">Children</span><span class="tally-v">${kids}</span></div>
+      <div class="tally-item"><span class="tally-k">Estate</span><span class="tally-v">${fmtMoney(state.money)}</span></div>
+      <div class="tally-item"><span class="tally-k">Known by</span><span class="tally-v">${state.relationships.length} people</span></div>
+    </div></div>`;
+}
+
 function handleDeath() {
   state.alive = false;
   document.getElementById("go-title").textContent = state.age > 95 ? "A Long Life" : "The End";
@@ -1178,6 +1238,7 @@ function handleDeath() {
   document.getElementById("go-text").textContent =
     `${state.name} lived to ${state.age}. They leave behind ${fmtMoney(state.money)} and ${state.relationships.length} people who knew them. ${cause}${willText}`;
   saveGame();
+  buildLegacy();
   document.getElementById("gameover").classList.add("show");
 }
 
