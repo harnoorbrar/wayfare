@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Wayfare — A Life, Lived</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c2542f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wayfare">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
+<meta name="description" content="Wayfare is an indie life simulator PWA. Play offline, install on your phone, and lead a life with choices that matter.">
+<meta property="og:title" content="Wayfare — A Life, Lived">
+<meta property="og:description" content="An indie life simulator. A life, lived.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="icons/social-preview.png">
+
+<style>
+  :root {
+    --ink: #2b2420;
+    --paper: #f4ede1;
+    --paper-dim: #e8dfd0;
+    --accent: #c2542f;
+    --accent-dim: #e0a384;
+    --good: #4a7c59;
+    --bad: #b3433a;
+    --gold: #c99a3a;
+    --line: #d8cdb8;
+    --shadow: rgba(43,36,32,0.18);
+    --font-display: 'Lora', Georgia, serif;
+    --font-body: 'Inter', -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    overflow: hidden;
+    overscroll-behavior: none;
+    user-select: none;
+  }
+
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--paper);
+    box-shadow: 0 0 40px var(--shadow);
+  }
+
+  #header {
+    flex-shrink: 0;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+    z-index: 10;
+  }
+  #header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  #char-name {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  #char-age {
+    font-size: 12px;
+    color: #8a7d6b;
+    font-variant-numeric: tabular-nums;
+  }
+  #stats-row { display: flex; gap: 10px; }
+  .stat-pill {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .stat-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8a7d6b;
+    display: flex;
+    justify-content: space-between;
+  }
+  .stat-track {
+    height: 4px;
+    background: var(--paper-dim);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .stat-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .fill-health { background: var(--bad); }
+  .fill-happy { background: var(--gold); }
+  .fill-smarts { background: #4a6c8c; }
+  .fill-looks { background: #8c5a9c; }
+
+  #money-row {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+  #money-amt {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--good);
+  }
+  #money-amt.negative { color: var(--bad); }
+
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px;
+    padding-bottom: 90px;
+  }
+
+  .event-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 15px;
+    margin-bottom: 10px;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .event-age {
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .event-text { font-size: 14.5px; line-height: 1.5; }
+  .event-delta {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-top: 6px;
+    margin-right: 5px;
+  }
+  .delta-pos { background: rgba(74,124,89,0.12); color: var(--good); }
+  .delta-neg { background: rgba(179,67,58,0.12); color: var(--bad); }
+
+  .choice-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .choice-btn {
+    background: var(--paper-dim);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    text-align: left;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .choice-btn:active { background: var(--accent-dim); }
+
+  #bottom-bar {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    background: rgba(244,237,225,0.92);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid var(--line);
+    padding: 10px 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 20;
+  }
+
+  .action-btn {
+    flex: 1;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 10px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    color: var(--ink);
+    font-family: var(--font-body);
+  }
+  .action-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .hidden { display: none !important; }
+
+  #install-banner {
+    display: none;
+    text-align: center;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+  <div id="app">
+    <header id="header">
+      <div id="header-top">
+        <div id="char-name">New Game</div>
+        <div id="char-age">Age 0</div>
+      </div>
+      <div id="stats-row">
+        <div class="stat-pill">
+          <div class="stat-label"><span>Health</span><span id="health-val">50</span></div>
+          <div class="stat-track"><div class="stat-fill fill-health" id="health-fill" style="width:50%"></div></div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-label"><span>Happy</span><span id="happy-val">50</span></div>
+          <div class="stat-track"><div class="stat-fill fill-happy" id="happy-fill" style="width:50%"></div></div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-label"><span>Smarts</span><span id="smarts-val">20</span></div>
+          <div class="stat-track"><div class="stat-fill fill-smarts" id="smarts-fill" style="width:20%"></div></div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-label"><span>Looks</span><span id="looks-val">20</span></div>
+          <div class="stat-track"><div class="stat-fill fill-looks" id="looks-fill" style="width:20%"></div></div>
+        </div>
+      </div>
+      <div id="money-row">
+        <div>Funds</div>
+        <div id="money-amt">$0</div>
+      </div>
+      <div id="install-banner">Tap menu to install Wayfare</div>
+    </header>
+
+    <main id="main"></main>
+
+    <div id="bottom-bar">
+      <button class="action-btn primary" id="continue-btn">Continue</button>
+      <button class="action-btn" id="new-btn">New Game</button>
+      <button class="action-btn" id="reset-btn">Reset Save</button>
+    </div>
+    <div id="bottom-bar">
+      <button class="action-btn" id="export-btn">Export Save</button>
+      <button class="action-btn" id="import-btn">Import Save</button>
+    </div>
+  </div>
+
+  <input type="file" id="import-file" accept=".json" class="hidden">
+
+<script>
+(function () {
+  'use strict';
+
+  const SAVE_KEY = 'wayfare_save_v1';
+  const mainEl = document.getElementById('main');
+  const continueBtn = document.getElementById('continue-btn');
+  const newBtn = document.getElementById('new-btn');
+  const resetBtn = document.getElementById('reset-btn');
+  const exportBtn = document.getElementById('export-btn');
+  const importBtn = document.getElementById('import-btn');
+  const importFile = document.getElementById('import-file');
+  const installBanner = document.getElementById('install-banner');
+
+  function defaultSave () {
+    return {
+      name: 'Traveler',
+      age: 0,
+      stats: { health: 50, happy: 50, smarts: 20, looks: 20 },
+      money: 0,
+      eventLog: []
+    };
+  }
+
+  function loadSave () {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveState (state) {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  }
+
+  function el (tag, attrs, children) {
+    const node = document.createElement(tag);
+    if (!attrs) return node;
+    Object.entries(attrs).forEach(([key, val]) => {
+      if (key === 'text') node.textContent = val;
+      else if (key === 'html') node.innerHTML = val;
+      else node.setAttribute(key, val);
+    });
+    (children || []).forEach((child) => node.appendChild(child));
+    return node;
+  }
+
+  function formatMoney (n) {
+    const s = String(n);
+    return (s.startsWith('-') ? '-$' : '$') + s.replace(/^-/, '');
+  }
+
+  function deltaLabel (obj) {
+    const parts = [];
+    for (const k of ['health','happy','smarts','looks']) {
+      const v = obj[k];
+      if (!v) continue;
+      parts.push(`${k} ${v > 0 ? '+' : ''}${v}`);
+    }
+    if (obj.money) parts.push(`money ${obj.money > 0 ? '+' : ''}${obj.money}`);
+    return parts.join('  ·  ');
+  }
+
+  function render () {
+    const state = loadSave() || defaultSave();
+    const stats = state.stats;
+
+    document.getElementById('char-name').textContent = state.name || 'Traveler';
+    document.getElementById('char-age').textContent = 'Age ' + state.age;
+
+    for (const k of ['health','happy','smarts','looks']) {
+      const v = Math.max(0, Math.min(100, stats[k] || 0));
+      document.getElementById(k + '-val').textContent = Math.round(v);
+      document.getElementById(k + '-fill').style.width = v + '%';
+    }
+    document.getElementById('money-amt').textContent = formatMoney(state.money);
+    document.getElementById('money-amt').classList.toggle('negative', state.money < 0);
+
+    mainEl.innerHTML = '';
+
+    (state.eventLog || []).slice().reverse().forEach((ev) => {
+      const card = el('div', { class: 'event-card' }, [
+        el('div', { class: 'event-age', text: ev.ageLabel || ('Age ' + ev.age) }),
+        el('div', { class: 'event-text', html: ev.text })
+      ]);
+      if (ev.delta) {
+        const cls = Object.values(ev.delta).some((v) => (v || 0) < 0) ? 'delta-neg' : 'delta-pos';
+        card.appendChild(el('div', { class: 'event-delta ' + cls, text: deltaLabel(ev.delta) }));
+      }
+      mainEl.appendChild(card);
+    });
+  }
+
+  function advance (choiceIndex) {
+    const state = loadSave() || defaultSave();
+    const age = state.age;
+    const template = pickEvent(age, choiceIndex);
+    const updated = applyEvent(state, template);
+    saveState(updated);
+    render();
+  }
+
+  function pickEvent (currentAge, forcedChoice) {
+    if (forcedChoice !== undefined) {
+      return {
+        text: `<strong>Event template</strong> happens at age ${currentAge}.`,
+        delta: { health: 0, happy: 5, smarts: 0, looks: 0, money: 0 },
+        nextAge: currentAge + 1,
+        choices: null,
+        choiceIndex: null
+      };
+    }
+    return {
+      text: `A new year passes for ${currentAge}.`,
+      delta: { health: 0, happy: 0, smarts: 2, looks: 0, money: 500 },
+      nextAge: currentAge + 1,
+      choices: null,
+      choiceIndex: null
+    };
+  }
+
+  function applyEvent (state, template) {
+    const nextAge = template.nextAge != null ? template.nextAge : state.age + 1;
+    const delta = template.delta || {};
+    if (delta.health) state.stats.health = (state.stats.health || 50) + (delta.health || 0);
+    if (delta.happy) state.stats.happy = (state.stats.happy || 50) + (delta.happy || 0);
+    if (delta.smarts) state.stats.smarts = (state.stats.smarts || 20) + (delta.smarts || 0);
+    if (delta.looks) state.stats.looks = (state.stats.looks || 20) + (delta.looks || 0);
+    if (delta.money) state.money = (state.money || 0) + (delta.money || 0);
+    for (const k of ['health','happy','smarts','looks']) state.stats[k] = Math.max(0, Math.min(100, state.stats[k]));
+    state.age = nextAge;
+    state.eventLog.push({
+      age,
+      ageLabel: 'Age ' + age,
+      text: template.text,
+      delta
+    });
+    return state;
+  }
+
+  continueBtn.addEventListener('click', () => advance());
+  newBtn.addEventListener('click', () => {
+    const fresh = defaultSave();
+    fresh.eventLog = [{ age: 0, ageLabel: 'Age 0', text: 'A fresh life begins.', delta: null }];
+    saveState(fresh);
+    render();
+  });
+  resetBtn.addEventListener('click', () => {
+    if (!confirm('Delete your save?')) return;
+    localStorage.removeItem(SAVE_KEY);
+    render();
+  });
+  exportBtn.addEventListener('click', () => {
+    const state = loadSave();
+    if (!state) return alert('No save exists.');
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'wayfare-save.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+  importBtn.addEventListener('click', () => importFile.click());
+  importFile.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const obj = JSON.parse(ev.target.result);
+        if (!obj || typeof obj.age !== 'number') throw new Error('Invalid save');
+        saveState(obj);
+        render();
+      } catch (err) {
+        alert('Invalid save file.');
+      }
+    };
+    reader.readAsText(file);
+    importFile.value = '';
+  });
+
+  registerSW();
+
+  render();
+})();
+
+async function registerSW () {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
+    if (reg && reg.waiting && !navigator.serviceWorker.controller) {
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+  } catch (err) {
+    // silent on dev/test environments where SW may not load
+  }
+}
+</script>
+</body>
+</html>
