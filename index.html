@@ -354,11 +354,11 @@
   /* ---------- BOTTOM NAV ---------- */
   #bottom-nav {
     position: absolute;
-    bottom: 0; left: 0; right: 0;
+    bottom: env(safe-area-inset-bottom, 0px); left: 0; right: 0;
     display: flex;
     background: #fff;
     border-top: 1px solid var(--line);
-    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 8px;
   }
   .nav-btn {
     flex: 1;
@@ -379,7 +379,7 @@
   /* ---------- AGE UP FAB ---------- */
   #ageup-btn {
     position: absolute;
-    bottom: 64px;
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
     right: 16px;
     background: var(--accent);
     color: #fff;
