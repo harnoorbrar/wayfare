@@ -553,6 +553,16 @@
     font-size: 15px;
     cursor: pointer;
   }
+  .stat-fill{ transition: width 0.55s cubic-bezier(.34,1.56,.64,1); }
+  .stat-pill{ position:relative; }
+  .stat-pill.flash-up .stat-track{ animation: flashUp 0.6s ease; }
+  .stat-pill.flash-down .stat-track{ animation: flashDown 0.6s ease; }
+  @keyframes flashUp{0%{box-shadow:0 0 0 0 rgba(74,124,89,0);}30%{box-shadow:0 0 0 3px rgba(74,124,89,.5);}100%{box-shadow:0 0 0 0 rgba(74,124,89,0);}}
+  @keyframes flashDown{0%{box-shadow:0 0 0 0 rgba(179,67,58,0);}30%{box-shadow:0 0 0 3px rgba(179,67,58,.5);}100%{box-shadow:0 0 0 0 rgba(179,67,58,0);}}
+  .stat-popup{position:absolute;left:50%;top:-2px;transform:translateX(-50%);font-size:13px;font-weight:800;pointer-events:none;animation:popFloat 1.1s cubic-bezier(.34,1.56,.64,1) forwards;text-shadow:0 1px 2px rgba(244,237,225,.9);z-index:5;}
+  .stat-popup.up{color:#4a7c59;}
+  .stat-popup.down{color:#b3433a;}
+  @keyframes popFloat{0%{opacity:0;transform:translateX(-50%) translateY(4px) scale(.4);}25%{opacity:1;transform:translateX(-50%) translateY(-6px) scale(1.25);}45%{transform:translateX(-50%) translateY(-10px) scale(1);}100%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(1);}}
 </style>
 </head>
 <body>
@@ -564,19 +574,19 @@
       <div id="char-age">Age 3</div>
     </div>
     <div id="stats-row">
-      <div class="stat-pill">
+      <div class="stat-pill" id="pill-health">
         <div class="stat-label"><span>Health</span></div>
         <div class="stat-track"><div class="stat-fill fill-health" id="bar-health" style="width: 97%;"></div></div>
       </div>
-      <div class="stat-pill">
+      <div class="stat-pill" id="pill-happy">
         <div class="stat-label"><span>Happy</span></div>
         <div class="stat-track"><div class="stat-fill fill-happy" id="bar-happy" style="width: 88%;"></div></div>
       </div>
-      <div class="stat-pill">
+      <div class="stat-pill" id="pill-smarts">
         <div class="stat-label"><span>Smarts</span></div>
         <div class="stat-track"><div class="stat-fill fill-smarts" id="bar-smarts" style="width: 30%;"></div></div>
       </div>
-      <div class="stat-pill">
+      <div class="stat-pill" id="pill-looks">
         <div class="stat-label"><span>Looks</span></div>
         <div class="stat-track"><div class="stat-fill fill-looks" id="bar-looks" style="width: 42%;"></div></div>
       </div>
@@ -1242,14 +1252,31 @@ function applyForJob(jobId) {
 }
 
 /* ---------------- RENDERING ---------------- */
+function animateStat(barId, pillId, oldVal, newVal){
+  const bar=document.getElementById(barId), pill=document.getElementById(pillId);
+  if(!bar) return;
+  bar.style.width=Math.max(0,Math.min(100,newVal))+"%";
+  const d=Math.round(newVal-oldVal);
+  if(d===0||!pill) return;
+  pill.classList.remove("flash-up","flash-down"); void pill.offsetWidth;
+  pill.classList.add(d>0?"flash-up":"flash-down");
+  const pop=document.createElement("div");
+  pop.className="stat-popup "+(d>0?"up":"down");
+  pop.textContent=(d>0?"+":"")+d;
+  pill.appendChild(pop);
+  setTimeout(()=>pop.remove(),1200);
+}
+window._prevStats=window._prevStats||{};
+
 function render() {
   if (!state) return;
   document.getElementById("char-name").textContent = state.name;
   document.getElementById("char-age").textContent = "Age " + state.age;
-  document.getElementById("bar-health").style.width = state.health+"%";
-  document.getElementById("bar-happy").style.width = state.happiness+"%";
-  document.getElementById("bar-smarts").style.width = state.smarts+"%";
-  document.getElementById("bar-looks").style.width = state.looks+"%";
+  animateStat("bar-health","pill-health", window._prevStats.health??state.health, state.health);
+  animateStat("bar-happy","pill-happy", window._prevStats.happiness??state.happiness, state.happiness);
+  animateStat("bar-smarts","pill-smarts", window._prevStats.smarts??state.smarts, state.smarts);
+  animateStat("bar-looks","pill-looks", window._prevStats.looks??state.looks, state.looks);
+  window._prevStats={health:state.health,happiness:state.happiness,smarts:state.smarts,looks:state.looks};
   const moneyEl = document.getElementById("money-amt");
   moneyEl.textContent = fmtMoney(state.money);
   moneyEl.className = state.money < 0 ? "negative" : "";
