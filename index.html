@@ -3,7 +3,7 @@
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Wayfare ΓÇö A Life, Lived</title>
+<title>Wayfare — A Life, Lived</title>
 
 <!-- PWA: installability -->
 <link rel="manifest" href="file:///C:/Users/Noor/Downloads/manifest.json">
@@ -589,13 +589,13 @@
 
   <div id="main"><div class="event-card"><div class="event-age">Age 3</div><div class="event-text">Sage Delgado got hooked on a cartoon about a dragon.</div><div><span class="event-delta delta-pos">Happiness +4</span></div></div><div class="event-card"><div class="event-age">Age 2</div><div class="event-text">Sage Delgado volunteered at a local shelter.</div><div><span class="event-delta delta-pos">Happiness +3</span></div></div><div class="event-card"><div class="event-age">Age 1</div><div class="event-text">Sage Delgado took their first wobbly steps.</div><div><span class="event-delta delta-pos">Happiness +3</span></div></div><div class="event-card"><div class="event-age">Age 0</div><div class="event-text">Sage Delgado was born today. A whole life, waiting to happen.</div></div></div>
 
-  <button id="ageup-btn" style="display: flex;">ΓÅ╡ Age Up</button>
+  <button id="ageup-btn" style="display: flex;">⏵ Age Up</button>
 
   <div id="bottom-nav">
-    <button class="nav-btn active" data-tab="story"><span class="nav-icon">≡ƒô£</span><span class="nav-label">Story</span></button>
-    <button class="nav-btn" data-tab="home"><span class="nav-icon">≡ƒÅá</span><span class="nav-label">Home</span></button>
-    <button class="nav-btn" data-tab="job"><span class="nav-icon">≡ƒÆ╝</span><span class="nav-label">Career</span></button>
-    <button class="nav-btn" data-tab="people"><span class="nav-icon">≡ƒæÑ</span><span class="nav-label">People</span></button><button class="nav-btn" data-tab="education"><span class="nav-icon">≡ƒÄô</span><span class="nav-label">Education</span></button><button class="nav-btn" data-tab="vehicles"><span class="nav-icon">≡ƒÜù</span><span class="nav-label">Vehicles</span></button>
+    <button class="nav-btn active" data-tab="story"><span class="nav-icon">📜</span><span class="nav-label">Story</span></button>
+    <button class="nav-btn" data-tab="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+    <button class="nav-btn" data-tab="job"><span class="nav-icon">💼</span><span class="nav-label">Career</span></button>
+    <button class="nav-btn" data-tab="people"><span class="nav-icon">👥</span><span class="nav-label">People</span></button><button class="nav-btn" data-tab="education"><span class="nav-icon">🎓</span><span class="nav-label">Education</span></button><button class="nav-btn" data-tab="vehicles"><span class="nav-icon">🚗</span><span class="nav-label">Vehicles</span></button>
   </div>
 
   <div id="modal-overlay">
@@ -614,7 +614,7 @@
 
 <script>
 /* =========================================================
-   WAYFARE ΓÇö a solo-buildable life sim
+   WAYFARE — a solo-buildable life sim
    Single state object drives every screen. Read top to bottom.
    ========================================================= */
 
@@ -636,7 +636,7 @@ const PROPERTIES = [
     buyPrice:38000, rentWeek:140, financeDown:0.10, financeYears:15, happyBonus:2 },
   { id:"onebed", name:"One-Bedroom Flat", desc:"A real bedroom door you can close.", tier:2, roomCount:1,
     buyPrice:72000, rentWeek:240, financeDown:0.12, financeYears:20, happyBonus:5 },
-  { id:"twobed", name:"Two-Bedroom Apartment", desc:"Room to grow ΓÇö or room for a roommate's rent split.", tier:3, roomCount:2,
+  { id:"twobed", name:"Two-Bedroom Apartment", desc:"Room to grow — or room for a roommate's rent split.", tier:3, roomCount:2,
     buyPrice:125000, rentWeek:380, financeDown:0.15, financeYears:25, happyBonus:8 },
   { id:"townhouse", name:"Townhouse", desc:"Your own front door at street level.", tier:4, roomCount:3,
     buyPrice:240000, rentWeek:620, financeDown:0.18, financeYears:25, happyBonus:13 },
@@ -647,19 +647,19 @@ const PROPERTIES = [
 ];
 
 // The 8 possible room types, in the order they're unlocked as roomCount grows.
-// Studio (roomCount 1) gets the "studio" type ΓÇö a bedroom that doubles as a living room.
+// Studio (roomCount 1) gets the "studio" type — a bedroom that doubles as a living room.
 const ROOM_SEQUENCE = ["bedroom","living","kitchen","bathroom","dining","office","game","garden"];
 
 const ROOM_TYPES = {
-  studio:  { name:"Studio", icon:"≡ƒ¢Å∩╕Å", slots:["bed","sofa","tv","plant","art","rug"] },
-  bedroom: { name:"Bedroom", icon:"≡ƒ¢Å∩╕Å", slots:["bed","art","plant","rug"] },
-  living:  { name:"Living Room", icon:"≡ƒ¢ï∩╕Å", slots:["sofa","tv","art","plant","rug","big"] },
-  kitchen: { name:"Kitchen", icon:"≡ƒì│", slots:["stove","fridge","counter","kitchenplant"] },
-  bathroom:{ name:"Bathroom", icon:"≡ƒ¢ü", slots:["tub","sink","towel"] },
-  dining:  { name:"Dining Room", icon:"≡ƒì╜∩╕Å", slots:["table","chairs","chandelier"] },
-  office:  { name:"Office", icon:"≡ƒùä∩╕Å", slots:["desk","bookshelf","officechair"] },
-  game:    { name:"Game Room", icon:"≡ƒÄ«", slots:["big","arcade","bar"] },
-  garden:  { name:"Garden", icon:"≡ƒî┐", slots:["gardenset","gardenplant","fountain"] },
+  studio:  { name:"Studio", icon:"🛏️", slots:["bed","sofa","tv","plant","art","rug"] },
+  bedroom: { name:"Bedroom", icon:"🛏️", slots:["bed","art","plant","rug"] },
+  living:  { name:"Living Room", icon:"🛋️", slots:["sofa","tv","art","plant","rug","big"] },
+  kitchen: { name:"Kitchen", icon:"🍳", slots:["stove","fridge","counter","kitchenplant"] },
+  bathroom:{ name:"Bathroom", icon:"🛁", slots:["tub","sink","towel"] },
+  dining:  { name:"Dining Room", icon:"🍽️", slots:["table","chairs","chandelier"] },
+  office:  { name:"Office", icon:"🗄️", slots:["desk","bookshelf","officechair"] },
+  game:    { name:"Game Room", icon:"🎮", slots:["big","arcade","bar"] },
+  garden:  { name:"Garden", icon:"🌿", slots:["gardenset","gardenplant","fountain"] },
 };
 
 // Which room type occupies each room slot for a given roomCount.
@@ -671,61 +671,61 @@ function roomLayoutFor(roomCount) {
 
 const FURNITURE = [
   // bedroom
-  { id:"bed_basic", name:"Mattress", icon:"≡ƒ¢Å∩╕Å", price:0, slot:"bed", minTier:1, grade:"low" },
-  { id:"bed_frame", name:"Bed Frame", icon:"≡ƒ¢î", price:600, slot:"bed", minTier:1, grade:"high" },
-  { id:"bed_canopy", name:"Canopy Bed", icon:"≡ƒææ", price:4200, slot:"bed", minTier:3, grade:"high" },
+  { id:"bed_basic", name:"Mattress", icon:"🛏️", price:0, slot:"bed", minTier:1, grade:"low" },
+  { id:"bed_frame", name:"Bed Frame", icon:"🛌", price:600, slot:"bed", minTier:1, grade:"high" },
+  { id:"bed_canopy", name:"Canopy Bed", icon:"👑", price:4200, slot:"bed", minTier:3, grade:"high" },
   // living room
-  { id:"sofa_thrift", name:"Thrifted Sofa", icon:"≡ƒ¢ï∩╕Å", price:150, slot:"sofa", minTier:1, grade:"low" },
-  { id:"sofa_nice", name:"Sectional Sofa", icon:"≡ƒ¢ï∩╕Å", price:2800, slot:"sofa", minTier:2, grade:"high" },
-  { id:"tv_old", name:"Old TV", icon:"≡ƒô║", price:80, slot:"tv", minTier:1, grade:"low" },
-  { id:"tv_flat", name:"Flatscreen", icon:"≡ƒô║", price:1200, slot:"tv", minTier:1, grade:"high" },
-  { id:"big_piano", name:"Piano", icon:"≡ƒÄ╣", price:8500, slot:"big", minTier:4, grade:"high" },
-  { id:"big_pool", name:"Pool Table", icon:"≡ƒÄ▒", price:5200, slot:"big", minTier:3, grade:"high" },
+  { id:"sofa_thrift", name:"Thrifted Sofa", icon:"🛋️", price:150, slot:"sofa", minTier:1, grade:"low" },
+  { id:"sofa_nice", name:"Sectional Sofa", icon:"🛋️", price:2800, slot:"sofa", minTier:2, grade:"high" },
+  { id:"tv_old", name:"Old TV", icon:"📺", price:80, slot:"tv", minTier:1, grade:"low" },
+  { id:"tv_flat", name:"Flatscreen", icon:"📺", price:1200, slot:"tv", minTier:1, grade:"high" },
+  { id:"big_piano", name:"Piano", icon:"🎹", price:8500, slot:"big", minTier:4, grade:"high" },
+  { id:"big_pool", name:"Pool Table", icon:"🎱", price:5200, slot:"big", minTier:3, grade:"high" },
   // shared decor (bedroom + living)
-  { id:"plant_1", name:"Houseplant", icon:"≡ƒ¬┤", price:40, slot:"plant", minTier:1, grade:"low" },
-  { id:"art_1", name:"Wall Art", icon:"≡ƒû╝∩╕Å", price:300, slot:"art", minTier:1, grade:"low" },
-  { id:"art_2", name:"Fine Painting", icon:"≡ƒû╝∩╕Å", price:3500, slot:"art", minTier:3, grade:"high" },
-  { id:"rug_1", name:"Area Rug", icon:"≡ƒƒ½", price:220, slot:"rug", minTier:1, grade:"low" },
+  { id:"plant_1", name:"Houseplant", icon:"🪴", price:40, slot:"plant", minTier:1, grade:"low" },
+  { id:"art_1", name:"Wall Art", icon:"🖼️", price:300, slot:"art", minTier:1, grade:"low" },
+  { id:"art_2", name:"Fine Painting", icon:"🖼️", price:3500, slot:"art", minTier:3, grade:"high" },
+  { id:"rug_1", name:"Area Rug", icon:"🟫", price:220, slot:"rug", minTier:1, grade:"low" },
   // kitchen
-  { id:"stove_basic", name:"Basic Stove", icon:"≡ƒì│", price:400, slot:"stove", minTier:3, grade:"low" },
-  { id:"stove_chef", name:"Chef's Range", icon:"≡ƒöÑ", price:3800, slot:"stove", minTier:5, grade:"high" },
-  { id:"fridge_basic", name:"Mini Fridge", icon:"≡ƒºè", price:250, slot:"fridge", minTier:3, grade:"low" },
-  { id:"fridge_smart", name:"Smart Fridge", icon:"Γ¥ä∩╕Å", price:2600, slot:"fridge", minTier:5, grade:"high" },
-  { id:"counter_basic", name:"Counter", icon:"≡ƒ¬ƒ", price:180, slot:"counter", minTier:3, grade:"low" },
-  { id:"counter_marble", name:"Marble Island", icon:"≡ƒÆÄ", price:3200, slot:"counter", minTier:5, grade:"high" },
-  { id:"kitchenplant_1", name:"Herb Garden", icon:"≡ƒî▒", price:60, slot:"kitchenplant", minTier:3, grade:"low" },
+  { id:"stove_basic", name:"Basic Stove", icon:"🍳", price:400, slot:"stove", minTier:3, grade:"low" },
+  { id:"stove_chef", name:"Chef's Range", icon:"🔥", price:3800, slot:"stove", minTier:5, grade:"high" },
+  { id:"fridge_basic", name:"Mini Fridge", icon:"🧊", price:250, slot:"fridge", minTier:3, grade:"low" },
+  { id:"fridge_smart", name:"Smart Fridge", icon:"❄️", price:2600, slot:"fridge", minTier:5, grade:"high" },
+  { id:"counter_basic", name:"Counter", icon:"🪟", price:180, slot:"counter", minTier:3, grade:"low" },
+  { id:"counter_marble", name:"Marble Island", icon:"💎", price:3200, slot:"counter", minTier:5, grade:"high" },
+  { id:"kitchenplant_1", name:"Herb Garden", icon:"🌱", price:60, slot:"kitchenplant", minTier:3, grade:"low" },
   // bathroom
-  { id:"tub_basic", name:"Standard Tub", icon:"≡ƒ¢ü", price:300, slot:"tub", minTier:5, grade:"low" },
-  { id:"tub_jacuzzi", name:"Jacuzzi Tub", icon:"≡ƒÆª", price:4500, slot:"tub", minTier:5, grade:"high" },
-  { id:"sink_basic", name:"Basic Sink", icon:"≡ƒÜ░", price:150, slot:"sink", minTier:5, grade:"low" },
-  { id:"sink_double", name:"Double Vanity", icon:"≡ƒ¬₧", price:1800, slot:"sink", minTier:5, grade:"high" },
-  { id:"towel_basic", name:"Towel Rack", icon:"≡ƒº╗", price:30, slot:"towel", minTier:5, grade:"low" },
+  { id:"tub_basic", name:"Standard Tub", icon:"🛁", price:300, slot:"tub", minTier:5, grade:"low" },
+  { id:"tub_jacuzzi", name:"Jacuzzi Tub", icon:"💦", price:4500, slot:"tub", minTier:5, grade:"high" },
+  { id:"sink_basic", name:"Basic Sink", icon:"🚰", price:150, slot:"sink", minTier:5, grade:"low" },
+  { id:"sink_double", name:"Double Vanity", icon:"🪞", price:1800, slot:"sink", minTier:5, grade:"high" },
+  { id:"towel_basic", name:"Towel Rack", icon:"🧻", price:30, slot:"towel", minTier:5, grade:"low" },
   // dining room
-  { id:"table_basic", name:"Dinner Table", icon:"≡ƒì╜∩╕Å", price:350, slot:"table", minTier:5, grade:"low" },
-  { id:"table_oak", name:"Oak Dining Set", icon:"≡ƒ¬╡", price:3600, slot:"table", minTier:5, grade:"high" },
-  { id:"chairs_basic", name:"Folding Chairs", icon:"≡ƒ¬æ", price:80, slot:"chairs", minTier:5, grade:"low" },
-  { id:"chairs_upholstered", name:"Upholstered Chairs", icon:"≡ƒÆ║", price:1400, slot:"chairs", minTier:5, grade:"high" },
-  { id:"chandelier_1", name:"Chandelier", icon:"≡ƒÆí", price:2200, slot:"chandelier", minTier:6, grade:"high" },
+  { id:"table_basic", name:"Dinner Table", icon:"🍽️", price:350, slot:"table", minTier:5, grade:"low" },
+  { id:"table_oak", name:"Oak Dining Set", icon:"🪵", price:3600, slot:"table", minTier:5, grade:"high" },
+  { id:"chairs_basic", name:"Folding Chairs", icon:"🪑", price:80, slot:"chairs", minTier:5, grade:"low" },
+  { id:"chairs_upholstered", name:"Upholstered Chairs", icon:"💺", price:1400, slot:"chairs", minTier:5, grade:"high" },
+  { id:"chandelier_1", name:"Chandelier", icon:"💡", price:2200, slot:"chandelier", minTier:6, grade:"high" },
   // office
-  { id:"desk_basic", name:"Simple Desk", icon:"≡ƒùä∩╕Å", price:200, slot:"desk", minTier:4, grade:"low" },
-  { id:"desk_executive", name:"Executive Desk", icon:"≡ƒûï∩╕Å", price:2800, slot:"desk", minTier:6, grade:"high" },
-  { id:"bookshelf_basic", name:"Bookshelf", icon:"≡ƒôÜ", price:150, slot:"bookshelf", minTier:4, grade:"low" },
-  { id:"bookshelf_library", name:"Library Wall", icon:"≡ƒôû", price:3000, slot:"bookshelf", minTier:6, grade:"high" },
-  { id:"officechair_basic", name:"Office Chair", icon:"≡ƒ¬æ", price:120, slot:"officechair", minTier:4, grade:"low" },
+  { id:"desk_basic", name:"Simple Desk", icon:"🗄️", price:200, slot:"desk", minTier:4, grade:"low" },
+  { id:"desk_executive", name:"Executive Desk", icon:"💼", price:2800, slot:"desk", minTier:6, grade:"high" },
+  { id:"bookshelf_basic", name:"Bookshelf", icon:"📚", price:150, slot:"bookshelf", minTier:4, grade:"low" },
+  { id:"bookshelf_library", name:"Library Wall", icon:"📚", price:3000, slot:"bookshelf", minTier:6, grade:"high" },
+  { id:"officechair_basic", name:"Office Chair", icon:"🪑", price:120, slot:"officechair", minTier:4, grade:"low" },
   // game room
-  { id:"arcade_basic", name:"Arcade Cabinet", icon:"≡ƒò╣∩╕Å", price:2400, slot:"arcade", minTier:6, grade:"high" },
-  { id:"bar_basic", name:"Home Bar", icon:"≡ƒì╕", price:1800, slot:"bar", minTier:6, grade:"low" },
+  { id:"arcade_basic", name:"Arcade Cabinet", icon:"🕹️", price:2400, slot:"arcade", minTier:6, grade:"high" },
+  { id:"bar_basic", name:"Home Bar", icon:"🍸", price:1800, slot:"bar", minTier:6, grade:"low" },
   // garden
-  { id:"gardenset_basic", name:"Patio Set", icon:"≡ƒ¬æ", price:400, slot:"gardenset", minTier:6, grade:"low" },
-  { id:"gardenset_lounge", name:"Lounge Set", icon:"≡ƒÅû∩╕Å", price:2800, slot:"gardenset", minTier:6, grade:"high" },
-  { id:"gardenplant_1", name:"Flower Beds", icon:"≡ƒî╕", price:150, slot:"gardenplant", minTier:6, grade:"low" },
-  { id:"fountain_1", name:"Stone Fountain", icon:"Γ¢▓", price:3500, slot:"fountain", minTier:6, grade:"high" },
+  { id:"gardenset_basic", name:"Patio Set", icon:"🪑", price:400, slot:"gardenset", minTier:6, grade:"low" },
+  { id:"gardenset_lounge", name:"Lounge Set", icon:"🏖️", price:2800, slot:"gardenset", minTier:6, grade:"high" },
+  { id:"gardenplant_1", name:"Flower Beds", icon:"🌸", price:150, slot:"gardenplant", minTier:6, grade:"low" },
+  { id:"fountain_1", name:"Stone Fountain", icon:"⛲", price:3500, slot:"fountain", minTier:6, grade:"high" },
 ];
 
 // Move-in furniture packs offered at purchase time.
 // "low" = cheapest available piece per slot (often free), "high" = nicest piece the property tier allows.
 const FURNITURE_PACKS = {
-  low: { label:"Basic Move-in", blurb:"Just the essentials ΓÇö a mattress and a couch. You can upgrade piece by piece later." },
+  low: { label:"Basic Move-in", blurb:"Just the essentials — a mattress and a couch. You can upgrade piece by piece later." },
   high: { label:"Furnished Move-in", blurb:"Move in fully furnished with the best pieces this place can hold." },
 };
 
@@ -847,7 +847,7 @@ function applyDelta(field, amount) {
 const EVENTS = [
   // ---- childhood ----
   { cond: s => s.age>=1 && s.age<=4, weight: 3, build: s => {
-      const r = pick(["took their first wobbly steps","said their first word ΓÇö it was 'no'","got hooked on a cartoon about a dragon","threw the world's tidiest tantrum in a grocery store"]);
+      const r = pick(["took their first wobbly steps","said their first word — it was 'no'","got hooked on a cartoon about a dragon","threw the world's tidiest tantrum in a grocery store"]);
       return { text:`${s.name} ${r}.`, deltas:[["happiness", rand(1,4)]] };
   }},
   { cond: s => s.age>=5 && s.age<=12, weight: 3, build: s => {
@@ -1135,7 +1135,7 @@ function resolveChoice(choiceIndex) {
 function handleDeath() {
   state.alive = false;
   document.getElementById("go-title").textContent = state.age > 95 ? "A Long Life" : "The End";
-  const cause = state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "ΓÇö health finally gave out" : "");
+  const cause = state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : "");
 
   pruneWill();
   let willText = "";
@@ -1206,7 +1206,7 @@ function buyProperty(propId, mode, furnitureGrade) {
   closeModal();
   const modeLabel = mode==="rent" ? "renting" : mode==="finance" ? "financing" : "bought outright";
   toast(`Moved into the ${prop.name} (${modeLabel}).`);
-  log(`${state.name} moved into a new place: the ${prop.name}${furnitureGrade ? ` ΓÇö ${FURNITURE_PACKS[furnitureGrade].label}` : ""}.`);
+  log(`${state.name} moved into a new place: the ${prop.name}${furnitureGrade ? ` — ${FURNITURE_PACKS[furnitureGrade].label}` : ""}.`);
   saveGame();
   render();
 }
@@ -1394,7 +1394,7 @@ function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
     const back = document.createElement("button");
     back.className = "panel-action secondary";
     back.style.marginBottom = "10px";
-    back.textContent = "ΓåÉ Floor Plan";
+    back.textContent = "← Floor Plan";
     back.onclick = () => { state.activeRoomIndex = null; render(); };
     main.appendChild(back);
   }
@@ -1467,7 +1467,7 @@ function financeStatusCard(main, prop) {
     fc.className = "panel-card";
     fc.innerHTML = `<div class="panel-row">
         <div><div class="panel-title">Fully Owned</div><div class="panel-sub">No payments. It's all yours.</div></div>
-        <div style="font-size:18px;">≡ƒöæ</div>
+        <div style="font-size:18px;">🔑</div>
       </div>`;
     main.appendChild(fc);
   }
@@ -1648,7 +1648,7 @@ function renderPeople(main) {
       return r ? `${r.name} (${pct}%)` : null;
     }).filter(Boolean).join(", ");
     willCard.innerHTML = `<div class="panel-row">
-        <div><div class="panel-title">Last Will & Testament</div><div class="panel-sub">${willTotal}% allocated ΓÇö ${heirNames}</div></div>
+        <div><div class="panel-title">Last Will & Testament</div><div class="panel-sub">${willTotal}% allocated — ${heirNames}</div></div>
       </div>`;
   }
   const willBtn = document.createElement("button");
@@ -1728,7 +1728,7 @@ function renderPeople(main) {
       date.onclick = () => {
         if (state.money < 80) { toast('Need $80'); return; }
         state.money -= 80;
-        interact(rand(8,14), 4, "took on a date ΓÇö");
+        interact(rand(8,14), 4, "took on a date —");
       };
       actions.appendChild(date);
     }
@@ -1875,7 +1875,7 @@ function openWillModal() {
     row.innerHTML = `
       <div><div class="will-row-name">${r.name}</div><div class="will-row-sub">${r.type}</div></div>
       <div class="will-stepper">
-        <button data-act="minus">ΓêÆ</button>
+        <button data-act="minus">−</button>
         <div class="will-pct">${pct}%</div>
         <button data-act="plus">+</button>
       </div>
@@ -1979,7 +1979,7 @@ function openFurnitureStep(propId, mode) {
   back.className = "panel-action secondary";
   back.style.width = "100%";
   back.style.marginTop = "4px";
-  back.textContent = "ΓåÉ Back to Listings";
+  back.textContent = "← Back to Listings";
   back.onclick = openPropertyModal;
   sheet.appendChild(back);
 }
