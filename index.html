@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Wayfare — A Life, Lived</title>
+
+<!-- PWA: installability -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c2542f">
+
+<!-- iOS: Safari ignores manifest.json almost entirely, needs its own tags -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wayfare">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<!-- favicon -->
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+
+<style>
+  :root {
+    --ink: #2b2420;
+    --paper: #f4ede1;
+    --paper-dim: #e8dfd0;
+    --accent: #c2542f;
+    --accent-dim: #e0a384;
+    --good: #4a7c59;
+    --bad: #b3433a;
+    --gold: #c99a3a;
+    --line: #d8cdb8;
+    --shadow: rgba(43,36,32,0.18);
+    --font-display: 'Lora', Georgia, serif;
+    --font-body: 'Inter', -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    overflow: hidden;
+    overscroll-behavior: none;
+    user-select: none;
+  }
+
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--paper);
+    box-shadow: 0 0 40px var(--shadow);
+  }
+
+  /* ---------- HEADER ---------- */
+  #header {
+    flex-shrink: 0;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+    z-index: 10;
+  }
+  #header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  #char-name {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  #char-age {
+    font-size: 12px;
+    color: #8a7d6b;
+    font-variant-numeric: tabular-nums;
+  }
+  #stats-row {
+    display: flex;
+    gap: 10px;
+  }
+  .stat-pill {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .stat-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #8a7d6b;
+    display: flex;
+    justify-content: space-between;
+  }
+  .stat-track {
+    height: 4px;
+    background: var(--paper-dim);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .stat-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .fill-health { background: var(--bad); }
+  .fill-happy { background: var(--gold); }
+  .fill-smarts { background: #4a6c8c; }
+  .fill-looks { background: #8c5a9c; }
+
+  #money-row {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+  #money-amt {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--good);
+  }
+  #money-amt.negative { color: var(--bad); }
+
+  /* ---------- MAIN SCROLL AREA ---------- */
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px;
+    padding-bottom: 90px;
+  }
+
+  /* ---------- EVENT FEED ---------- */
+  .event-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 15px;
+    margin-bottom: 10px;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .event-age {
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .event-text {
+    font-size: 14.5px;
+    line-height: 1.5;
+  }
+  .event-delta {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-top: 6px;
+    margin-right: 5px;
+  }
+  .delta-pos { background: rgba(74,124,89,0.12); color: var(--good); }
+  .delta-neg { background: rgba(179,67,58,0.12); color: var(--bad); }
+
+  .choice-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .choice-btn {
+    background: var(--paper-dim);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    text-align: left;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .choice-btn:active { background: var(--accent-dim); }
+
+  /* ---------- HOME / ROOM VIEW ---------- */
+  #room-stage {
+    background: linear-gradient(180deg, #ece2cf 0%, #e3d6bc 100%);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0;
+    margin-bottom: 14px;
+    overflow: hidden;
+    position: relative;
+  }
+  #room-canvas-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+  }
+  #room-canvas-wrap svg { width: 100%; height: 100%; display: block; }
+  .room-hotspot {
+    cursor: pointer;
+  }
+  .room-hotspot:active rect, .room-hotspot:active circle, .room-hotspot:active path {
+    opacity: 0.7;
+  }
+  #room-label-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.5);
+    border-top: 1px solid var(--line);
+  }
+  #room-name {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  #room-tier {
+    font-size: 10px;
+    color: #8a7d6b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .floorplan-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 4px;
+    margin-bottom: 14px;
+  }
+  .floorplan-tile {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 8px;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .floorplan-tile:active { background: var(--paper-dim); }
+  .floorplan-icon { font-size: 26px; }
+  .floorplan-name { font-size: 11.5px; font-weight: 700; }
+  .floorplan-sub { font-size: 9.5px; color: #8a7d6b; }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #8a7d6b;
+    margin: 18px 0 8px;
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  .panel-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 13px 14px;
+    margin-bottom: 8px;
+  }
+  .panel-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .panel-title { font-size: 14px; font-weight: 600; }
+  .panel-sub { font-size: 11.5px; color: #8a7d6b; margin-top: 2px; }
+  .panel-action {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .panel-action:disabled { background: #c9c0b0; }
+  .panel-action.secondary {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink);
+  }
+
+  .furniture-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .furniture-item {
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .furniture-item.owned { border-color: var(--good); }
+  .furniture-item.placed { background: var(--paper-dim); }
+  .furniture-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .furniture-name { font-size: 10px; font-weight: 600; display: block; }
+  .furniture-price { font-size: 9.5px; color: #8a7d6b; }
+
+  /* ---------- BOTTOM NAV ---------- */
+  #bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    background: #fff;
+    border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 0 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #b0a48f;
+  }
+  .nav-btn.active { color: var(--accent); }
+  .nav-icon { font-size: 19px; }
+  .nav-label { font-size: 9.5px; font-weight: 600; letter-spacing: 0.3px; }
+
+  /* ---------- AGE UP FAB ---------- */
+  #ageup-btn {
+    position: absolute;
+    bottom: 64px;
+    right: 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 18px;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(194,84,47,0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 20;
+  }
+  #ageup-btn:active { transform: scale(0.96); }
+
+  /* ---------- MODAL ---------- */
+  #modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(43,36,32,0.45);
+    display: none;
+    align-items: flex-end;
+    z-index: 50;
+  }
+  #modal-overlay.show { display: flex; }
+  #modal-sheet {
+    background: var(--paper);
+    width: 100%;
+    border-radius: 18px 18px 0 0;
+    padding: 20px 18px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: sheetUp 0.25s ease;
+  }
+  @keyframes sheetUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  #modal-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  #modal-sub {
+    font-size: 12.5px;
+    color: #8a7d6b;
+    margin-bottom: 14px;
+  }
+
+  .property-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 13px;
+    margin-bottom: 10px;
+  }
+  .property-name { font-size: 14.5px; font-weight: 700; }
+  .property-desc { font-size: 11.5px; color: #8a7d6b; margin: 2px 0 8px; }
+  .property-prices {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .price-opt {
+    flex: 1;
+    background: var(--paper-dim);
+    border-radius: 6px;
+    padding: 7px 8px;
+    text-align: center;
+  }
+  .price-opt-label { font-size: 9px; text-transform: uppercase; color: #8a7d6b; letter-spacing: 0.4px; }
+  .price-opt-val { font-size: 13px; font-weight: 700; margin-top: 1px; }
+
+  #toast {
+    position: absolute;
+    top: 132px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 9px 16px;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  #empty-hint {
+    text-align: center;
+    padding: 30px 20px;
+    color: #a89a82;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  /* Game Over screen */
+  #gameover {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    color: var(--paper);
+    z-index: 60;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    text-align: center;
+  }
+  #gameover.show { display: flex; }
+  #gameover h1 { font-family: var(--font-display); font-size: 26px; margin-bottom: 10px; }
+  #gameover p { font-size: 14px; opacity: 0.75; margin-bottom: 24px; line-height: 1.6; }
+  #restart-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 12px 26px;
+    border-radius: 8px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="header">
+    <div id="header-top">
+      <div id="char-name">—</div>
+      <div id="char-age">Age —</div>
+    </div>
+    <div id="stats-row">
+      <div class="stat-pill">
+        <div class="stat-label"><span>Health</span></div>
+        <div class="stat-track"><div class="stat-fill fill-health" id="bar-health" style="width:100%"></div></div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-label"><span>Happy</span></div>
+        <div class="stat-track"><div class="stat-fill fill-happy" id="bar-happy" style="width:100%"></div></div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-label"><span>Smarts</span></div>
+        <div class="stat-track"><div class="stat-fill fill-smarts" id="bar-smarts" style="width:100%"></div></div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-label"><span>Looks</span></div>
+        <div class="stat-track"><div class="stat-fill fill-looks" id="bar-looks" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div id="money-row">
+      <span style="color:#8a7d6b;">Balance</span>
+      <span id="money-amt">$0</span>
+    </div>
+  </div>
+
+  <div id="main"></div>
+
+  <button id="ageup-btn">⏵ Age Up</button>
+
+  <div id="bottom-nav">
+    <button class="nav-btn active" data-tab="story"><span class="nav-icon">📜</span><span class="nav-label">Story</span></button>
+    <button class="nav-btn" data-tab="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+    <button class="nav-btn" data-tab="job"><span class="nav-icon">💼</span><span class="nav-label">Career</span></button>
+    <button class="nav-btn" data-tab="people"><span class="nav-icon">👥</span><span class="nav-label">People</span></button><button class="nav-btn" data-tab="education"><span class="nav-icon">🎓</span><span class="nav-label">Education</span></button><button class="nav-btn" data-tab="vehicles"><span class="nav-icon">🚗</span><span class="nav-label">Vehicles</span></button>
+  </div>
+
+  <div id="modal-overlay">
+    <div id="modal-sheet"></div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="gameover">
+    <h1 id="go-title">The End</h1>
+    <p id="go-text"></p>
+    <button id="restart-btn">Begin a New Life</button>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   WAYFARE — a solo-buildable life sim
+   Single state object drives every screen. Read top to bottom.
+   ========================================================= */
+
+const FIRST_NAMES = ["Riley","Jordan","Sam","Casey","Avery","Quinn","Morgan","Reese","Sage","Rowan","Skyler","Dakota","Finley","Emerson","Hayden"];
+const LAST_NAMES = ["Vance","Okafor","Mercer","Lindqvist","Park","Delgado","Whitfield","Tanaka","Brennan","Costa","Singh","Novak","Reyes","Holt","Marsh"];
+
+const PROPERTIES = [
+  { id:"studio", name:"Studio Apartment", desc:"A cozy single room. Everyone starts somewhere.", tier:1, roomCount:1,
+    buyPrice:38000, rentWeek:140, financeDown:0.10, financeYears:15, happyBonus:2 },
+  { id:"onebed", name:"One-Bedroom Flat", desc:"A real bedroom door you can close.", tier:2, roomCount:1,
+    buyPrice:72000, rentWeek:240, financeDown:0.12, financeYears:20, happyBonus:5 },
+  { id:"twobed", name:"Two-Bedroom Apartment", desc:"Room to grow — or room for a roommate's rent split.", tier:3, roomCount:2,
+    buyPrice:125000, rentWeek:380, financeDown:0.15, financeYears:25, happyBonus:8 },
+  { id:"townhouse", name:"Townhouse", desc:"Your own front door at street level.", tier:4, roomCount:3,
+    buyPrice:240000, rentWeek:620, financeDown:0.18, financeYears:25, happyBonus:13 },
+  { id:"house", name:"Suburban House", desc:"A yard. A garage. The whole picture.", tier:5, roomCount:5,
+    buyPrice:420000, rentWeek:980, financeDown:0.20, financeYears:30, happyBonus:20 },
+  { id:"estate", name:"Hillside Estate", desc:"The kind of house that ends up in magazines.", tier:6, roomCount:8,
+    buyPrice:1100000, rentWeek:2200, financeDown:0.25, financeYears:30, happyBonus:30 },
+];
+
+// The 8 possible room types, in the order they're unlocked as roomCount grows.
+// Studio (roomCount 1) gets the "studio" type — a bedroom that doubles as a living room.
+const ROOM_SEQUENCE = ["bedroom","living","kitchen","bathroom","dining","office","game","garden"];
+
+const ROOM_TYPES = {
+  studio:  { name:"Studio", icon:"🛏️", slots:["bed","sofa","tv","plant","art","rug"] },
+  bedroom: { name:"Bedroom", icon:"🛏️", slots:["bed","art","plant","rug"] },
+  living:  { name:"Living Room", icon:"🛋️", slots:["sofa","tv","art","plant","rug","big"] },
+  kitchen: { name:"Kitchen", icon:"🍳", slots:["stove","fridge","counter","kitchenplant"] },
+  bathroom:{ name:"Bathroom", icon:"🛁", slots:["tub","sink","towel"] },
+  dining:  { name:"Dining Room", icon:"🍽️", slots:["table","chairs","chandelier"] },
+  office:  { name:"Office", icon:"🗄️", slots:["desk","bookshelf","officechair"] },
+  game:    { name:"Game Room", icon:"🎮", slots:["big","arcade","bar"] },
+  garden:  { name:"Garden", icon:"🌿", slots:["gardenset","gardenplant","fountain"] },
+};
+
+// Which room type occupies each room slot for a given roomCount.
+// Studio/One-Bed (roomCount 1) use the special "studio" all-in-one room.
+function roomLayoutFor(roomCount) {
+  if (roomCount === 1) return ["studio"];
+  return ROOM_SEQUENCE.slice(0, roomCount);
+}
+
+const FURNITURE = [
+  // bedroom
+  { id:"bed_basic", name:"Mattress", icon:"🛏️", price:0, slot:"bed", minTier:1, grade:"low" },
+  { id:"bed_frame", name:"Bed Frame", icon:"🛌", price:600, slot:"bed", minTier:1, grade:"high" },
+  { id:"bed_canopy", name:"Canopy Bed", icon:"👑", price:4200, slot:"bed", minTier:3, grade:"high" },
+  // living room
+  { id:"sofa_thrift", name:"Thrifted Sofa", icon:"🛋️", price:150, slot:"sofa", minTier:1, grade:"low" },
+  { id:"sofa_nice", name:"Sectional Sofa", icon:"🛋️", price:2800, slot:"sofa", minTier:2, grade:"high" },
+  { id:"tv_old", name:"Old TV", icon:"📺", price:80, slot:"tv", minTier:1, grade:"low" },
+  { id:"tv_flat", name:"Flatscreen", icon:"📺", price:1200, slot:"tv", minTier:1, grade:"high" },
+  { id:"big_piano", name:"Piano", icon:"🎹", price:8500, slot:"big", minTier:4, grade:"high" },
+  { id:"big_pool", name:"Pool Table", icon:"🎱", price:5200, slot:"big", minTier:3, grade:"high" },
+  // shared decor (bedroom + living)
+  { id:"plant_1", name:"Houseplant", icon:"🪴", price:40, slot:"plant", minTier:1, grade:"low" },
+  { id:"art_1", name:"Wall Art", icon:"🖼️", price:300, slot:"art", minTier:1, grade:"low" },
+  { id:"art_2", name:"Fine Painting", icon:"🖼️", price:3500, slot:"art", minTier:3, grade:"high" },
+  { id:"rug_1", name:"Area Rug", icon:"🟫", price:220, slot:"rug", minTier:1, grade:"low" },
+  // kitchen
+  { id:"stove_basic", name:"Basic Stove", icon:"🍳", price:400, slot:"stove", minTier:3, grade:"low" },
+  { id:"stove_chef", name:"Chef's Range", icon:"🔥", price:3800, slot:"stove", minTier:5, grade:"high" },
+  { id:"fridge_basic", name:"Mini Fridge", icon:"🧊", price:250, slot:"fridge", minTier:3, grade:"low" },
+  { id:"fridge_smart", name:"Smart Fridge", icon:"❄️", price:2600, slot:"fridge", minTier:5, grade:"high" },
+  { id:"counter_basic", name:"Counter", icon:"🪟", price:180, slot:"counter", minTier:3, grade:"low" },
+  { id:"counter_marble", name:"Marble Island", icon:"💎", price:3200, slot:"counter", minTier:5, grade:"high" },
+  { id:"kitchenplant_1", name:"Herb Garden", icon:"🌱", price:60, slot:"kitchenplant", minTier:3, grade:"low" },
+  // bathroom
+  { id:"tub_basic", name:"Standard Tub", icon:"🛁", price:300, slot:"tub", minTier:5, grade:"low" },
+  { id:"tub_jacuzzi", name:"Jacuzzi Tub", icon:"💦", price:4500, slot:"tub", minTier:5, grade:"high" },
+  { id:"sink_basic", name:"Basic Sink", icon:"🚰", price:150, slot:"sink", minTier:5, grade:"low" },
+  { id:"sink_double", name:"Double Vanity", icon:"🪞", price:1800, slot:"sink", minTier:5, grade:"high" },
+  { id:"towel_basic", name:"Towel Rack", icon:"🧻", price:30, slot:"towel", minTier:5, grade:"low" },
+  // dining room
+  { id:"table_basic", name:"Dinner Table", icon:"🍽️", price:350, slot:"table", minTier:5, grade:"low" },
+  { id:"table_oak", name:"Oak Dining Set", icon:"🪵", price:3600, slot:"table", minTier:5, grade:"high" },
+  { id:"chairs_basic", name:"Folding Chairs", icon:"🪑", price:80, slot:"chairs", minTier:5, grade:"low" },
+  { id:"chairs_upholstered", name:"Upholstered Chairs", icon:"💺", price:1400, slot:"chairs", minTier:5, grade:"high" },
+  { id:"chandelier_1", name:"Chandelier", icon:"💡", price:2200, slot:"chandelier", minTier:6, grade:"high" },
+  // office
+  { id:"desk_basic", name:"Simple Desk", icon:"🗄️", price:200, slot:"desk", minTier:4, grade:"low" },
+  { id:"desk_executive", name:"Executive Desk", icon:"🖋️", price:2800, slot:"desk", minTier:6, grade:"high" },
+  { id:"bookshelf_basic", name:"Bookshelf", icon:"📚", price:150, slot:"bookshelf", minTier:4, grade:"low" },
+  { id:"bookshelf_library", name:"Library Wall", icon:"📖", price:3000, slot:"bookshelf", minTier:6, grade:"high" },
+  { id:"officechair_basic", name:"Office Chair", icon:"🪑", price:120, slot:"officechair", minTier:4, grade:"low" },
+  // game room
+  { id:"arcade_basic", name:"Arcade Cabinet", icon:"🕹️", price:2400, slot:"arcade", minTier:6, grade:"high" },
+  { id:"bar_basic", name:"Home Bar", icon:"🍸", price:1800, slot:"bar", minTier:6, grade:"low" },
+  // garden
+  { id:"gardenset_basic", name:"Patio Set", icon:"🪑", price:400, slot:"gardenset", minTier:6, grade:"low" },
+  { id:"gardenset_lounge", name:"Lounge Set", icon:"🏖️", price:2800, slot:"gardenset", minTier:6, grade:"high" },
+  { id:"gardenplant_1", name:"Flower Beds", icon:"🌸", price:150, slot:"gardenplant", minTier:6, grade:"low" },
+  { id:"fountain_1", name:"Stone Fountain", icon:"⛲", price:3500, slot:"fountain", minTier:6, grade:"high" },
+];
+
+// Move-in furniture packs offered at purchase time.
+// "low" = cheapest available piece per slot (often free), "high" = nicest piece the property tier allows.
+const FURNITURE_PACKS = {
+  low: { label:"Basic Move-in", blurb:"Just the essentials — a mattress and a couch. You can upgrade piece by piece later." },
+  high: { label:"Furnished Move-in", blurb:"Move in fully furnished with the best pieces this place can hold." },
+};
+
+function packItemsFor(prop, grade) {
+  // returns [{ roomIndex, roomType, items: [furniture,...] }, ...]
+  const layout = roomLayoutFor(prop.roomCount);
+  return layout.map((roomType, roomIndex) => {
+    const slots = ROOM_TYPES[roomType].slots;
+    const items = [];
+    slots.forEach(slot => {
+      const options = FURNITURE.filter(f => f.slot===slot && f.minTier<=prop.tier);
+      if (options.length === 0) return;
+      const sorted = options.sort((a,b)=>a.price-b.price);
+      items.push(grade==="low" ? sorted[0] : sorted[sorted.length-1]);
+    });
+    return { roomIndex, roomType, items };
+  });
+}
+
+function packCost(prop, grade) {
+  return packItemsFor(prop, grade).reduce((sum,room)=>sum+room.items.reduce((s,f)=>s+f.price,0), 0);
+}
+
+const JOBS = [
+  { id:"unemployed", title:"Unemployed", payWeek:0, minSmarts:0 },
+  { id:"retail", title:"Retail Associate", payWeek:480, minSmarts:0 },
+  { id:"barista", title:"Barista", payWeek:420, minSmarts:0 },
+  { id:"office", title:"Office Assistant", payWeek:650, minSmarts:25 },
+  { id:"trades", title:"Electrician", payWeek:980, minSmarts:30 },
+  { id:"nurse", title:"Nurse", payWeek:1350, minSmarts:55 },
+  { id:"engineer", title:"Software Engineer", payWeek:1900, minSmarts:60 },
+  { id:"doctor", title:"Physician", payWeek:3200, minSmarts:80 },
+  { id:"exec", title:"Company Executive", payWeek:4800, minSmarts:65 },
+];
+
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr) { return arr[rand(0, arr.length - 1)]; }
+function clamp(v, lo=0, hi=100) { return Math.max(lo, Math.min(hi, v)); }
+function fmtMoney(n) {
+  const sign = n < 0 ? "-" : "";
+  return sign + "$" + Math.abs(Math.round(n)).toLocaleString();
+}
+
+/* ---------------- STATE ---------------- */
+let state = null;
+
+const SAVE_KEY = "wayfare-save-v1";
+
+function saveGame() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+function loadGame() {
+  try {
+    const save = localStorage.getItem(SAVE_KEY);
+    if (save) {
+      state = JSON.parse(save);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function deleteSave() {
+  localStorage.removeItem(SAVE_KEY);
+}
+
+
+
+function newGame() {
+  state = {
+    name: pick(FIRST_NAMES) + " " + pick(LAST_NAMES),
+    age: 0,
+    money: 0,
+    health: 100,
+    happiness: 80,
+    smarts: 30,
+    looks: rand(40, 70),
+    job: "unemployed",
+    salary: 0,
+    property: null,        // PROPERTIES id or null (living with parents)
+    ownership: null,       // "rent" | "finance" | "owned"
+    mortgageBalance: 0,
+    mortgageWeekly: 0,
+    placedFurniture: {},   // roomIndex -> { slot -> furniture id }
+    ownedFurniture: ["bed_basic","sofa_thrift","tv_old"],
+    activeRoomIndex: null, // null = on floor plan; a number = inside that room
+    relationships: [
+      { name: pick(FIRST_NAMES), type: "Parent", closeness: 70 },
+      { name: pick(FIRST_NAMES), type: "Parent", closeness: 70 },
+    ],
+    partner: null,
+    children: [],
+    feed: [],
+    alive: true,
+    educationLevel: "None",
+    studentLoans: 0,
+    vehicles: [],
+    activeTab: "story",
+    pendingChoice: null,
+  };
+  log(`${state.name} was born today. A whole life, waiting to happen.`);
+  render();
+}
+
+function log(text, deltas) {
+  state.feed.unshift({ age: state.age, text, deltas: deltas || [] });
+}
+
+function applyDelta(field, amount) {
+  if (field === "money") { state.money += amount; return; }
+  state[field] = clamp(Math.round(state[field] + amount));
+}
+
+/* ---------------- LIFE EVENTS ---------------- */
+// Each event: condition(state)->bool, weight, build(state)->{text, deltas, choices?}
+const EVENTS = [
+  // ---- childhood ----
+  { cond: s => s.age>=1 && s.age<=4, weight: 3, build: s => {
+      const r = pick(["took their first wobbly steps","said their first word — it was 'no'","got hooked on a cartoon about a dragon","threw the world's tidiest tantrum in a grocery store"]);
+      return { text:`${s.name} ${r}.`, deltas:[["happiness", rand(1,4)]] };
+  }},
+  { cond: s => s.age>=5 && s.age<=12, weight: 3, build: s => {
+      const r = pick(["started elementary school","made a best friend at recess","won a spelling bee","got grounded for drawing on the walls","learned to ride a bike"]);
+      const sm = rand(1,5);
+      return { text:`${s.name} ${r}.`, deltas:[["smarts", sm],["happiness", rand(-1,4)]] };
+  }},
+  // ---- choice: study or play ----
+  { cond: s => s.age>=8 && s.age<=16, weight: 2, build: s => ({
+      text: `It's report card season. ${s.name} can spend the next year hitting the books or just having fun.`,
+      choices: [
+        { label:"Hit the books", deltas:[["smarts", rand(6,10)],["happiness", rand(-3,0)]], result:"Grades shot up. Not the most fun year, but it'll pay off." },
+        { label:"Just have fun", deltas:[["happiness", rand(5,9)],["smarts", rand(-2,1)]], result:"A great year, if not a studious one." },
+      ]
+  })},
+  { cond: s => s.age===13, weight: 4, build: s => ({ text:`${s.name} started middle school. The hallways feel enormous.`, deltas:[["happiness", rand(-3,2)]] }) },
+  { cond: s => s.age===14, weight: 4, build: s => ({
+      text: `${s.name} got invited to a party everyone's talking about. There might be trouble there.`,
+      choices: [
+        { label:"Go anyway", deltas:[["happiness", rand(4,9)],["health", rand(-4,0)]], result:"It was a wild night. Worth it, probably." },
+        { label:"Stay home", deltas:[["happiness", -2],["smarts", rand(1,3)]], result:"A quiet night in. Mature, if a little lonely." },
+      ]
+  })},
+  { cond: s => s.age===17, weight: 5, build: s => ({
+      text: `Graduation is coming. ${s.name} has to decide what's next.`,
+      choices: [
+        { label:"Apply to university", deltas:[["smarts", rand(4,8)]], result:"Acceptance letter came in the mail. A new chapter begins.", flag:"college" },
+        { label:"Go straight to work", deltas:[["happiness", 2]], result:"Skipped the dorms, jumped right into a paycheck.", flag:"work" },
+      ]
+  })},
+  { cond: s => s.age===18 && s.collegeFlag, weight: 5, build: s => {
+      delete s.collegeFlag;
+      return { text:`${s.name} moved into a dorm. Ramen for dinner, again.`, deltas:[["smarts", rand(8,14)],["happiness", rand(-2,3)],["money", -2000]] };
+  }},
+
+  // ---- adulthood: career ----
+  { cond: s => s.age>=18 && s.age<=65 && s.job==="unemployed", weight: 5, build: s => ({
+      text: `${s.name} is job hunting. The Career tab has some openings.`, deltas:[]
+  })},
+  { cond: s => s.age>=18 && s.age<=65 && s.job!=="unemployed", weight: 2, build: s => {
+      const r = pick([
+        ["Put in a long week at work.", [["happiness", rand(-3,1)],["smarts", rand(0,2)]]],
+        ["Got praised by a manager for solid work.", [["happiness", rand(2,5)]]],
+        ["Dealt with an annoying coworker all week.", [["happiness", rand(-4,-1)]]],
+        ["Worked overtime for extra pay.", [["money", state.salary?state.salary*0.4:200],["health", -2]]],
+      ]);
+      return { text: `${s.name} ${r[0].charAt(0).toLowerCase()+r[0].slice(1)}`, deltas: r[1] };
+  }},
+  { cond: s => s.age>=22 && s.age<=60 && Math.random()<0.5, weight: 1.5, build: s => ({
+      text: `A promotion opportunity opened up at work. It means more hours.`,
+      choices: [
+        { label:"Go for it", deltas:[["happiness", rand(2,5)],["health", -3]], result:"Promoted! The pay bump shows up next paycheck.", flag:"promotion" },
+        { label:"Pass this time", deltas:[["happiness", 2]], result:"Stayed in the comfortable lane." },
+      ]
+  })},
+
+  // ---- relationships ----
+  { cond: s => s.age>=18 && s.age<=55 && !s.partner, weight: 1.3, build: s => ({
+      text: `${s.name} met someone interesting through a friend.`,
+      choices: [
+        { label:"Ask them out", deltas:[["happiness", rand(3,7)]], result:"They said yes! Things are just getting started.", flag:"newPartner" },
+        { label:"Keep it platonic", deltas:[], result:"Decided to just be friends for now." },
+      ]
+  })},
+  { cond: s => s.partner && Math.random()<0.4, weight: 1.2, build: s => {
+      const r = pick([
+        [`${s.name} and ${s.partner} had a wonderful date night.`, [["happiness", rand(3,6)]]],
+        [`${s.name} and ${s.partner} had a small argument over chores.`, [["happiness", rand(-4,-1)]]],
+        [`${s.name} and ${s.partner} talked about the future together.`, [["happiness", rand(2,4)]]],
+      ]);
+      return { text: r[0], deltas: r[1] };
+  }},
+  { cond: s => s.partner && s.age>=20 && s.age<=50 && Math.random()<0.15, weight: 0.8, build: s => ({
+      text: `${s.partner} brought up marriage.`,
+      choices: [
+        { label:"Propose", deltas:[["happiness", rand(8,14)],["money", -3000]], result:`Married! ${s.name} and ${s.partner} are now a household.`, flag:"marry" },
+        { label:"Not ready yet", deltas:[["happiness", -3]], result:"Decided to wait a little longer." },
+      ]
+  })},
+  { cond: s => s.partner && s.age>=22 && s.age<=45 && Math.random()<0.12, weight: 0.7, build: s => ({
+      text: `${s.name} and ${s.partner} have been talking about having a baby.`,
+      choices: [
+        { label:"Start trying", deltas:[["happiness", rand(4,8)],["money", -1500]], result:"A baby is on the way!", flag:"baby" },
+        { label:"Not yet", deltas:[], result:"Decided to wait." },
+      ]
+  })},
+
+  // ---- health / random life ----
+  { cond: s => true, weight: 1, build: s => {
+      const r = pick([
+        ["caught a nasty cold.", [["health", rand(-8,-3)]]],
+        ["started a new workout routine.", [["health", rand(3,7)]]],
+        ["found a great new recipe and has been cooking nonstop.", [["health", rand(1,3)],["happiness", rand(2,4)]]],
+        ["binge-watched a show all weekend.", [["happiness", rand(2,5)],["health", -1]]],
+        ["got a haircut they actually love.", [["looks", rand(2,5)],["happiness", rand(1,3)]]],
+        ["had a rough week and barely slept.", [["health", rand(-5,-2)],["happiness", -3]]],
+        ["found a $20 bill on the sidewalk.", [["money", 20],["happiness", 2]]],
+        ["volunteered at a local shelter.", [["happiness", rand(3,6)]]],
+      ]);
+      return { text: `${s.name} ${r[0]}`, deltas: r[1] };
+  }},
+  { cond: s => s.age>=30, weight: 0.6, build: s => ({
+      text: `${s.name} went in for a routine checkup.`,
+      choices: [
+        { label:"Get the full workup", deltas:[["health", rand(2,6)],["money", -300]], result:"Clean bill of health. Worth the cost." },
+        { label:"Skip it, busy week", deltas:[["health", -2]], result:"Rescheduled. Probably fine." },
+      ]
+  })},
+  { cond: s => s.age>=60, weight: 1.4, build: s => {
+      const r = pick([
+        ["had a slow morning with tea on the porch.", [["happiness", rand(1,4)]]],
+        ["felt their knees more than they used to.", [["health", rand(-4,-1)]]],
+        ["called an old friend just to talk.", [["happiness", rand(2,5)]]],
+        ["spent the afternoon gardening.", [["health", rand(1,2)],["happiness", rand(2,3)]]],
+      ]);
+      return { text: `${s.name} ${r[0]}`, deltas: r[1] };
+  }},
+];
+
+function weightedEvent() {
+  const pool = EVENTS.filter(e => e.cond(state));
+  if (pool.length === 0) return null;
+  const total = pool.reduce((a,e)=>a+e.weight,0);
+  let r = Math.random()*total;
+  for (const e of pool) { r -= e.weight; if (r<=0) return e; }
+  return pool[pool.length-1];
+}
+
+// picks an event, rerolling once if it's the exact same source event as last turn
+function pickNonRepeatingEvent() {
+  let ev = weightedEvent();
+  if (ev && ev === state._lastEvent) {
+    const reroll = weightedEvent();
+    if (reroll) ev = reroll;
+  }
+  state._lastEvent = ev;
+  return ev;
+}
+
+/* ---------------- AGE UP / TURN LOGIC ---------------- */
+function ageUp() {
+  if (!state.alive) return;
+  if (state.pendingChoice) { toast("Resolve the current moment first."); return; }
+
+  state.age++;
+
+  // passive decay
+  applyDelta("health", -rand(0,2));
+  applyDelta("happiness", -rand(0,2));
+  if (state.age > 65) applyDelta("health", -rand(1,3));
+
+  // income & housing costs (weekly * 52, simplified to once per year)
+  if (state.salary) applyDelta("money", state.salary * 52);
+  if (state.ownership === "rent") {
+    const prop = PROPERTIES.find(p=>p.id===state.property);
+    applyDelta("money", -prop.rentWeek * 52);
+  } else if (state.ownership === "finance" && state.mortgageBalance > 0) {
+    const yearly = Math.min(state.mortgageWeekly*52, state.mortgageBalance);
+    applyDelta("money", -yearly);
+    state.mortgageBalance -= yearly;
+    if (state.mortgageBalance <= 0) {
+      state.mortgageBalance = 0;
+      state.ownership = "owned";
+      log(`${state.name} made the final payment. The ${PROPERTIES.find(p=>p.id===state.property).name} is fully owned now.`);
+    }
+  }
+  if (state.property) {
+    const prop = PROPERTIES.find(p=>p.id===state.property);
+    applyDelta("happiness", Math.round(prop.happyBonus/8));
+  }
+
+  // death check
+  if (state.health <= 0 || state.age > 95) {
+    handleDeath();
+    return;
+  }
+  if (state.money < -15000) {
+    log(`Debt collectors are circling. ${state.name}'s finances are in serious trouble.`);
+    applyDelta("happiness", -8);
+  }
+
+  const ev = pickNonRepeatingEvent();
+  if (ev) {
+    const built = ev.build(state);
+    if (built.choices) {
+      state.pendingChoice = built;
+      log(built.text);
+    } else {
+      (built.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
+      log(built.text, built.deltas);
+    }
+  }
+
+  saveGame();
+  render();
+}
+
+function resolveChoice(choiceIndex) {
+  const c = state.pendingChoice.choices[choiceIndex];
+  (c.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
+  log(c.result, c.deltas);
+
+  if (c.flag === "college") state.collegeFlag = true;
+  if (c.flag === "promotion") {
+    const cur = JOBS.find(j=>j.id===state.job);
+    const idx = JOBS.indexOf(cur);
+    if (idx < JOBS.length-1) {
+      const next = JOBS[idx+1];
+      if (state.smarts >= next.minSmarts) {
+        state.job = next.id; state.salary = next.payWeek;
+        log(`${state.name} was promoted to ${next.title}!`);
+      } else {
+        applyDelta("money", state.salary*4);
+        log(`${state.name} got a nice bonus instead of a title change.`);
+      }
+    }
+  }
+  if (c.flag === "newPartner") state.partner = pick(FIRST_NAMES);
+  if (c.flag === "marry") state.relationships.push({name:state.partner, type:"Spouse", closeness:85});
+  if (c.flag === "baby") {
+    const kid = pick(FIRST_NAMES);
+    state.children.push({name:kid, age:0});
+    state.relationships.push({name:kid, type:"Child", closeness:90});
+  }
+
+  state.pendingChoice = null;
+  saveGame();
+  render();
+}
+
+function handleDeath() {
+  state.alive = false;
+  document.getElementById("go-title").textContent = state.age > 95 ? "A Long Life" : "The End";
+  const cause = state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : "");
+  document.getElementById("go-text").textContent =
+    `${state.name} lived to ${state.age}. They leaves behind ${fmtMoney(state.money)} and ${state.relationships.length} people who knew them. ${cause}`;
+  saveGame();
+  document.getElementById("gameover").classList.add("show");
+}
+
+/* ---------------- HOUSING LOGIC ---------------- */
+function buyProperty(propId, mode, furnitureGrade) {
+  const prop = PROPERTIES.find(p=>p.id===propId);
+  const packCostAmt = furnitureGrade ? packCost(prop, furnitureGrade) : 0;
+
+  if (mode === "rent") {
+    if (state.money < packCostAmt) { toast("Not enough cash for that furniture pack."); return; }
+    state.property = propId;
+    state.ownership = "rent";
+  } else if (mode === "finance") {
+    const down = prop.buyPrice * prop.financeDown;
+    if (state.money < down + packCostAmt) { toast("Not enough cash for the down payment + furniture."); return; }
+    applyDelta("money", -down);
+    const principal = prop.buyPrice - down;
+    const weekly = principal / (prop.financeYears * 52);
+    state.property = propId;
+    state.ownership = "finance";
+    state.mortgageBalance = principal;
+    state.mortgageWeekly = weekly;
+  } else if (mode === "buy") {
+    if (state.money < prop.buyPrice + packCostAmt) { toast("Not enough cash."); return; }
+    applyDelta("money", -prop.buyPrice);
+    state.property = propId;
+    state.ownership = "owned";
+    state.mortgageBalance = 0;
+  }
+
+  // apply furniture pack
+  state.placedFurniture = {};
+  state.activeRoomIndex = null;
+  if (furnitureGrade) {
+    const roomGroups = packItemsFor(prop, furnitureGrade);
+    applyDelta("money", -packCostAmt);
+    roomGroups.forEach(({roomIndex, items}) => {
+      state.placedFurniture[roomIndex] = {};
+      items.forEach(f => {
+        if (!state.ownedFurniture.includes(f.id)) state.ownedFurniture.push(f.id);
+        state.placedFurniture[roomIndex][f.slot] = f.id;
+      });
+    });
+  }
+
+  closeModal();
+  const modeLabel = mode==="rent" ? "renting" : mode==="finance" ? "financing" : "bought outright";
+  toast(`Moved into the ${prop.name} (${modeLabel}).`);
+  log(`${state.name} moved into a new place: the ${prop.name}${furnitureGrade ? ` — ${FURNITURE_PACKS[furnitureGrade].label}` : ""}.`);
+  saveGame();
+  render();
+}
+
+function buyFurniture(fid) {
+  const f = FURNITURE.find(x=>x.id===fid);
+  const roomIdx = state.activeRoomIndex;
+  if (roomIdx === null || roomIdx === undefined) return;
+  if (!state.placedFurniture[roomIdx]) state.placedFurniture[roomIdx] = {};
+  if (state.ownedFurniture.includes(fid)) {
+    state.placedFurniture[roomIdx][f.slot] = fid;
+    toast(`${f.name} placed.`);
+  } else {
+    if (state.money < f.price) { toast("Not enough cash."); return; }
+    applyDelta("money", -f.price);
+    state.ownedFurniture.push(fid);
+    state.placedFurniture[roomIdx][f.slot] = fid;
+    toast(`Bought & placed: ${f.name}`);
+  }
+  saveGame();
+  render();
+}
+
+function applyForJob(jobId) {
+  const job = JOBS.find(j=>j.id===jobId);
+  if (state.smarts < job.minSmarts) { toast(`Needs ${job.minSmarts} smarts.`); return; }
+  state.job = jobId;
+  state.salary = job.payWeek;
+  log(`${state.name} got hired as a ${job.title}.`);
+  toast(`Hired as ${job.title}!`);
+  saveGame();
+  render();
+}
+
+/* ---------------- RENDERING ---------------- */
+function render() {
+  if (!state) return;
+  document.getElementById("char-name").textContent = state.name;
+  document.getElementById("char-age").textContent = "Age " + state.age;
+  document.getElementById("bar-health").style.width = state.health+"%";
+  document.getElementById("bar-happy").style.width = state.happiness+"%";
+  document.getElementById("bar-smarts").style.width = state.smarts+"%";
+  document.getElementById("bar-looks").style.width = state.looks+"%";
+  const moneyEl = document.getElementById("money-amt");
+  moneyEl.textContent = fmtMoney(state.money);
+  moneyEl.className = state.money < 0 ? "negative" : "";
+
+  document.querySelectorAll(".nav-btn").forEach(b=>{
+    b.classList.toggle("active", b.dataset.tab === state.activeTab);
+  });
+
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  if (state.activeTab === "story") renderStory(main);
+  else if (state.activeTab === "home") renderHome(main);
+  else if (state.activeTab === "job") renderJob(main);
+  else if (state.activeTab === "people") renderPeople(main);
+  else if (state.activeTab === "education") renderEducation(main);
+  else if (state.activeTab === "vehicles") renderVehicles(main);
+
+  document.getElementById("ageup-btn").style.display = state.pendingChoice ? "none" : "flex";
+}
+
+function renderStory(main) {
+  if (state.pendingChoice) {
+    const card = document.createElement("div");
+    card.className = "event-card";
+    card.innerHTML = `<div class="event-age">Age ${state.age}</div><div class="event-text">${state.pendingChoice.text}</div>`;
+    const btns = document.createElement("div");
+    btns.className = "choice-btns";
+    state.pendingChoice.choices.forEach((c,i)=>{
+      const b = document.createElement("button");
+      b.className = "choice-btn";
+      b.textContent = c.label;
+      b.onclick = ()=>resolveChoice(i);
+      btns.appendChild(b);
+    });
+    card.appendChild(btns);
+    main.appendChild(card);
+  }
+
+  state.feed.forEach(item=>{
+    const card = document.createElement("div");
+    card.className = "event-card";
+    let deltaHtml = "";
+    (item.deltas||[]).forEach(([f,v])=>{
+      if (f==="money") return;
+      const cls = v>=0 ? "delta-pos" : "delta-neg";
+      const label = f.charAt(0).toUpperCase()+f.slice(1);
+      deltaHtml += `<span class="event-delta ${cls}">${label} ${v>=0?"+":""}${v}</span>`;
+    });
+    card.innerHTML = `<div class="event-age">Age ${item.age}</div><div class="event-text">${item.text}</div>${deltaHtml?`<div>${deltaHtml}</div>`:""}`;
+    main.appendChild(card);
+  });
+}
+
+function renderHome(main) {
+  const title = document.createElement("div");
+  title.className = "section-title";
+  title.textContent = "Your Place";
+  main.appendChild(title);
+
+  if (!state.property) {
+    const card = document.createElement("div");
+    card.className = "panel-card";
+    card.innerHTML = `
+      <div class="panel-title">Living with Parents</div>
+      <div class="panel-sub">No rent, no privacy. Time for a place of your own?</div>
+    `;
+    main.appendChild(card);
+    const btn = document.createElement("button");
+    btn.className = "panel-action";
+    btn.style.width = "100%";
+    btn.style.marginTop = "8px";
+    btn.style.padding = "12px";
+    btn.textContent = "Browse Properties";
+    btn.onclick = openPropertyModal;
+    main.appendChild(btn);
+    return;
+  }
+
+  const prop = PROPERTIES.find(p=>p.id===state.property);
+  const layout = roomLayoutFor(prop.roomCount);
+
+  // Single-room properties (studio/one-bed): skip the floor plan, go straight to the room.
+  if (layout.length === 1) {
+    state.activeRoomIndex = 0;
+    renderRoomDetail(main, prop, layout, 0, false);
+    return;
+  }
+
+  // Multi-room: floor plan view, or a specific room if one is active.
+  if (state.activeRoomIndex === null || state.activeRoomIndex === undefined) {
+    renderFloorPlan(main, prop, layout);
+  } else {
+    renderRoomDetail(main, prop, layout, state.activeRoomIndex, true);
+  }
+}
+
+function renderFloorPlan(main, prop, layout) {
+  const stage = document.createElement("div");
+  stage.id = "room-stage";
+  stage.innerHTML = `<div id="room-label-bar" style="border-top:none;">
+      <div><div id="room-name">${prop.name}</div><div id="room-tier">Tier ${prop.tier} · ${ownershipLabel()} · ${layout.length} rooms</div></div>
+    </div>`;
+  main.appendChild(stage);
+
+  financeStatusCard(main, prop);
+
+  const ftitle = document.createElement("div");
+  ftitle.className = "section-title";
+  ftitle.textContent = "Floor Plan";
+  main.appendChild(ftitle);
+
+  const grid = document.createElement("div");
+  grid.className = "floorplan-grid";
+  layout.forEach((roomType, idx) => {
+    const roomDef = ROOM_TYPES[roomType];
+    const placedCount = Object.keys(state.placedFurniture[idx] || {}).length;
+    const tile = document.createElement("div");
+    tile.className = "floorplan-tile";
+    tile.innerHTML = `<span class="floorplan-icon">${roomDef.icon}</span>
+      <span class="floorplan-name">${roomDef.name}</span>
+      <span class="floorplan-sub">${placedCount ? placedCount+" items" : "Empty"}</span>`;
+    tile.onclick = () => { state.activeRoomIndex = idx; render(); };
+    grid.appendChild(tile);
+  });
+  main.appendChild(grid);
+
+  const upBtn = document.createElement("button");
+  upBtn.className = "panel-action secondary";
+  upBtn.style.width = "100%";
+  upBtn.style.padding = "12px";
+  upBtn.style.marginTop = "14px";
+  upBtn.textContent = "Browse Other Properties";
+  upBtn.onclick = openPropertyModal;
+  main.appendChild(upBtn);
+}
+
+function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
+  const roomType = layout[roomIndex];
+  const roomDef = ROOM_TYPES[roomType];
+
+  if (showBack) {
+    const back = document.createElement("button");
+    back.className = "panel-action secondary";
+    back.style.marginBottom = "10px";
+    back.textContent = "← Floor Plan";
+    back.onclick = () => { state.activeRoomIndex = null; render(); };
+    main.appendChild(back);
+  }
+
+  const stage = document.createElement("div");
+  stage.id = "room-stage";
+  stage.innerHTML = `<div id="room-canvas-wrap">${renderRoomSVG(prop, roomType, roomIndex)}</div>
+    <div id="room-label-bar">
+      <div><div id="room-name">${roomDef.icon} ${roomType==="studio"?prop.name:roomDef.name}</div><div id="room-tier">Tier ${prop.tier} · ${ownershipLabel()}</div></div>
+    </div>`;
+  main.appendChild(stage);
+
+  if (!showBack) financeStatusCard(main, prop);
+
+  if (!showBack) {
+    const upBtn = document.createElement("button");
+    upBtn.className = "panel-action";
+    upBtn.style.width = "100%";
+    upBtn.style.padding = "12px";
+    upBtn.style.marginBottom = "16px";
+    upBtn.textContent = "Browse Other Properties";
+    upBtn.onclick = openPropertyModal;
+    main.appendChild(upBtn);
+  }
+
+  // furniture for this room's slots only
+  const ftitle = document.createElement("div");
+  ftitle.className = "section-title";
+  ftitle.textContent = `Decorate · ${roomType==="studio"?"Studio":roomDef.name}`;
+  main.appendChild(ftitle);
+
+  const placed = state.placedFurniture[roomIndex] || {};
+  const grid = document.createElement("div");
+  grid.className = "furniture-grid";
+  const relevantFurniture = FURNITURE.filter(f => roomDef.slots.includes(f.slot) && f.minTier<=prop.tier);
+  relevantFurniture.forEach(f=>{
+    const owned = state.ownedFurniture.includes(f.id);
+    const isPlaced = placed[f.slot] === f.id;
+    const item = document.createElement("div");
+    item.className = "furniture-item" + (owned?" owned":"") + (isPlaced?" placed":"");
+    item.innerHTML = `<span class="furniture-icon">${f.icon}</span><span class="furniture-name">${f.name}</span><div class="furniture-price">${owned ? (isPlaced?"Placed":"Owned") : fmtMoney(f.price)}</div>`;
+    item.onclick = ()=>{ state.activeRoomIndex = roomIndex; buyFurniture(f.id); };
+    grid.appendChild(item);
+  });
+  main.appendChild(grid);
+  if (relevantFurniture.length === 0) {
+    main.innerHTML += `<div class="empty-hint">No furniture available for this room yet.</div>`;
+  }
+}
+
+function financeStatusCard(main, prop) {
+  if (state.ownership === "finance") {
+    const fc = document.createElement("div");
+    fc.className = "panel-card";
+    fc.innerHTML = `<div class="panel-row">
+        <div><div class="panel-title">Mortgage Balance</div><div class="panel-sub">${fmtMoney(state.mortgageWeekly)}/wk payment</div></div>
+        <div style="font-weight:700;">${fmtMoney(state.mortgageBalance)}</div>
+      </div>`;
+    main.appendChild(fc);
+  } else if (state.ownership === "rent") {
+    const fc = document.createElement("div");
+    fc.className = "panel-card";
+    fc.innerHTML = `<div class="panel-row">
+        <div><div class="panel-title">Renting</div><div class="panel-sub">Paid weekly, builds no equity</div></div>
+        <div style="font-weight:700;">${fmtMoney(prop.rentWeek)}/wk</div>
+      </div>`;
+    main.appendChild(fc);
+  } else {
+    const fc = document.createElement("div");
+    fc.className = "panel-card";
+    fc.innerHTML = `<div class="panel-row">
+        <div><div class="panel-title">Fully Owned</div><div class="panel-sub">No payments. It's all yours.</div></div>
+        <div style="font-size:18px;">🔑</div>
+      </div>`;
+    main.appendChild(fc);
+  }
+}
+
+function ownershipLabel() {
+  if (state.ownership==="rent") return "Renting";
+  if (state.ownership==="finance") return "Financing";
+  if (state.ownership==="owned") return "Owned";
+  return "";
+}
+
+// Generic slot -> (x,y,size) layout positions, reused across all room types.
+// Slots are placed in the order they appear in ROOM_TYPES[...].slots.
+const SLOT_POSITIONS = [
+  {x:90,  y:150, size:46},  // 1st slot (often the "anchor" item, e.g. bed/stove/tub/table/desk)
+  {x:330, y:230, size:50},  // 2nd slot
+  {x:330, y:130, size:38},  // 3rd slot
+  {x:420, y:250, size:34},  // 4th slot
+  {x:90,  y:70,  size:36},  // 5th slot
+  {x:200, y:230, size:50},  // 6th slot (rug/big items render under this via special-case below)
+];
+
+function renderRoomSVG(prop, roomType, roomIndex) {
+  const wallColor = ["#e8dfd0","#e3d9c6","#dcd0ba","#d5c7ab","#cebf9d","#c2af88"][prop.tier-1] || "#e8dfd0";
+  const floorColor = ["#c9b691","#bfa97f","#b39a6c","#a68a59","#977a49","#856838"][prop.tier-1] || "#c9b691";
+  const roomDef = ROOM_TYPES[roomType];
+  const placed = (state.placedFurniture[roomIndex]) || {};
+  const emojiFor = id => FURNITURE.find(f=>f.id===id)?.icon || "";
+
+  let furniture = "";
+  if (placed.rug) furniture += `<ellipse cx="260" cy="270" rx="90" ry="28" fill="#a8826a" opacity="0.5"/>`;
+
+  roomDef.slots.forEach((slot, i) => {
+    if (slot === "rug") return; // rendered above as a floor ellipse, not an icon
+    const itemId = placed[slot];
+    if (!itemId) return;
+    const pos = SLOT_POSITIONS[i] || SLOT_POSITIONS[SLOT_POSITIONS.length-1];
+    furniture += textIcon(emojiFor(itemId), pos.x, pos.y, pos.size);
+  });
+
+  return `<svg viewBox="0 0 480 360" preserveAspectRatio="xMidYMid slice">
+    <rect x="0" y="0" width="480" height="240" fill="${wallColor}"/>
+    <rect x="0" y="240" width="480" height="120" fill="${floorColor}"/>
+    <rect x="0" y="236" width="480" height="6" fill="${wallColor}" opacity="0.6"/>
+    <rect x="30" y="30" width="80" height="60" rx="2" fill="#fff" opacity="0.5" stroke="#00000022"/>
+    <rect x="380" y="40" width="50" height="100" rx="2" fill="#8a6a4a" opacity="0.7"/>
+    ${furniture}
+  </svg>`;
+}
+function textIcon(emoji, x, y, size) {
+  return `<text x="${x}" y="${y}" font-size="${size}" text-anchor="middle" dominant-baseline="middle">${emoji}</text>`;
+}
+
+function renderJob(main) {
+  const title = document.createElement("div");
+  title.className = "section-title";
+  title.textContent = "Career";
+  main.appendChild(title);
+
+  const cur = JOBS.find(j=>j.id===state.job);
+  const card = document.createElement("div");
+  card.className = "panel-card";
+  card.innerHTML = `<div class="panel-row">
+      <div><div class="panel-title">${cur.title}</div><div class="panel-sub">Current position</div></div>
+      <div style="font-weight:700; color:var(--good);">${fmtMoney(cur.payWeek)}/wk</div>
+    </div>`;
+  main.appendChild(card);
+
+  const jtitle = document.createElement("div");
+  jtitle.className = "section-title";
+  jtitle.textContent = "Open Positions";
+  main.appendChild(jtitle);
+
+  JOBS.filter(j=>j.id!=="unemployed" && j.id!==state.job).forEach(j=>{
+    const locked = state.smarts < j.minSmarts;
+    const c = document.createElement("div");
+    c.className = "panel-card";
+    c.innerHTML = `<div class="panel-row">
+        <div><div class="panel-title">${j.title}</div><div class="panel-sub">${locked ? `Needs ${j.minSmarts} smarts (you have ${state.smarts})` : fmtMoney(j.payWeek)+"/wk"}</div></div>
+      </div>`;
+    const btn = document.createElement("button");
+    btn.className = "panel-action" + (locked?"":"");
+    btn.textContent = "Apply";
+    btn.disabled = locked;
+    btn.style.marginTop = "8px";
+    btn.onclick = ()=>applyForJob(j.id);
+    c.appendChild(btn);
+    main.appendChild(c);
+  });
+}
+
+function renderPeople(main) {
+  const title = document.createElement("div");
+  title.className = "section-title";
+  title.textContent = "Relationships";
+  main.appendChild(title);
+
+  if (state.relationships.length === 0) {
+    main.innerHTML += `<div class="empty-hint">No one in your life yet. That tends to change.</div>`;
+    return;
+  }
+
+  state.relationships.forEach(r=>{
+    const c = document.createElement("div");
+    c.className = "panel-card";
+    c.innerHTML = `<div class="panel-row">
+        <div><div class="panel-title">${r.name}</div><div class="panel-sub">${r.type}</div></div>
+        <div style="font-size:12px; color:#8a7d6b;">❤ ${r.closeness}</div>
+      </div>`;
+
+    const actions = document.createElement('div');
+    actions.style.marginTop='8px';
+    actions.style.display='flex';
+    actions.style.gap='6px';
+
+    const spend=document.createElement('button');
+    spend.className='panel-action secondary';
+    spend.textContent='Spend Time';
+    spend.onclick=()=>{
+      r.closeness=Math.min(100,r.closeness+8);
+      state.happiness=Math.min(100,state.happiness+3);
+      log(`${state.name} spent time with ${r.name}.`);
+      saveGame(); render();
+    };
+
+    const gift=document.createElement('button');
+    gift.className='panel-action';
+    gift.textContent='Gift';
+    gift.onclick=()=>{
+      if(state.money<50){toast('Need $50');return;}
+      state.money-=50;
+      r.closeness=Math.min(100,r.closeness+12);
+      log(`${state.name} bought a gift for ${r.name}.`);
+      saveGame(); render();
+    };
+
+    actions.appendChild(spend);
+    actions.appendChild(gift);
+    c.appendChild(actions);
+    main.appendChild(c);
+  });
+}
+
+
+
+const VEHICLES = [
+ {name:"Used Sedan",price:5000},
+ {name:"Pickup Truck",price:15000},
+ {name:"Sports Car",price:45000},
+ {name:"Luxury SUV",price:85000}
+];
+
+function renderVehicles(main){
+ const title=document.createElement("div");
+ title.className="section-title";
+ title.textContent="Vehicles";
+ main.appendChild(title);
+
+ if(state.vehicles.length){
+   state.vehicles.forEach(v=>{
+     const c=document.createElement("div");
+     c.className="panel-card";
+     c.innerHTML=`<div class="panel-title">${v.name}</div>`;
+     main.appendChild(c);
+   });
+ }
+
+ VEHICLES.forEach(v=>{
+   const c=document.createElement("div");
+   c.className="panel-card";
+   c.innerHTML=`<div class="panel-row"><div><div class="panel-title">${v.name}</div><div class="panel-sub">${fmtMoney(v.price)}</div></div></div>`;
+   const b=document.createElement("button");
+   b.className="panel-action";
+   b.textContent="Buy";
+   b.onclick=()=>{
+      if(state.money<v.price){toast("Not enough cash");return;}
+      state.money-=v.price;
+      state.vehicles.push(v);
+      log(`${state.name} bought a ${v.name}.`);
+      saveGame();
+      render();
+   };
+   c.appendChild(b);
+   main.appendChild(c);
+ });
+}
+
+
+function renderEducation(main) {
+  const title = document.createElement("div");
+  title.className = "section-title";
+  title.textContent = "Education";
+  main.appendChild(title);
+
+  const card = document.createElement("div");
+  card.className = "panel-card";
+  card.innerHTML = `<div class="panel-title">${state.educationLevel}</div>
+  <div class="panel-sub">Current highest education</div>`;
+  main.appendChild(card);
+
+  const schools = [
+    ["High School Diploma",0],
+    ["Trade School",5000],
+    ["University Degree",20000]
+  ];
+
+  schools.forEach(([name,cost])=>{
+    const c = document.createElement("div");
+    c.className = "panel-card";
+    c.innerHTML = `<div class="panel-row"><div><div class="panel-title">${name}</div><div class="panel-sub">${cost===0?"Free":"Tuition "+fmtMoney(cost)}</div></div></div>`;
+    const b=document.createElement("button");
+    b.className="panel-action";
+    b.textContent="Enroll";
+    b.onclick=()=>{
+      if(state.age<18){toast("Must be 18+");return;}
+      if(cost>0){state.studentLoans+=cost;}
+      state.educationLevel=name;
+      state.smarts=clamp(state.smarts+15);
+      log(`${state.name} completed ${name}.`);
+      saveGame();
+      render();
+    };
+    c.appendChild(b);
+    main.appendChild(c);
+  });
+}
+/* ---------------- MODALS ---------------- */
+
+function openPropertyModal() {
+  const sheet = document.getElementById("modal-sheet");
+  sheet.innerHTML = `<div id="modal-title">Property Listings</div><div id="modal-sub">Rent for flexibility. Finance to build equity slowly. Buy outright if you can afford it.</div>`;
+  PROPERTIES.forEach(p=>{
+    const down = Math.round(p.buyPrice*p.financeDown);
+    const weekly = Math.round((p.buyPrice-down)/(p.financeYears*52));
+    const card = document.createElement("div");
+    card.className = "property-card";
+    card.innerHTML = `
+      <div class="property-name">${p.name}</div>
+      <div class="property-desc">${p.desc}</div>
+      <div class="property-prices">
+        <div class="price-opt"><div class="price-opt-label">Rent</div><div class="price-opt-val">${fmtMoney(p.rentWeek)}/wk</div></div>
+        <div class="price-opt"><div class="price-opt-label">Finance</div><div class="price-opt-val">${fmtMoney(down)} dn</div></div>
+        <div class="price-opt"><div class="price-opt-label">Buy</div><div class="price-opt-val">${fmtMoney(p.buyPrice)}</div></div>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button class="panel-action secondary" style="flex:1;" data-act="rent">Rent</button>
+        <button class="panel-action secondary" style="flex:1;" data-act="finance">Finance</button>
+        <button class="panel-action" style="flex:1;" data-act="buy">Buy</button>
+      </div>
+    `;
+    card.querySelector('[data-act="rent"]').onclick = ()=>openFurnitureStep(p.id,"rent");
+    card.querySelector('[data-act="finance"]').onclick = ()=>openFurnitureStep(p.id,"finance");
+    card.querySelector('[data-act="buy"]').onclick = ()=>openFurnitureStep(p.id,"buy");
+    sheet.appendChild(card);
+  });
+  document.getElementById("modal-overlay").classList.add("show");
+}
+
+function openFurnitureStep(propId, mode) {
+  const prop = PROPERTIES.find(p=>p.id===propId);
+  const lowCost = packCost(prop, "low");
+  const highCost = packCost(prop, "high");
+  const modeLabel = mode==="rent" ? "Renting" : mode==="finance" ? "Financing" : "Buying";
+
+  const sheet = document.getElementById("modal-sheet");
+  sheet.innerHTML = `<div id="modal-title">${prop.name}</div><div id="modal-sub">${modeLabel} this place. How do you want it furnished on move-in day?</div>`;
+
+  const options = [
+    { grade: null, label:"Move In Empty", blurb:"Bring your own furniture later from the Decorate tab.", cost:0 },
+    { grade: "low", label:FURNITURE_PACKS.low.label, blurb:FURNITURE_PACKS.low.blurb, cost:lowCost },
+    { grade: "high", label:FURNITURE_PACKS.high.label, blurb:FURNITURE_PACKS.high.blurb, cost:highCost },
+  ];
+
+  options.forEach(opt=>{
+    const card = document.createElement("div");
+    card.className = "property-card";
+    card.innerHTML = `
+      <div class="property-name">${opt.label}</div>
+      <div class="property-desc">${opt.blurb}</div>
+      <div class="panel-row">
+        <div style="font-weight:700;">${opt.cost>0 ? "+"+fmtMoney(opt.cost) : "No extra cost"}</div>
+        <button class="panel-action" data-grade="${opt.grade||''}">Select</button>
+      </div>
+    `;
+    card.querySelector("button").onclick = ()=>buyProperty(propId, mode, opt.grade);
+    sheet.appendChild(card);
+  });
+
+  const back = document.createElement("button");
+  back.className = "panel-action secondary";
+  back.style.width = "100%";
+  back.style.marginTop = "4px";
+  back.textContent = "← Back to Listings";
+  back.onclick = openPropertyModal;
+  sheet.appendChild(back);
+}
+
+function closeModal() {
+  document.getElementById("modal-overlay").classList.remove("show");
+}
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._tm);
+  toast._tm = setTimeout(()=>t.classList.remove("show"), 1800);
+}
+
+/* ---------------- WIRE UP ---------------- */
+document.querySelectorAll(".nav-btn").forEach(b=>{
+  b.addEventListener("click", ()=>{ state.activeTab = b.dataset.tab; render(); });
+});
+document.getElementById("ageup-btn").addEventListener("click", ageUp);
+document.getElementById("modal-overlay").addEventListener("click", e=>{
+  if (e.target.id === "modal-overlay") closeModal();
+});
+document.getElementById("restart-btn").addEventListener("click", ()=>{
+  document.getElementById("gameover").classList.remove("show");
+  newGame();
+});
+
+newGame();
+
+/* ---------------- PWA: OFFLINE SUPPORT ---------------- */
+// Registers the service worker so the game keeps working with no connection
+// after the first load. Wrapped in a feature check + try/catch since this
+// must never break the game if served somewhere that doesn't support it
+// (e.g. opened as a raw file:// path during local testing).
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(err => {
+      console.warn("Service worker registration failed:", err);
+    });
+  });
+}
+</script>
+</body>
+</html>
