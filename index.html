@@ -565,6 +565,14 @@
   @keyframes popFloat{0%{opacity:0;transform:translateX(-50%) translateY(4px) scale(.4);}25%{opacity:1;transform:translateX(-50%) translateY(-6px) scale(1.25);}45%{transform:translateX(-50%) translateY(-10px) scale(1);}100%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(1);}}
   * { touch-action: manipulation; }
   button, .nav-btn, #ageup-btn, .choice-btn, .panel-action { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+  #app, body { padding-top: env(safe-area-inset-top, 0px); }
+  #header, .header, #stats-row { padding-top: calc(env(safe-area-inset-top, 0px)); }
+  @supports(padding:max(0px)) {
+    #app { padding-top: max(env(safe-area-inset-top, 0px), 8px);
+           padding-left: env(safe-area-inset-left, 0px);
+           padding-right: env(safe-area-inset-right, 0px);
+           padding-bottom: env(safe-area-inset-bottom, 0px); }
+  }
 </style>
 </head>
 <body>
