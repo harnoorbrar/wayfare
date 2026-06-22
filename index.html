@@ -1210,7 +1210,6 @@ function buildLegacy(){
 
 function handleDeath() {
   state.alive = false;
-  document.getElementById("go-title").textContent = state.age > 95 ? "A Long Life" : "The End";
   const cause = state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : "");
 
   pruneWill();
@@ -1218,7 +1217,7 @@ function handleDeath() {
   if (state.money > 0 && Object.keys(state.will).length) {
     const estate = state.money;
     const totalPctRaw = Object.values(state.will).reduce((a,b)=>a+b,0);
-    const scale = totalPctRaw > 100 ? 100/totalPctRaw : 1; // never pay out more than the estate
+    const scale = totalPctRaw > 100 ? 100/totalPctRaw : 1;
     const shares = Object.entries(state.will).map(([id,pct]) => {
       const r = state.relationships.find(x=>x.id==id);
       const amount = Math.round(estate * (pct*scale/100));
@@ -1231,8 +1230,6 @@ function handleDeath() {
     willText = " With no will on file, the estate goes unclaimed.";
   }
 
-  document.getElementById("go-text").textContent =
-    `${state.name} lived to ${state.age}. They leave behind ${fmtMoney(state.money)} and ${state.relationships.length} people who knew them. ${cause}${willText}`;
   saveGame();
   buildLegacy();
   document.getElementById("gameover").classList.add("show");
