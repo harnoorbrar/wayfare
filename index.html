@@ -1167,6 +1167,11 @@ function resolveChoice(choiceIndex) {
     state.partner = null;
   }
 
+  if (state.health <= 0 || state.age > 95) {
+    handleDeath();
+    return;
+  }
+
   state.pendingChoice = null;
   saveGame();
   render();
