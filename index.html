@@ -1236,7 +1236,7 @@ function handleDeath() {
   }
 
   saveGame();
-  buildLegacy();
+  try { buildLegacy(); } catch(e) { console.error(e); }
   document.getElementById("gameover").classList.add("show");
 }
 
