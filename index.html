@@ -1184,6 +1184,100 @@ const EVENTS = [
       ]);
       return { text: `${s.name} ${r[0]}`, deltas: r[1] };
   }},
+
+  // ---- accidents / injuries ----
+  { cond: s => s.age>=5 && Math.random()<0.06, weight: 0.5, build: s => {
+      const r = pick([
+        ["tripped down a flight of stairs.", [["health", rand(-15,-8)]], 400],
+        ["got into a minor fender-bender.", [["health", rand(-10,-4)]], 1200],
+        ["sprained an ankle playing sports.", [["health", rand(-12,-6)]], 250],
+        ["slipped on ice and landed hard.", [["health", rand(-14,-7)]], 600],
+        ["burned themselves badly while cooking.", [["health", rand(-8,-3)]], 150],
+      ]);
+      const hasInsurance = (s.savings||0) > 5000;
+      return {
+        text: `${s.name} ${r[0]} Hospital bills are piling up.`,
+        choices: [
+          { label: `Pay for proper treatment (${fmtMoney(r[2])})`, deltas: [["money", -r[2]],["health", rand(4,8)]], result: "Got patched up properly. Healing well." },
+          { label: "Tough it out", deltas: [["health", rand(-5,-2)]], result: "Decided to just rest it off. Not the smartest call." },
+        ]
+      };
+  }},
+  { cond: s => s.age>=18 && s.age<=70 && Math.random()<0.03, weight: 0.4, build: s => ({
+      text: `${s.name} was in a serious car accident. It's going to take a while to recover.`,
+      choices: [
+        { label: "Spend big on the best care ($5,000)", deltas: [["money", -5000],["health", rand(0,5)]], result: "Recovered about as well as anyone could hope." },
+        { label: "Stick to basic care", deltas: [["money", -800],["health", rand(-15,-8)]], result: "It was a long, rough recovery." },
+      ]
+  })},
+
+  // ---- lawsuits ----
+  { cond: s => s.age>=18 && (s.businesses||[]).length>0 && Math.random()<0.08, weight: 0.5, build: s => {
+      const biz = pick(s.businesses);
+      const def = businessTypeById(biz.typeId);
+      const bizName = def ? def.name : "one of their businesses";
+      return {
+        text: `A customer is threatening to sue ${bizName} over a dispute.`,
+        choices: [
+          { label: "Settle out of court ($2,000)", deltas: [["money", -2000]], result: "Paid to make it go away quietly." },
+          { label: "Fight it in court", deltas: [["money", rand(1,100)<=50?-6000:0],["happiness", -4]], result: "It dragged on for months and cost a small fortune in legal fees." },
+        ]
+      };
+  }},
+  { cond: s => s.age>=25 && s.age<=70 && Math.random()<0.025, weight: 0.35, build: s => ({
+      text: `${s.name} got served with a lawsuit over a dispute with a neighbor.`,
+      choices: [
+        { label: "Hire a lawyer ($3,500)", deltas: [["money", -3500],["happiness", -2]], result: "The lawyer got the case dismissed. Expensive, but it's over." },
+        { label: "Represent yourself", deltas: [["money", rand(1,100)<=40?0:-4000],["happiness", -6]], result: "A stressful ordeal either way." },
+      ]
+  })},
+
+  // ---- lottery / lucky breaks ----
+  { cond: s => s.age>=18 && Math.random()<0.02, weight: 0.3, build: s => {
+      const winnings = pick([500, 1000, 5000, 25000, 100000]);
+      return { text: `${s.name} bought a lottery ticket on a whim and won ${fmtMoney(winnings)}!`, deltas: [["money", winnings],["happiness", rand(8,15)]] };
+  }},
+  { cond: s => s.age>=16 && Math.random()<0.015, weight: 0.3, build: s => {
+      const followers = pick(["a goofy dance", "a pet doing something hilarious", "a heartfelt rant", "an oddly satisfying cleaning video"]);
+      const earnings = rand(200,3000);
+      return { text: `${s.name} posted ${followers} online and it went viral overnight. Brand deals rolled in (${fmtMoney(earnings)}).`, deltas: [["money", earnings],["happiness", rand(4,9)],["looks", rand(0,3)]] };
+  }},
+  { cond: s => s.age>=20 && Math.random()<0.012, weight: 0.25, build: s => {
+      const amount = rand(3000, 40000);
+      return { text: `A distant relative ${s.name} barely knew passed away and left them ${fmtMoney(amount)} in their will.`, deltas: [["money", amount],["happiness", rand(-2,3)]] };
+  }},
+  { cond: s => s.age>=18 && s.age<=60 && Math.random()<0.02, weight: 0.3, build: s => ({
+      text: `${s.name} found an old item in storage that turned out to be valuable.`,
+      choices: [
+        { label: "Sell it", deltas: [["money", rand(500,8000)]], result: "Sold it to a collector for a tidy sum." },
+        { label: "Keep it", deltas: [["happiness", rand(3,6)]], result: "Decided some things are worth more than money." },
+      ]
+  })},
+
+  // ---- scandals / embarrassments ----
+  { cond: s => s.age>=14 && Math.random()<0.025, weight: 0.35, build: s => {
+      const r = pick([
+        "an old embarrassing photo of them resurfaced online",
+        "a group chat screenshot of theirs leaked",
+        "they were caught in an awkward lie by a friend",
+        "a rumor about them spread around fast",
+      ]);
+      return { text: `${r.charAt(0).toUpperCase()+r.slice(1)}. ${s.name} is mortified.`, deltas: [["happiness", rand(-10,-4)],["looks", rand(-3,0)]] };
+  }},
+  { cond: s => s.age>=18 && s.job!=="unemployed" && Math.random()<0.015, weight: 0.3, build: s => ({
+      text: `${s.name} accidentally sent a complaint about their boss... to their boss.`,
+      choices: [
+        { label: "Own up to it", deltas: [["happiness", -5]], result: "Awkward conversation, but it blew over." },
+        { label: "Pretend it didn't happen", deltas: [["happiness", -8],["money", state.salary?-state.salary*2:0]], result: "It did not blow over. Things got tense, and it cost them." },
+      ]
+  })},
+  { cond: s => s.age>=20 && s.partner && Math.random()<0.01, weight: 0.25, build: s => ({
+      text: `${s.name} got caught in a small lie by ${s.partner}.`,
+      choices: [
+        { label: "Come clean immediately", deltas: [["happiness", rand(-3,0)]], result: "Honesty smoothed things over faster than expected." },
+        { label: "Dig in and deny it", deltas: [["happiness", rand(-10,-5)]], result: "That made things worse. Trust took a hit." },
+      ]
+  })},
 ];
 
 function weightedEvent() {
