@@ -1802,7 +1802,7 @@ function renderStory(main) {
       const b = document.createElement("button");
       b.className = "choice-btn";
       b.textContent = c.label;
-      b.onclick = ()=>resolveChoice(i);
+      b.onclick = () => { try { resolveChoice(i); } catch(e) { console.error(e); openErrorModal(e); } };
       btns.appendChild(b);
     });
     card.appendChild(btns);
@@ -2935,6 +2935,90 @@ function closeModal() {
   document.getElementById("modal-overlay").classList.remove("show");
 }
 
+// Surfaces any crash to the player instead of letting the game silently
+// freeze (e.g. Age Up doing nothing with no feedback). Gives them a way to
+// copy the details for a bug report, and an escape hatch in case a stuck
+// pending choice is the cause.
+let _errorModalOpen = false;
+function openErrorModal(err) {
+  if (_errorModalOpen) return; // don't stack modals if multiple errors fire at once
+  _errorModalOpen = true;
+  let details = "";
+  try {
+    details = (err && err.stack) ? err.stack : String(err);
+  } catch(e) { details = "Unknown error"; }
+  let saveSnapshot = "";
+  try { saveSnapshot = JSON.stringify(state); } catch(e) { saveSnapshot = "(could not read save)"; }
+
+  const sheet = document.getElementById("modal-sheet");
+  sheet.innerHTML = `<div id="modal-title">Something went wrong</div><div id="modal-sub">The game hit an error and may look stuck. Your progress up to the last save is safe. Copy the details below and send them over so this can get fixed.</div>`;
+
+  const ta = document.createElement("textarea");
+  ta.readOnly = true;
+  ta.style.width = "100%";
+  ta.style.minHeight = "120px";
+  ta.style.fontFamily = "monospace";
+  ta.style.fontSize = "11px";
+  ta.style.padding = "10px";
+  ta.style.borderRadius = "8px";
+  ta.style.border = "1px solid var(--line)";
+  ta.style.marginBottom = "10px";
+  ta.value = `Error: ${details}\n\nSave snapshot:\n${saveSnapshot}`;
+  sheet.appendChild(ta);
+
+  const copyBtn = document.createElement("button");
+  copyBtn.className = "panel-action";
+  copyBtn.style.width = "100%";
+  copyBtn.style.marginBottom = "8px";
+  copyBtn.textContent = "Copy Details";
+  copyBtn.onclick = () => {
+    ta.select();
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(ta.value).then(()=>toast("Copied.")).catch(()=>document.execCommand("copy"));
+      } else {
+        document.execCommand("copy");
+        toast("Copied.");
+      }
+    } catch(e) { toast("Couldn't copy automatically -- select the text above manually."); }
+  };
+  sheet.appendChild(copyBtn);
+
+  if (state && state.pendingChoice) {
+    const clearBtn = document.createElement("button");
+    clearBtn.className = "panel-action secondary";
+    clearBtn.style.width = "100%";
+    clearBtn.style.marginBottom = "8px";
+    clearBtn.textContent = "Clear Stuck Choice and Continue";
+    clearBtn.onclick = () => {
+      state.pendingChoice = null;
+      saveGame();
+      closeModal();
+      _errorModalOpen = false;
+      try { render(); } catch(e) {}
+    };
+    sheet.appendChild(clearBtn);
+  }
+
+  const dismiss = document.createElement("button");
+  dismiss.className = "panel-action secondary";
+  dismiss.style.width = "100%";
+  dismiss.textContent = "Dismiss";
+  dismiss.onclick = () => { closeModal(); _errorModalOpen = false; };
+  sheet.appendChild(dismiss);
+
+  document.getElementById("modal-overlay").classList.add("show");
+}
+
+window.addEventListener("error", (e) => {
+  console.error(e.error || e.message);
+  openErrorModal(e.error || e.message);
+});
+window.addEventListener("unhandledrejection", (e) => {
+  console.error(e.reason);
+  openErrorModal(e.reason);
+});
+
 function toast(msg) {
   const t = document.getElementById("toast");
   t.textContent = msg;
@@ -2947,7 +3031,9 @@ function toast(msg) {
 document.querySelectorAll(".nav-btn").forEach(b=>{
   b.addEventListener("click", ()=>{ state.activeTab = b.dataset.tab; render(); });
 });
-document.getElementById("ageup-btn").addEventListener("click", ageUp);
+document.getElementById("ageup-btn").addEventListener("click", () => {
+  try { ageUp(); } catch(e) { console.error(e); openErrorModal(e); }
+});
 document.getElementById("modal-overlay").addEventListener("click", e=>{
   if (e.target.id === "modal-overlay") closeModal();
 });
