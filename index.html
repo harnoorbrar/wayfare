@@ -1289,9 +1289,14 @@ function ageUp() {
 
   // income & housing costs (weekly * 52, simplified to once per year)
   if (state.salary) applyDelta("money", state.salary * 52);
+  if (state.property && !PROPERTIES.find(p=>p.id===state.property)) {
+    // stale/unknown property id from an old save -- fall back to "no property"
+    // instead of crashing every year on a lookup that can never succeed.
+    state.property = null; state.ownership = null; state.mortgageBalance = 0; state.mortgageWeekly = 0;
+  }
   if (state.ownership === "rent") {
     const prop = PROPERTIES.find(p=>p.id===state.property);
-    applyDelta("money", -prop.rentWeek * 52);
+    if (prop) applyDelta("money", -prop.rentWeek * 52);
   } else if (state.ownership === "finance" && state.mortgageBalance > 0) {
     const yearly = Math.min(state.mortgageWeekly*52, state.mortgageBalance);
     applyDelta("money", -yearly);
@@ -1299,12 +1304,13 @@ function ageUp() {
     if (state.mortgageBalance <= 0) {
       state.mortgageBalance = 0;
       state.ownership = "owned";
-      log(`${state.name} made the final payment. The ${PROPERTIES.find(p=>p.id===state.property).name} is fully owned now.`);
+      const ownedProp = PROPERTIES.find(p=>p.id===state.property);
+      if (ownedProp) log(`${state.name} made the final payment. The ${ownedProp.name} is fully owned now.`);
     }
   }
   if (state.property) {
     const prop = PROPERTIES.find(p=>p.id===state.property);
-    applyDelta("happiness", Math.round(prop.happyBonus/8));
+    if (prop) applyDelta("happiness", Math.round(prop.happyBonus/8));
   }
 
   // vehicle upkeep + the lifestyle bump of actually having a car
@@ -1319,6 +1325,10 @@ function ageUp() {
 
   // businesses: weekly profit (or loss) compounded yearly, plus an occasional swing year
   if (state.businesses.length) {
+    // drop any business whose catalog entry no longer exists instead of
+    // crashing every year forever -- keeps an old save playable even if the
+    // BUSINESS_TYPES catalog changes in a future update.
+    state.businesses = state.businesses.filter(biz => businessTypeById(biz.typeId));
     state.businesses.forEach(biz => {
       const def = businessTypeById(biz.typeId);
       const rev = businessRevenue(biz), exp = businessExpense(biz);
@@ -2181,7 +2191,7 @@ function renderJob(main) {
   title.textContent = "Career";
   main.appendChild(title);
 
-  const cur = JOBS.find(j=>j.id===state.job);
+  const cur = JOBS.find(j=>j.id===state.job) || JOBS.find(j=>j.id==="unemployed");
   const card = document.createElement("div");
   card.className = "panel-card";
   card.innerHTML = `<div class="panel-row">
@@ -2430,9 +2440,9 @@ const BUSINESS_MAX_LEVEL = 5;
 
 function businessTypeById(id) { return BUSINESS_TYPES.find(b=>b.id===id); }
 function ownedBusiness(id) { return state.businesses.find(b=>b.typeId===id); }
-function businessRevenue(biz) { const def = businessTypeById(biz.typeId); return Math.round(def.weeklyRevenue * Math.pow(1.18, biz.level-1)); }
-function businessExpense(biz) { const def = businessTypeById(biz.typeId); return Math.round(def.weeklyExpense * Math.pow(1.08, biz.level-1)); }
-function businessUpgradeCost(biz) { const def = businessTypeById(biz.typeId); return Math.round(def.cost * 0.6 * biz.level); }
+function businessRevenue(biz) { const def = businessTypeById(biz.typeId); if (!def) return 0; return Math.round(def.weeklyRevenue * Math.pow(1.18, biz.level-1)); }
+function businessExpense(biz) { const def = businessTypeById(biz.typeId); if (!def) return 0; return Math.round(def.weeklyExpense * Math.pow(1.08, biz.level-1)); }
+function businessUpgradeCost(biz) { const def = businessTypeById(biz.typeId); if (!def) return Infinity; return Math.round(def.cost * 0.6 * biz.level); }
 function businessResaleValue(biz) { return Math.round(biz.totalInvested * 0.55); }
 
 function startBusiness(typeId) {
