@@ -705,6 +705,10 @@ const PROPERTIES = [
     buyPrice:420000, rentWeek:980, financeDown:0.20, financeYears:30, happyBonus:20 },
   { id:"estate", name:"Hillside Estate", desc:"The kind of house that ends up in magazines.", tier:6, roomCount:8,
     buyPrice:1100000, rentWeek:2200, financeDown:0.25, financeYears:30, happyBonus:30 },
+  { id:"oceanmansion", name:"Oceanfront Mansion", desc:"Floor-to-ceiling glass, private beach access, and a wine cellar you'll never empty.", tier:7, roomCount:8,
+    buyPrice:12000000, rentWeek:18000, financeDown:0.30, financeYears:30, happyBonus:42 },
+  { id:"privateisland", name:"Private Island Estate", desc:"Your own island. Your own dock. Your own rules.", tier:8, roomCount:8,
+    buyPrice:35000000, rentWeek:44000, financeDown:0.35, financeYears:30, happyBonus:58 },
 ];
 
 // The 8 possible room types, in the order they're unlocked as roomCount grows.
@@ -781,6 +785,19 @@ const FURNITURE = [
   { id:"gardenset_lounge", name:"Lounge Set", icon:"🏖️", price:2800, slot:"gardenset", minTier:6, grade:"high" },
   { id:"gardenplant_1", name:"Flower Beds", icon:"🌸", price:150, slot:"gardenplant", minTier:6, grade:"low" },
   { id:"fountain_1", name:"Stone Fountain", icon:"⛲", price:3500, slot:"fountain", minTier:6, grade:"high" },
+  // ultra-luxury (oceanfront mansion / private island tier)
+  { id:"bed_imperial", name:"Imperial Suite Bed", icon:"🛏️", price:18000, slot:"bed", minTier:7, grade:"high" },
+  { id:"sofa_italian", name:"Italian Leather Sectional", icon:"🛋️", price:22000, slot:"sofa", minTier:7, grade:"high" },
+  { id:"big_theater", name:"Private Home Theater", icon:"🎬", price:65000, slot:"big", minTier:7, grade:"high" },
+  { id:"art_masterpiece", name:"Original Masterpiece", icon:"🖼️", price:120000, slot:"art", minTier:7, grade:"high" },
+  { id:"stove_michelin", name:"Chef's Kitchen Suite", icon:"🔥", price:48000, slot:"stove", minTier:7, grade:"high" },
+  { id:"counter_goldmarble", name:"Gold-Veined Marble Island", icon:"💎", price:55000, slot:"counter", minTier:7, grade:"high" },
+  { id:"tub_spa", name:"Spa Plunge Pool", icon:"💦", price:38000, slot:"tub", minTier:7, grade:"high" },
+  { id:"table_estate", name:"20-Seat Banquet Table", icon:"🪵", price:42000, slot:"table", minTier:7, grade:"high" },
+  { id:"chandelier_crystal", name:"Crystal Grand Chandelier", icon:"💡", price:75000, slot:"chandelier", minTier:7, grade:"high" },
+  { id:"bar_wine", name:"Wine Cellar Bar", icon:"🍷", price:60000, slot:"bar", minTier:7, grade:"high" },
+  { id:"gardenset_infinity", name:"Infinity Pool Deck", icon:"🏝️", price:95000, slot:"gardenset", minTier:7, grade:"high" },
+  { id:"fountain_marble", name:"Marble Courtyard Fountain", icon:"⛲", price:40000, slot:"fountain", minTier:7, grade:"high" },
 ];
 
 // Move-in furniture packs offered at purchase time.
@@ -2172,8 +2189,8 @@ const ROOM_SCENERY = {
 };
 
 function renderRoomSVG(prop, roomType, roomIndex) {
-  const wallColor = ["#e8dfd0","#e3d9c6","#dcd0ba","#d5c7ab","#cebf9d","#c2af88"][prop.tier-1] || "#e8dfd0";
-  const floorColor = ["#c9b691","#bfa97f","#b39a6c","#a68a59","#977a49","#856838"][prop.tier-1] || "#c9b691";
+  const wallColor = ["#e8dfd0","#e3d9c6","#dcd0ba","#d5c7ab","#cebf9d","#c2af88","#e6dcc4","#1f2b3a"][prop.tier-1] || "#e8dfd0";
+  const floorColor = ["#c9b691","#bfa97f","#b39a6c","#a68a59","#977a49","#856838","#d4af37","#0f1620"][prop.tier-1] || "#c9b691";
   const roomDef = ROOM_TYPES[roomType];
   const placed = (state.placedFurniture[roomIndex]) || {};
   const scenery = ROOM_SCENERY[roomType] || ROOM_SCENERY.default;
