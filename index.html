@@ -319,6 +319,29 @@
     padding: 6px 10px;
     font-size: 11px;
   }
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .filter-chip {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 14px;
+    padding: 5px 11px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .filter-chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
   .rel-card .panel-row { align-items: flex-start; }
   .rel-meta { font-size: 11px; color: #8a7d6b; margin-top: 2px; }
   .rel-closeness-track {
@@ -787,17 +810,77 @@ function packCost(prop, grade) {
   return packItemsFor(prop, grade).reduce((sum,room)=>sum+room.items.reduce((s,f)=>s+f.price,0), 0);
 }
 
-const JOBS = [
-  { id:"unemployed", title:"Unemployed", payWeek:0, minSmarts:0 },
-  { id:"retail", title:"Retail Associate", payWeek:480, minSmarts:0 },
-  { id:"barista", title:"Barista", payWeek:420, minSmarts:0 },
-  { id:"office", title:"Office Assistant", payWeek:650, minSmarts:25 },
-  { id:"trades", title:"Electrician", payWeek:980, minSmarts:30 },
-  { id:"nurse", title:"Nurse", payWeek:1350, minSmarts:55 },
-  { id:"engineer", title:"Software Engineer", payWeek:1900, minSmarts:60 },
-  { id:"doctor", title:"Physician", payWeek:3200, minSmarts:80 },
-  { id:"exec", title:"Company Executive", payWeek:4800, minSmarts:65 },
+const DEGREES = [
+  { id:"hs", name:"High School Diploma", tier:"High School", field:null, cost:0, smarts:0, prereq:null },
+  { id:"trade_elec", name:"Electrical Trade Cert", tier:"Trade School", field:"Trade", cost:4000, smarts:8, prereq:"hs" },
+  { id:"trade_plumb", name:"Plumbing Trade Cert", tier:"Trade School", field:"Trade", cost:4000, smarts:8, prereq:"hs" },
+  { id:"trade_hvac", name:"HVAC Trade Cert", tier:"Trade School", field:"Trade", cost:4000, smarts:8, prereq:"hs" },
+  { id:"trade_culinary", name:"Culinary Trade Cert", tier:"Trade School", field:"Trade", cost:3500, smarts:6, prereq:"hs" },
+  { id:"deg_business", name:"Business Degree", tier:"University", field:"Business", cost:18000, smarts:14, prereq:"hs" },
+  { id:"deg_finance", name:"Finance Degree", tier:"University", field:"Business", cost:21000, smarts:15, prereq:"hs" },
+  { id:"deg_cs", name:"Computer Science Degree", tier:"University", field:"Tech", cost:22000, smarts:16, prereq:"hs" },
+  { id:"deg_engineering", name:"Engineering Degree", tier:"University", field:"Engineering", cost:24000, smarts:17, prereq:"hs" },
+  { id:"deg_nursing", name:"Nursing Degree", tier:"University", field:"Healthcare", cost:20000, smarts:15, prereq:"hs" },
+  { id:"deg_medicine", name:"Medical Degree", tier:"University", field:"Healthcare", cost:40000, smarts:20, prereq:"hs" },
+  { id:"deg_law", name:"Law Degree", tier:"University", field:"Law", cost:30000, smarts:18, prereq:"hs" },
+  { id:"deg_science", name:"Science Degree", tier:"University", field:"Science", cost:20000, smarts:15, prereq:"hs" },
+  { id:"deg_arts", name:"Fine Arts Degree", tier:"University", field:"Arts & Media", cost:16000, smarts:10, prereq:"hs" },
+  { id:"deg_communications", name:"Communications Degree", tier:"University", field:"Arts & Media", cost:16000, smarts:11, prereq:"hs" },
+  { id:"deg_education", name:"Education Degree", tier:"University", field:"Education", cost:17000, smarts:12, prereq:"hs" },
 ];
+
+const JOB_CATEGORIES = ["Entry-Level","Trade","Business","Tech","Engineering","Healthcare","Law","Science","Arts & Media","Education","Public Service"];
+
+const JOBS = [
+  { id:"unemployed", title:"Unemployed", payWeek:0, minSmarts:0, requiredDegree:null, category:null },
+  // Entry-Level — no degree needed
+  { id:"retail", title:"Retail Associate", payWeek:480, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
+  { id:"barista", title:"Barista", payWeek:420, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
+  { id:"warehouse", title:"Warehouse Associate", payWeek:500, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
+  { id:"server", title:"Restaurant Server", payWeek:460, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
+  // Trade — trade cert required
+  { id:"electrician", title:"Electrician", payWeek:980, minSmarts:20, requiredDegree:"trade_elec", category:"Trade" },
+  { id:"plumber", title:"Plumber", payWeek:940, minSmarts:18, requiredDegree:"trade_plumb", category:"Trade" },
+  { id:"hvac", title:"HVAC Technician", payWeek:900, minSmarts:18, requiredDegree:"trade_hvac", category:"Trade" },
+  { id:"chef", title:"Chef", payWeek:850, minSmarts:20, requiredDegree:"trade_culinary", category:"Trade" },
+  // Business
+  { id:"office", title:"Office Assistant", payWeek:650, minSmarts:25, requiredDegree:"hs", category:"Business" },
+  { id:"accountant", title:"Accountant", payWeek:1450, minSmarts:45, requiredDegree:"deg_finance", category:"Business" },
+  { id:"marketing", title:"Marketing Manager", payWeek:1550, minSmarts:45, requiredDegree:"deg_business", category:"Business" },
+  { id:"exec", title:"Company Executive", payWeek:4800, minSmarts:65, requiredDegree:"deg_business", category:"Business" },
+  // Tech
+  { id:"itsupport", title:"IT Support Specialist", payWeek:900, minSmarts:30, requiredDegree:"hs", category:"Tech" },
+  { id:"engineer", title:"Software Engineer", payWeek:1900, minSmarts:60, requiredDegree:"deg_cs", category:"Tech" },
+  { id:"datasci", title:"Data Scientist", payWeek:2400, minSmarts:70, requiredDegree:"deg_cs", category:"Tech" },
+  // Engineering
+  { id:"civileng", title:"Civil Engineer", payWeek:1850, minSmarts:55, requiredDegree:"deg_engineering", category:"Engineering" },
+  // Healthcare
+  { id:"nurse", title:"Nurse", payWeek:1350, minSmarts:55, requiredDegree:"deg_nursing", category:"Healthcare" },
+  { id:"doctor", title:"Physician", payWeek:3200, minSmarts:80, requiredDegree:"deg_medicine", category:"Healthcare" },
+  // Law
+  { id:"paralegal", title:"Paralegal", payWeek:1000, minSmarts:40, requiredDegree:"hs", category:"Law" },
+  { id:"lawyer", title:"Lawyer", payWeek:2800, minSmarts:70, requiredDegree:"deg_law", category:"Law" },
+  // Science
+  { id:"researcher", title:"Research Scientist", payWeek:2200, minSmarts:70, requiredDegree:"deg_science", category:"Science" },
+  // Arts & Media
+  { id:"designer", title:"Graphic Designer", payWeek:1100, minSmarts:35, requiredDegree:"deg_arts", category:"Arts & Media" },
+  { id:"journalist", title:"Journalist", payWeek:1150, minSmarts:40, requiredDegree:"deg_communications", category:"Arts & Media" },
+  // Education
+  { id:"teacher", title:"Teacher", payWeek:1050, minSmarts:40, requiredDegree:"deg_education", category:"Education" },
+  // Public Service
+  { id:"police", title:"Police Officer", payWeek:1100, minSmarts:30, requiredDegree:"hs", category:"Public Service" },
+  { id:"firefighter", title:"Firefighter", payWeek:1080, minSmarts:28, requiredDegree:"hs", category:"Public Service" },
+];
+
+function hasDegree(id) {
+  return !!(state.degrees && state.degrees.includes(id));
+}
+function degreeById(id) {
+  return DEGREES.find(d => d.id === id);
+}
+function degreeMet(job) {
+  return !job.requiredDegree || hasDegree(job.requiredDegree);
+}
 
 function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function pick(arr) { return arr[rand(0, arr.length - 1)]; }
@@ -821,6 +904,11 @@ function loadGame() {
     const save = localStorage.getItem(SAVE_KEY);
     if (save) {
       state = JSON.parse(save);
+      if (!state.degrees) {
+        // migrate old single-tier educationLevel saves to the new degrees array
+        state.degrees = (state.educationLevel && state.educationLevel !== "None") ? ["hs"] : [];
+        delete state.educationLevel;
+      }
       return true;
     }
   } catch(e) {}
@@ -860,7 +948,7 @@ function newGame() {
     children: [],
     feed: [],
     alive: true,
-    educationLevel: "None",
+    degrees: [],
     studentLoans: 0,
     vehicles: [],
     will: {}, // relationshipId -> percentage of estate
@@ -1130,17 +1218,10 @@ function resolveChoice(choiceIndex) {
 
   if (c.flag === "college") state.collegeFlag = true;
   if (c.flag === "promotion") {
-    const cur = JOBS.find(j=>j.id===state.job);
-    const idx = JOBS.indexOf(cur);
-    if (idx < JOBS.length-1) {
-      const next = JOBS[idx+1];
-      if (state.smarts >= next.minSmarts) {
-        state.job = next.id; state.salary = next.payWeek;
-        log(`${state.name} was promoted to ${next.title}!`);
-      } else {
-        applyDelta("money", state.salary*4);
-        log(`${state.name} got a nice bonus instead of a title change.`);
-      }
+    if (state.job !== "unemployed" && state.salary > 0) {
+      const raise = Math.round(state.salary * (rand(10,20)/100));
+      state.salary += raise;
+      log(`${state.name} got a raise — now earning ${fmtMoney(state.salary)}/wk.`);
     }
   }
   if (c.flag === "newPartner") {
@@ -1311,6 +1392,7 @@ function buyFurniture(fid) {
 function applyForJob(jobId) {
   const job = JOBS.find(j=>j.id===jobId);
   if (state.smarts < job.minSmarts) { toast(`Needs ${job.minSmarts} smarts.`); return; }
+  if (!degreeMet(job)) { toast(`Needs ${degreeById(job.requiredDegree).name}.`); return; }
   state.job = jobId;
   state.salary = job.payWeek;
   log(`${state.name} got hired as a ${job.title}.`);
@@ -1674,24 +1756,53 @@ function renderJob(main) {
   card.className = "panel-card";
   card.innerHTML = `<div class="panel-row">
       <div><div class="panel-title">${cur.title}</div><div class="panel-sub">Current position</div></div>
-      <div style="font-weight:700; color:var(--good);">${fmtMoney(cur.payWeek)}/wk</div>
+      <div style="font-weight:700; color:var(--good);">${fmtMoney(state.salary||cur.payWeek)}/wk</div>
     </div>`;
   main.appendChild(card);
 
   const jtitle = document.createElement("div");
   jtitle.className = "section-title";
-  jtitle.textContent = "Open Positions";
+  jtitle.textContent = "Find a Job";
   main.appendChild(jtitle);
 
-  JOBS.filter(j=>j.id!=="unemployed" && j.id!==state.job).forEach(j=>{
-    const locked = state.smarts < j.minSmarts;
+  state.jobFilter = state.jobFilter || "All";
+
+  const filterRow = document.createElement("div");
+  filterRow.className = "filter-row";
+  ["All", ...JOB_CATEGORIES].forEach(cat => {
+    const chip = document.createElement("button");
+    chip.className = "filter-chip" + (state.jobFilter===cat ? " active" : "");
+    chip.textContent = cat;
+    chip.onclick = () => { state.jobFilter = cat; render(); };
+    filterRow.appendChild(chip);
+  });
+  main.appendChild(filterRow);
+
+  const list = JOBS.filter(j => j.id!=="unemployed" && j.id!==state.job
+    && (state.jobFilter==="All" || j.category===state.jobFilter));
+
+  if (list.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-hint";
+    empty.textContent = "No openings in this category right now.";
+    main.appendChild(empty);
+  }
+
+  list.forEach(j=>{
+    const smartsLocked = state.smarts < j.minSmarts;
+    const degreeLocked = !degreeMet(j);
+    const locked = smartsLocked || degreeLocked;
+    let sub;
+    if (degreeLocked) sub = `Needs ${degreeById(j.requiredDegree).name}`;
+    else if (smartsLocked) sub = `Needs ${j.minSmarts} smarts (you have ${state.smarts})`;
+    else sub = fmtMoney(j.payWeek)+"/wk";
     const c = document.createElement("div");
     c.className = "panel-card";
     c.innerHTML = `<div class="panel-row">
-        <div><div class="panel-title">${j.title}</div><div class="panel-sub">${locked ? `Needs ${j.minSmarts} smarts (you have ${state.smarts})` : fmtMoney(j.payWeek)+"/wk"}</div></div>
+        <div><div class="panel-title">${j.title}</div><div class="panel-sub">${j.category} · ${sub}</div></div>
       </div>`;
     const btn = document.createElement("button");
-    btn.className = "panel-action" + (locked?"":"");
+    btn.className = "panel-action";
     btn.textContent = "Apply";
     btn.disabled = locked;
     btn.style.marginTop = "8px";
@@ -1896,36 +2007,50 @@ function renderEducation(main) {
   title.textContent = "Education";
   main.appendChild(title);
 
+  const owned = (state.degrees||[]).map(id => degreeById(id)).filter(Boolean);
   const card = document.createElement("div");
   card.className = "panel-card";
-  card.innerHTML = `<div class="panel-title">${state.educationLevel}</div>
-  <div class="panel-sub">Current highest education</div>`;
+  card.innerHTML = owned.length
+    ? `<div class="panel-title">${owned.map(d=>d.name).join(", ")}</div><div class="panel-sub">Degrees earned</div>`
+    : `<div class="panel-title">No degrees yet</div><div class="panel-sub">A high school diploma unlocks trade school and university</div>`;
   main.appendChild(card);
 
-  const schools = [
-    ["High School Diploma",0],
-    ["Trade School",5000],
-    ["University Degree",20000]
-  ];
+  ["High School","Trade School","University"].forEach(tier => {
+    const tdiv = document.createElement("div");
+    tdiv.className = "section-title";
+    tdiv.textContent = tier;
+    main.appendChild(tdiv);
 
-  schools.forEach(([name,cost])=>{
-    const c = document.createElement("div");
-    c.className = "panel-card";
-    c.innerHTML = `<div class="panel-row"><div><div class="panel-title">${name}</div><div class="panel-sub">${cost===0?"Free":"Tuition "+fmtMoney(cost)}</div></div></div>`;
-    const b=document.createElement("button");
-    b.className="panel-action";
-    b.textContent="Enroll";
-    b.onclick=()=>{
-      if(state.age<18){toast("Must be 18+");return;}
-      if(cost>0){state.studentLoans+=cost;}
-      state.educationLevel=name;
-      state.smarts=clamp(state.smarts+15);
-      log(`${state.name} completed ${name}.`);
-      saveGame();
-      render();
-    };
-    c.appendChild(b);
-    main.appendChild(c);
+    DEGREES.filter(d => d.tier === tier).forEach(d => {
+      const already = hasDegree(d.id);
+      const prereqMet = !d.prereq || hasDegree(d.prereq);
+      const c = document.createElement("div");
+      c.className = "panel-card";
+      const sub = already
+        ? "Completed"
+        : !prereqMet
+          ? `Needs ${degreeById(d.prereq).name} first`
+          : (d.cost===0 ? "Free" : "Tuition "+fmtMoney(d.cost)) + (d.field ? ` · ${d.field}` : "");
+      c.innerHTML = `<div class="panel-row"><div><div class="panel-title">${d.name}</div><div class="panel-sub">${sub}</div></div></div>`;
+      const b=document.createElement("button");
+      b.className="panel-action" + (already || !prereqMet ? "" : "");
+      b.textContent = already ? "Owned" : "Enroll";
+      b.disabled = already || !prereqMet || state.age<18;
+      b.style.marginTop = "8px";
+      b.onclick=()=>{
+        if(state.age<18){toast("Must be 18+");return;}
+        if(!prereqMet){toast(`Needs ${degreeById(d.prereq).name} first`);return;}
+        if(d.cost>0){state.studentLoans+=d.cost;}
+        state.degrees = state.degrees || [];
+        state.degrees.push(d.id);
+        state.smarts=clamp(state.smarts+d.smarts);
+        log(`${state.name} completed ${d.name}.`);
+        saveGame();
+        render();
+      };
+      c.appendChild(b);
+      main.appendChild(c);
+    });
   });
 }
 /* ---------------- MODALS ---------------- */
