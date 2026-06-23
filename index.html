@@ -899,6 +899,17 @@ function saveGame() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e) {}
 }
 
+// Defaults for every field a save might be missing, keyed by what newGame() sets.
+// Used to backfill old saves so loadGame() never hands back a half-formed state object.
+const SAVE_DEFAULTS = {
+  money: 0, health: 100, happiness: 80, smarts: 30, looks: 50,
+  job: "unemployed", salary: 0, property: null, ownership: null,
+  mortgageBalance: 0, mortgageWeekly: 0, placedFurniture: {}, ownedFurniture: [],
+  activeRoomIndex: null, relationships: [], nextRelId: 1, partner: null,
+  children: [], feed: [], alive: true, degrees: [], studentLoans: 0,
+  vehicles: [], will: {}, peakMoney: 0, activeTab: "story", pendingChoice: null,
+};
+
 function loadGame() {
   try {
     const save = localStorage.getItem(SAVE_KEY);
@@ -909,6 +920,13 @@ function loadGame() {
         state.degrees = (state.educationLevel && state.educationLevel !== "None") ? ["hs"] : [];
         delete state.educationLevel;
       }
+      Object.keys(SAVE_DEFAULTS).forEach(key => {
+        if (state[key] === undefined) {
+          // clone arrays/objects so saves don't share references to the defaults
+          const d = SAVE_DEFAULTS[key];
+          state[key] = Array.isArray(d) ? [...d] : (typeof d === "object" && d !== null) ? {...d} : d;
+        }
+      });
       return true;
     }
   } catch(e) {}
@@ -1162,7 +1180,13 @@ function ageUp() {
 
   // kids get older too
   if (state.children.length) {
-    state.children.forEach(kid => { kid.age++; });
+    state.children.forEach(kid => {
+      kid.age++;
+      if (kid.relId != null) {
+        const rel = state.relationships.find(r=>r.id===kid.relId);
+        if (rel) rel.age = kid.age;
+      }
+    });
   }
 
   // income & housing costs (weekly * 52, simplified to once per year)
@@ -1235,8 +1259,9 @@ function resolveChoice(choiceIndex) {
   }
   if (c.flag === "baby") {
     const kid = pick(FIRST_NAMES);
-    state.children.push({name:kid, age:0});
-    state.relationships.push({ id: nextRelId(), name: kid, type: "Child", closeness: 90, lastInteractedAge: state.age });
+    const relId = nextRelId();
+    state.children.push({name:kid, age:0, relId});
+    state.relationships.push({ id: relId, name: kid, type: "Child", closeness: 90, lastInteractedAge: state.age });
   }
   if (c.flag === "reconcile") {
     const p = state.relationships.find(r => r.name === state.partner && (r.type==="Spouse"||r.type==="Partner"));
@@ -1290,7 +1315,22 @@ function buildLegacy(){
       <div class="tally-item"><span class="tally-k">Children</span><span class="tally-v">${kids}</span></div>
       <div class="tally-item"><span class="tally-k">Estate</span><span class="tally-v">${fmtMoney(state.money)}</span></div>
       <div class="tally-item"><span class="tally-k">Known by</span><span class="tally-v">${state.relationships.length} people</span></div>
-    </div></div>`;
+    </div></div>
+    ${state.children.length ? `
+    <div class="legacy-panel">
+      <div class="legacy-h">Continue the Story</div>
+      <div class="panel-sub" style="margin-bottom:10px;">${state.name}'s story is over, but their children's isn't. Step into one of their lives and keep going.</div>
+      ${state.children.map((kid,i)=>`
+        <div class="panel-card">
+          <div class="panel-row">
+            <div><div class="panel-title">${kid.name}</div><div class="panel-sub">Age ${kid.age}</div></div>
+          </div>
+          <button class="panel-action" style="margin-top:8px;" data-continue-as="${i}">Continue as ${kid.name}</button>
+        </div>`).join("")}
+    </div>` : ""}`;
+  document.querySelectorAll("[data-continue-as]").forEach(btn => {
+    btn.addEventListener("click", () => continueAsChild(Number(btn.dataset.continueAs)));
+  });
 }
 
 function handleDeath() {
@@ -1318,6 +1358,79 @@ function handleDeath() {
   saveGame();
   try { buildLegacy(); } catch(e) { console.error(e); }
   document.getElementById("gameover").classList.add("show");
+}
+
+function continueAsChild(childIndex) {
+  const kid = state.children[childIndex];
+  if (!kid) return;
+
+  pruneWill();
+  let inheritance = 0;
+  if (state.money > 0 && kid.relId != null && state.will[kid.relId]) {
+    const totalPctRaw = Object.values(state.will).reduce((a,b)=>a+b,0);
+    const scale = totalPctRaw > 100 ? 100/totalPctRaw : 1;
+    inheritance = Math.max(0, Math.round(state.money * (state.will[kid.relId]*scale/100)));
+  }
+
+  const oldName = state.name;
+  const inheritedProperty = state.property;
+  const inheritedOwnership = state.ownership;
+  const inheritedMortgageBalance = state.mortgageBalance;
+  const inheritedMortgageWeekly = state.mortgageWeekly;
+  const inheritedFurniture = state.placedFurniture;
+  const inheritedOwnedFurniture = state.ownedFurniture;
+  const inheritedVehicles = state.vehicles;
+  const carriedRelId = state.nextRelId;
+  const survivingPartnerName = state.partner;
+
+  // carry the family forward: drop the heir's own record (they're the player now)
+  // and the deceased's friends (not the heir's), relabel everyone else a generation down
+  const newRelationships = [];
+  state.relationships.forEach(r => {
+    if (r.id === kid.relId) return;
+    if (r.type === "Friend") return;
+    if (r.type === "Parent") { newRelationships.push({...r, type:"Grandparent"}); return; }
+    if ((r.type==="Spouse"||r.type==="Partner") && r.name===survivingPartnerName) { newRelationships.push({...r, type:"Parent"}); return; }
+    if (r.type === "Child") { newRelationships.push({...r, type:"Sibling"}); return; }
+    newRelationships.push({...r});
+  });
+
+  state = {
+    name: kid.name,
+    age: kid.age,
+    money: inheritance,
+    health: 100,
+    happiness: 80,
+    smarts: clamp(rand(25,35)),
+    looks: rand(40,70),
+    job: "unemployed",
+    salary: 0,
+    property: inheritedProperty,
+    ownership: inheritedOwnership,
+    mortgageBalance: inheritedMortgageBalance,
+    mortgageWeekly: inheritedMortgageWeekly,
+    placedFurniture: inheritedFurniture,
+    ownedFurniture: inheritedOwnedFurniture,
+    activeRoomIndex: null,
+    relationships: newRelationships,
+    nextRelId: carriedRelId,
+    partner: null,
+    children: [],
+    feed: [],
+    alive: true,
+    degrees: [],
+    studentLoans: 0,
+    vehicles: inheritedVehicles,
+    will: {},
+    peakMoney: inheritance,
+    activeTab: "story",
+    pendingChoice: null,
+  };
+
+  log(`${state.name} inherited ${oldName}'s home and ${fmtMoney(inheritance)}, and is ready to start their own chapter.`);
+  document.getElementById("gameover").classList.remove("show");
+  saveGame();
+  render();
 }
 
 /* ---------------- HOUSING LOGIC ---------------- */
@@ -2229,7 +2342,11 @@ document.getElementById("restart-btn").addEventListener("click", ()=>{
   newGame();
 });
 
-newGame();
+if (!loadGame()) {
+  newGame();
+} else {
+  render();
+}
 
 /* ---------------- PWA: OFFLINE SUPPORT ---------------- */
 // Registers the service worker so the game keeps working with no connection
@@ -2238,7 +2355,7 @@ newGame();
 // (e.g. opened as a raw file:// path during local testing).
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(err => {
+    navigator.serviceWorker.register("service-worker.js").catch(err => {
       console.warn("Service worker registration failed:", err);
     });
   });
