@@ -2087,6 +2087,44 @@ function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
   }
 }
 
+const PROPERTY_RESALE_RATE = 0.90; // selling costs eat a bit of value, like real-world closing costs
+
+function sellProperty() {
+  if (!state.property) return;
+  const prop = PROPERTIES.find(p=>p.id===state.property);
+  // stale/unknown property id from an old save -- just clear it out instead of crashing
+  if (!prop) {
+    state.property = null; state.ownership = null; state.mortgageBalance = 0; state.mortgageWeekly = 0;
+    state.placedFurniture = {}; state.activeRoomIndex = null;
+    saveGame(); render();
+    return;
+  }
+
+  let proceeds = 0, msg;
+  if (state.ownership === "owned") {
+    proceeds = Math.round(prop.buyPrice * PROPERTY_RESALE_RATE);
+    msg = `${state.name} sold the ${prop.name} for ${fmtMoney(proceeds)}.`;
+  } else if (state.ownership === "finance") {
+    const gross = Math.round(prop.buyPrice * PROPERTY_RESALE_RATE);
+    proceeds = gross - state.mortgageBalance;
+    msg = proceeds >= 0
+      ? `${state.name} sold the ${prop.name} for ${fmtMoney(gross)}, paid off the mortgage, and pocketed ${fmtMoney(proceeds)}.`
+      : `${state.name} sold the ${prop.name} for ${fmtMoney(gross)} -- after paying off the mortgage, they still owed ${fmtMoney(-proceeds)}.`;
+  } else {
+    msg = `${state.name} moved out of the ${prop.name}.`;
+  }
+
+  state.money += proceeds;
+  state.property = null;
+  state.ownership = null;
+  state.mortgageBalance = 0;
+  state.mortgageWeekly = 0;
+  state.placedFurniture = {};
+  state.activeRoomIndex = null;
+  log(msg);
+  saveGame(); render();
+}
+
 function financeStatusCard(main, prop) {
   if (state.ownership === "finance") {
     const fc = document.createElement("div");
@@ -2113,6 +2151,14 @@ function financeStatusCard(main, prop) {
       </div>`;
     main.appendChild(fc);
   }
+
+  const sellBtn = document.createElement("button");
+  sellBtn.className = "panel-action danger";
+  sellBtn.style.width = "100%";
+  sellBtn.style.marginTop = "8px";
+  sellBtn.textContent = state.ownership === "rent" ? "Move Out" : "Sell Property";
+  sellBtn.onclick = sellProperty;
+  main.appendChild(sellBtn);
 }
 
 function ownershipLabel() {
