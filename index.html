@@ -657,7 +657,7 @@
     <button class="nav-btn active" data-tab="story"><span class="nav-icon">📜</span><span class="nav-label">Story</span></button>
     <button class="nav-btn" data-tab="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
     <button class="nav-btn" data-tab="job"><span class="nav-icon">💼</span><span class="nav-label">Career</span></button>
-    <button class="nav-btn" data-tab="people"><span class="nav-icon">👥</span><span class="nav-label">People</span></button><button class="nav-btn" data-tab="education"><span class="nav-icon">🎓</span><span class="nav-label">Education</span></button><button class="nav-btn" data-tab="vehicles"><span class="nav-icon">🚗</span><span class="nav-label">Vehicles</span></button><button class="nav-btn" data-tab="bank"><span class="nav-icon">🏦</span><span class="nav-label">Bank</span></button>
+    <button class="nav-btn" data-tab="people"><span class="nav-icon">👥</span><span class="nav-label">People</span></button><button class="nav-btn" data-tab="education"><span class="nav-icon">🎓</span><span class="nav-label">Education</span></button><button class="nav-btn" data-tab="vehicles"><span class="nav-icon">🚗</span><span class="nav-label">Vehicles</span></button><button class="nav-btn" data-tab="bank"><span class="nav-icon">🏦</span><span class="nav-label">Bank</span></button><button class="nav-btn" data-tab="business"><span class="nav-icon">🏢</span><span class="nav-label">Business</span></button>
   </div>
 
   <div id="modal-overlay">
@@ -909,7 +909,7 @@ const SAVE_DEFAULTS = {
   children: [], feed: [], alive: true, degrees: [], studentLoans: 0,
   vehicles: [], will: {}, peakMoney: 0, activeTab: "story", pendingChoice: null,
   lastMetAge: -1, savings: 0, investments: { stocks: 0, bonds: 0, crypto: 0 },
-  investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
+  investmentReturns: { stocks: 0, bonds: 0, crypto: 0 }, businesses: [],
 };
 
 function loadGame() {
@@ -979,6 +979,7 @@ function newGame() {
     savings: 0,
     investments: { stocks: 0, bonds: 0, crypto: 0 },
     investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
+    businesses: [],
   };
   log(`${state.name} was born today. A whole life, waiting to happen.`);
   render();
@@ -1265,6 +1266,24 @@ function ageUp() {
     if (looksFromCars) applyDelta("looks", Math.round(looksFromCars/6));
   }
 
+  // businesses: weekly profit (or loss) compounded yearly, plus an occasional swing year
+  if (state.businesses.length) {
+    state.businesses.forEach(biz => {
+      const def = businessTypeById(biz.typeId);
+      const rev = businessRevenue(biz), exp = businessExpense(biz);
+      let net = (rev - exp) * 52;
+      if (rand(1,100) <= 20) {
+        const swingPct = rand(-40,60);
+        const swing = Math.round(net * swingPct / 100);
+        net += swing;
+        if (Math.abs(swingPct) >= 25) {
+          log(`${def.name} had a ${swingPct>=0?"banner":"rough"} year — ${swingPct>=0?"+":""}${fmtMoney(swing)} ${swingPct>=0?"extra":"less"} than usual.`);
+        }
+      }
+      applyDelta("money", net);
+    });
+  }
+
   // bank: savings interest + investment returns
   if (state.savings > 0) {
     const interest = Math.round(state.savings * SAVINGS_APY);
@@ -1370,6 +1389,7 @@ function computeNetWorth(s) {
   }
   if (s.savings) total += s.savings;
   if (s.investments) total += Object.values(s.investments).reduce((sum,v)=>sum+(v||0), 0);
+  if (s.businesses && s.businesses.length) total += s.businesses.reduce((sum,b)=>sum+businessResaleValue(b), 0);
   return total;
 }
 
@@ -1475,6 +1495,7 @@ function continueAsChild(childIndex) {
   const inheritedFurniture = state.placedFurniture;
   const inheritedOwnedFurniture = state.ownedFurniture;
   const inheritedVehicles = state.vehicles;
+  const inheritedBusinesses = state.businesses;
   const carriedRelId = state.nextRelId;
   const survivingPartnerName = state.partner;
 
@@ -1524,6 +1545,7 @@ function continueAsChild(childIndex) {
     savings: 0,
     investments: { stocks: 0, bonds: 0, crypto: 0 },
     investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
+    businesses: inheritedBusinesses,
   };
 
   log(`${state.name} inherited ${oldName}'s home and ${fmtMoney(inheritance)}, and is ready to start their own chapter.`);
@@ -1656,6 +1678,7 @@ function render() {
   else if (state.activeTab === "education") renderEducation(main);
   else if (state.activeTab === "vehicles") renderVehicles(main);
   else if (state.activeTab === "bank") renderBank(main);
+  else if (state.activeTab === "business") renderBusiness(main);
 
   document.getElementById("ageup-btn").style.display = state.pendingChoice ? "none" : "flex";
 }
@@ -2261,6 +2284,58 @@ function renderPeople(main) {
 
 
 
+const BUSINESS_TYPES = [
+ { id:"lemonade", name:"Lemonade Stand", icon:"\ud83c\udf4b", cost:500, weeklyRevenue:60, weeklyExpense:20, minSmarts:0, category:"Food" },
+ { id:"foodtruck", name:"Food Truck", icon:"\ud83c\udf2e", cost:8000, weeklyRevenue:600, weeklyExpense:380, minSmarts:15, category:"Food" },
+ { id:"onlinestore", name:"Online Store", icon:"\ud83d\uded2", cost:5000, weeklyRevenue:450, weeklyExpense:250, minSmarts:25, category:"Retail" },
+ { id:"coffeeshop", name:"Coffee Shop", icon:"\u2615", cost:25000, weeklyRevenue:1800, weeklyExpense:1200, minSmarts:30, category:"Food" },
+ { id:"consulting", name:"Consulting Firm", icon:"\ud83d\udcca", cost:15000, weeklyRevenue:1400, weeklyExpense:700, minSmarts:60, category:"Services" },
+ { id:"realestate", name:"Rental Properties", icon:"\ud83c\udfd7\ufe0f", cost:100000, weeklyRevenue:2200, weeklyExpense:900, minSmarts:40, category:"Real Estate" },
+ { id:"techstartup", name:"Tech Startup", icon:"\ud83d\ude80", cost:60000, weeklyRevenue:4000, weeklyExpense:3200, minSmarts:75, category:"Tech" },
+];
+const BUSINESS_MAX_LEVEL = 5;
+
+function businessTypeById(id) { return BUSINESS_TYPES.find(b=>b.id===id); }
+function ownedBusiness(id) { return state.businesses.find(b=>b.typeId===id); }
+function businessRevenue(biz) { const def = businessTypeById(biz.typeId); return Math.round(def.weeklyRevenue * Math.pow(1.18, biz.level-1)); }
+function businessExpense(biz) { const def = businessTypeById(biz.typeId); return Math.round(def.weeklyExpense * Math.pow(1.08, biz.level-1)); }
+function businessUpgradeCost(biz) { const def = businessTypeById(biz.typeId); return Math.round(def.cost * 0.6 * biz.level); }
+function businessResaleValue(biz) { return Math.round(biz.totalInvested * 0.55); }
+
+function startBusiness(typeId) {
+  const def = businessTypeById(typeId);
+  if (!def) return;
+  if (ownedBusiness(typeId)) { toast("You already run this business."); return; }
+  if (state.smarts < def.minSmarts) { toast("Not smart enough for this yet."); return; }
+  if (state.money < def.cost) { toast("Not enough cash to start this."); return; }
+  state.money -= def.cost;
+  state.businesses.push({ typeId, level: 1, totalInvested: def.cost });
+  log(`${state.name} started ${def.name}.`);
+  saveGame(); render();
+}
+function upgradeBusiness(typeId) {
+  const biz = ownedBusiness(typeId);
+  if (!biz) return;
+  if (biz.level >= BUSINESS_MAX_LEVEL) { toast("Already fully upgraded."); return; }
+  const cost = businessUpgradeCost(biz);
+  if (state.money < cost) { toast("Not enough cash to upgrade."); return; }
+  state.money -= cost;
+  biz.totalInvested += cost;
+  biz.level++;
+  log(`${state.name} upgraded ${businessTypeById(typeId).name} to level ${biz.level}.`);
+  saveGame(); render();
+}
+function closeBusiness(typeId) {
+  const idx = state.businesses.findIndex(b=>b.typeId===typeId);
+  if (idx === -1) return;
+  const biz = state.businesses[idx];
+  const refund = businessResaleValue(biz);
+  state.businesses.splice(idx, 1);
+  state.money += refund;
+  log(`${state.name} sold ${businessTypeById(typeId).name} for ${fmtMoney(refund)}.`);
+  saveGame(); render();
+}
+
 const VEHICLES = [
  {id:"sedan", name:"Used Sedan", price:5000, weeklyUpkeep:25, happinessBonus:2, looksBonus:1},
  {id:"truck", name:"Pickup Truck", price:15000, weeklyUpkeep:45, happinessBonus:3, looksBonus:1},
@@ -2438,6 +2513,85 @@ function renderBank(main) {
     sellAllBtn.onclick = () => investSell(key, bal);
     sellRow.appendChild(sellAllBtn);
     main.appendChild(sellRow);
+  });
+}
+
+
+function renderBusiness(main) {
+  const title = document.createElement("div");
+  title.className = "section-title";
+  title.textContent = "Businesses";
+  main.appendChild(title);
+
+  if (state.businesses.length) {
+    const owned = document.createElement("div");
+    owned.className = "section-title";
+    owned.textContent = "Your Businesses";
+    main.appendChild(owned);
+
+    state.businesses.forEach(biz => {
+      const def = businessTypeById(biz.typeId);
+      const rev = businessRevenue(biz), exp = businessExpense(biz);
+      const weeklyNet = rev - exp;
+      const card = document.createElement("div");
+      card.className = "panel-card";
+      card.innerHTML = `<div class="panel-row">
+          <div><div class="panel-title">${def.icon} ${def.name}</div><div class="panel-sub">Level ${biz.level}/${BUSINESS_MAX_LEVEL} · ${weeklyNet>=0?"+":""}${fmtMoney(weeklyNet)}/wk net</div></div>
+        </div>`;
+      main.appendChild(card);
+
+      const row = document.createElement("div");
+      row.className = "filter-row";
+      if (biz.level < BUSINESS_MAX_LEVEL) {
+        const upCost = businessUpgradeCost(biz);
+        const upBtn = document.createElement("button");
+        upBtn.className = "panel-action secondary";
+        upBtn.textContent = `Upgrade (${fmtMoney(upCost)})`;
+        upBtn.disabled = state.money < upCost;
+        upBtn.onclick = () => upgradeBusiness(biz.typeId);
+        row.appendChild(upBtn);
+      } else {
+        const maxed = document.createElement("button");
+        maxed.className = "panel-action secondary";
+        maxed.textContent = "Fully Upgraded";
+        maxed.disabled = true;
+        row.appendChild(maxed);
+      }
+      const sellBtn = document.createElement("button");
+      sellBtn.className = "panel-action secondary";
+      sellBtn.textContent = `Sell (${fmtMoney(businessResaleValue(biz))})`;
+      sellBtn.onclick = () => closeBusiness(biz.typeId);
+      row.appendChild(sellBtn);
+      main.appendChild(row);
+    });
+  }
+
+  const shop = document.createElement("div");
+  shop.className = "section-title";
+  shop.textContent = "Start a Business";
+  main.appendChild(shop);
+
+  BUSINESS_TYPES.forEach(def => {
+    if (ownedBusiness(def.id)) return;
+    const smartsLocked = state.smarts < def.minSmarts;
+    const moneyLocked = state.money < def.cost;
+    let sub;
+    if (smartsLocked) sub = `Needs ${def.minSmarts} smarts (you have ${state.smarts})`;
+    else sub = `${fmtMoney(def.cost)} to start · ${fmtMoney(def.weeklyRevenue - def.weeklyExpense)}/wk net`;
+
+    const c = document.createElement("div");
+    c.className = "panel-card";
+    c.innerHTML = `<div class="panel-row">
+        <div><div class="panel-title">${def.icon} ${def.name}</div><div class="panel-sub">${def.category} · ${sub}</div></div>
+      </div>`;
+    const btn = document.createElement("button");
+    btn.className = "panel-action";
+    btn.textContent = "Start";
+    btn.disabled = smartsLocked || moneyLocked;
+    btn.style.marginTop = "8px";
+    btn.onclick = () => startBusiness(def.id);
+    c.appendChild(btn);
+    main.appendChild(c);
   });
 }
 
