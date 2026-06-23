@@ -657,7 +657,7 @@
     <button class="nav-btn active" data-tab="story"><span class="nav-icon">📜</span><span class="nav-label">Story</span></button>
     <button class="nav-btn" data-tab="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
     <button class="nav-btn" data-tab="job"><span class="nav-icon">💼</span><span class="nav-label">Career</span></button>
-    <button class="nav-btn" data-tab="people"><span class="nav-icon">👥</span><span class="nav-label">People</span></button><button class="nav-btn" data-tab="education"><span class="nav-icon">🎓</span><span class="nav-label">Education</span></button><button class="nav-btn" data-tab="vehicles"><span class="nav-icon">🚗</span><span class="nav-label">Vehicles</span></button>
+    <button class="nav-btn" data-tab="people"><span class="nav-icon">👥</span><span class="nav-label">People</span></button><button class="nav-btn" data-tab="education"><span class="nav-icon">🎓</span><span class="nav-label">Education</span></button><button class="nav-btn" data-tab="vehicles"><span class="nav-icon">🚗</span><span class="nav-label">Vehicles</span></button><button class="nav-btn" data-tab="bank"><span class="nav-icon">🏦</span><span class="nav-label">Bank</span></button>
   </div>
 
   <div id="modal-overlay">
@@ -908,7 +908,8 @@ const SAVE_DEFAULTS = {
   activeRoomIndex: null, relationships: [], nextRelId: 1, partner: null,
   children: [], feed: [], alive: true, degrees: [], studentLoans: 0,
   vehicles: [], will: {}, peakMoney: 0, activeTab: "story", pendingChoice: null,
-  lastMetAge: -1,
+  lastMetAge: -1, savings: 0, investments: { stocks: 0, bonds: 0, crypto: 0 },
+  investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
 };
 
 function loadGame() {
@@ -975,6 +976,9 @@ function newGame() {
     activeTab: "story",
     pendingChoice: null,
     lastMetAge: -1,
+    savings: 0,
+    investments: { stocks: 0, bonds: 0, crypto: 0 },
+    investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
   };
   log(`${state.name} was born today. A whole life, waiting to happen.`);
   render();
@@ -1151,6 +1155,46 @@ function pickNonRepeatingEvent() {
 }
 
 /* ---------------- AGE UP / TURN LOGIC ---------------- */
+const SAVINGS_APY = 0.025; // 2.5%/yr, credited once per ageUp tick
+const INVESTMENT_TYPES = {
+  bonds:  { name:"Bonds",  icon:"\ud83d\udcdc", minReturn:-2,  maxReturn:7,   desc:"Slow and steady. Rarely loses much, rarely wins big." },
+  stocks: { name:"Stocks", icon:"\ud83d\udcc8", minReturn:-25, maxReturn:35,  desc:"Ups and downs, but tends to grow over time." },
+  crypto: { name:"Crypto", icon:"\ud83e\ude99", minReturn:-60, maxReturn:150, desc:"Wild swings. Could double. Could crater." },
+};
+
+function bankDeposit(amount) {
+  amount = Math.min(amount, state.money);
+  if (amount <= 0) return;
+  state.money -= amount;
+  state.savings += amount;
+  log(`${state.name} moved ${fmtMoney(amount)} into savings.`);
+  saveGame(); render();
+}
+function bankWithdraw(amount) {
+  amount = Math.min(amount, state.savings);
+  if (amount <= 0) return;
+  state.savings -= amount;
+  state.money += amount;
+  log(`${state.name} withdrew ${fmtMoney(amount)} from savings.`);
+  saveGame(); render();
+}
+function investBuy(type, amount) {
+  amount = Math.min(amount, state.money);
+  if (amount <= 0) return;
+  state.money -= amount;
+  state.investments[type] += amount;
+  log(`${state.name} put ${fmtMoney(amount)} into ${INVESTMENT_TYPES[type].name.toLowerCase()}.`);
+  saveGame(); render();
+}
+function investSell(type, amount) {
+  amount = Math.min(amount, state.investments[type]);
+  if (amount <= 0) return;
+  state.investments[type] -= amount;
+  state.money += amount;
+  log(`${state.name} sold ${fmtMoney(amount)} of ${INVESTMENT_TYPES[type].name.toLowerCase()}.`);
+  saveGame(); render();
+}
+
 function ageUp() {
   if (!state.alive) return;
   if (state.pendingChoice) { toast("Resolve the current moment first."); return; }
@@ -1220,6 +1264,27 @@ function ageUp() {
     if (happinessFromCars) applyDelta("happiness", Math.round(happinessFromCars/4));
     if (looksFromCars) applyDelta("looks", Math.round(looksFromCars/6));
   }
+
+  // bank: savings interest + investment returns
+  if (state.savings > 0) {
+    const interest = Math.round(state.savings * SAVINGS_APY);
+    state.savings += interest;
+  }
+  Object.keys(INVESTMENT_TYPES).forEach(key => {
+    const bal = state.investments[key];
+    const cfg = INVESTMENT_TYPES[key];
+    if (bal > 0) {
+      const pct = rand(cfg.minReturn, cfg.maxReturn);
+      const change = Math.round(bal * pct / 100);
+      state.investments[key] = Math.max(0, bal + change);
+      state.investmentReturns[key] = pct;
+      if (Math.abs(pct) >= 15) {
+        log(`${state.name}'s ${cfg.name.toLowerCase()} ${change >= 0 ? "jumped" : "dropped"} ${Math.abs(pct)}% this year (${change >= 0 ? "+" : ""}${fmtMoney(change)}).`);
+      }
+    } else {
+      state.investmentReturns[key] = 0;
+    }
+  });
 
   // death check
   if (state.health <= 0 || state.age > 95) {
@@ -1303,6 +1368,8 @@ function computeNetWorth(s) {
   if (s.vehicles && s.vehicles.length) {
     total += s.vehicles.reduce((sum,v)=>sum+Math.round(v.price*VEHICLE_RESALE_RATE), 0);
   }
+  if (s.savings) total += s.savings;
+  if (s.investments) total += Object.values(s.investments).reduce((sum,v)=>sum+(v||0), 0);
   return total;
 }
 
@@ -1390,11 +1457,14 @@ function continueAsChild(childIndex) {
   if (!kid) return;
 
   pruneWill();
+  // liquid estate: cash + savings + investments. Property/vehicles transfer
+  // physically below instead of being cashed out, so they're excluded here.
+  const liquidEstate = state.money + state.savings + Object.values(state.investments).reduce((a,b)=>a+(b||0), 0);
   let inheritance = 0;
-  if (state.money > 0 && kid.relId != null && state.will[kid.relId]) {
+  if (liquidEstate > 0 && kid.relId != null && state.will[kid.relId]) {
     const totalPctRaw = Object.values(state.will).reduce((a,b)=>a+b,0);
     const scale = totalPctRaw > 100 ? 100/totalPctRaw : 1;
-    inheritance = Math.max(0, Math.round(state.money * (state.will[kid.relId]*scale/100)));
+    inheritance = Math.max(0, Math.round(liquidEstate * (state.will[kid.relId]*scale/100)));
   }
 
   const oldName = state.name;
@@ -1450,6 +1520,10 @@ function continueAsChild(childIndex) {
     peakMoney: inheritance,
     activeTab: "story",
     pendingChoice: null,
+    lastMetAge: -1,
+    savings: 0,
+    investments: { stocks: 0, bonds: 0, crypto: 0 },
+    investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
   };
 
   log(`${state.name} inherited ${oldName}'s home and ${fmtMoney(inheritance)}, and is ready to start their own chapter.`);
@@ -1581,6 +1655,7 @@ function render() {
   else if (state.activeTab === "people") renderPeople(main);
   else if (state.activeTab === "education") renderEducation(main);
   else if (state.activeTab === "vehicles") renderVehicles(main);
+  else if (state.activeTab === "bank") renderBank(main);
 
   document.getElementById("ageup-btn").style.display = state.pendingChoice ? "none" : "flex";
 }
@@ -2259,6 +2334,112 @@ function renderVehicles(main){
  });
 }
 
+
+
+const QUICK_AMOUNTS = [100, 500, 1000, 5000];
+
+function renderBank(main) {
+  const title = document.createElement("div");
+  title.className = "section-title";
+  title.textContent = "Bank & Investments";
+  main.appendChild(title);
+
+  // ---- Savings ----
+  const savCard = document.createElement("div");
+  savCard.className = "panel-card";
+  savCard.innerHTML = `<div class="panel-row">
+      <div><div class="panel-title">Savings Account</div><div class="panel-sub">${(SAVINGS_APY*100).toFixed(1)}% interest, paid yearly, no risk</div></div>
+      <div style="font-weight:700;">${fmtMoney(state.savings)}</div>
+    </div>`;
+  main.appendChild(savCard);
+
+  const savRow = document.createElement("div");
+  savRow.className = "filter-row";
+  QUICK_AMOUNTS.forEach(amt => {
+    const b = document.createElement("button");
+    b.className = "panel-action secondary";
+    b.textContent = `Deposit ${fmtMoney(amt)}`;
+    b.disabled = state.money < amt;
+    b.onclick = () => bankDeposit(amt);
+    savRow.appendChild(b);
+  });
+  const depAllBtn = document.createElement("button");
+  depAllBtn.className = "panel-action secondary";
+  depAllBtn.textContent = "Deposit All";
+  depAllBtn.disabled = state.money <= 0;
+  depAllBtn.onclick = () => bankDeposit(state.money);
+  savRow.appendChild(depAllBtn);
+  main.appendChild(savRow);
+
+  const wdRow = document.createElement("div");
+  wdRow.className = "filter-row";
+  QUICK_AMOUNTS.forEach(amt => {
+    const b = document.createElement("button");
+    b.className = "panel-action secondary";
+    b.textContent = `Withdraw ${fmtMoney(amt)}`;
+    b.disabled = state.savings < amt;
+    b.onclick = () => bankWithdraw(amt);
+    wdRow.appendChild(b);
+  });
+  const wdAllBtn = document.createElement("button");
+  wdAllBtn.className = "panel-action secondary";
+  wdAllBtn.textContent = "Withdraw All";
+  wdAllBtn.disabled = state.savings <= 0;
+  wdAllBtn.onclick = () => bankWithdraw(state.savings);
+  wdRow.appendChild(wdAllBtn);
+  main.appendChild(wdRow);
+
+  // ---- Investments ----
+  const ititle = document.createElement("div");
+  ititle.className = "section-title";
+  ititle.textContent = "Investments";
+  main.appendChild(ititle);
+
+  Object.keys(INVESTMENT_TYPES).forEach(key => {
+    const cfg = INVESTMENT_TYPES[key];
+    const bal = state.investments[key];
+    const lastPct = state.investmentReturns[key] || 0;
+    const pctLabel = bal > 0 && lastPct !== 0
+      ? `<span style="color:${lastPct>=0?"var(--good)":"var(--bad)"}; font-weight:600;">${lastPct>=0?"+":""}${lastPct}% last year</span>`
+      : cfg.desc;
+
+    const card = document.createElement("div");
+    card.className = "panel-card";
+    card.innerHTML = `<div class="panel-row">
+        <div><div class="panel-title">${cfg.icon} ${cfg.name}</div><div class="panel-sub">${pctLabel}</div></div>
+        <div style="font-weight:700;">${fmtMoney(bal)}</div>
+      </div>`;
+    main.appendChild(card);
+
+    const buyRow = document.createElement("div");
+    buyRow.className = "filter-row";
+    QUICK_AMOUNTS.forEach(amt => {
+      const b = document.createElement("button");
+      b.className = "panel-action secondary";
+      b.textContent = `Buy ${fmtMoney(amt)}`;
+      b.disabled = state.money < amt;
+      b.onclick = () => investBuy(key, amt);
+      buyRow.appendChild(b);
+    });
+    main.appendChild(buyRow);
+
+    const sellRow = document.createElement("div");
+    sellRow.className = "filter-row";
+    const sellHalfBtn = document.createElement("button");
+    sellHalfBtn.className = "panel-action secondary";
+    sellHalfBtn.textContent = "Sell Half";
+    sellHalfBtn.disabled = bal <= 0;
+    sellHalfBtn.onclick = () => investSell(key, Math.round(bal/2));
+    sellRow.appendChild(sellHalfBtn);
+    const sellAllBtn = document.createElement("button");
+    sellAllBtn.className = "panel-action secondary";
+    sellAllBtn.textContent = "Sell All";
+    sellAllBtn.disabled = bal <= 0;
+    sellAllBtn.onclick = () => investSell(key, bal);
+    sellRow.appendChild(sellAllBtn);
+    main.appendChild(sellRow);
+  });
+}
 
 function renderEducation(main) {
   const title = document.createElement("div");
