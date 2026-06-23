@@ -910,6 +910,7 @@ const SAVE_DEFAULTS = {
   vehicles: [], will: {}, peakMoney: 0, activeTab: "story", pendingChoice: null,
   lastMetAge: -1, savings: 0, investments: { stocks: 0, bonds: 0, crypto: 0 },
   investmentReturns: { stocks: 0, bonds: 0, crypto: 0 }, businesses: [],
+  lastDateAttemptAge: -1,
 };
 
 function loadGame() {
@@ -941,7 +942,21 @@ function deleteSave() {
 
 
 
+function makeStartingFamily() {
+  const fam = [
+    { id: 1, name: pick(FIRST_NAMES), type: "Parent", closeness: 70, lastInteractedAge: 0 },
+    { id: 2, name: pick(FIRST_NAMES), type: "Parent", closeness: 70, lastInteractedAge: 0 },
+  ];
+  // 40% no siblings, 40% one, 20% two — born already part of the family
+  const siblingCount = rand(1,100) <= 40 ? 0 : (rand(1,100) <= 67 ? 1 : 2);
+  for (let i = 0; i < siblingCount; i++) {
+    fam.push({ id: 3 + i, name: pick(FIRST_NAMES), type: "Sibling", closeness: rand(40,75), lastInteractedAge: 0 });
+  }
+  return fam;
+}
+
 function newGame() {
+  const startingFamily = makeStartingFamily();
   state = {
     name: pick(FIRST_NAMES) + " " + pick(LAST_NAMES),
     age: 0,
@@ -959,11 +974,8 @@ function newGame() {
     placedFurniture: {},   // roomIndex -> { slot -> furniture id }
     ownedFurniture: ["bed_basic","sofa_thrift","tv_old"],
     activeRoomIndex: null, // null = on floor plan; a number = inside that room
-    relationships: [
-      { id: 1, name: pick(FIRST_NAMES), type: "Parent", closeness: 70, lastInteractedAge: 0 },
-      { id: 2, name: pick(FIRST_NAMES), type: "Parent", closeness: 70, lastInteractedAge: 0 },
-    ],
-    nextRelId: 3,
+    relationships: startingFamily,
+    nextRelId: startingFamily.length + 1,
     partner: null,
     children: [],
     feed: [],
@@ -976,6 +988,7 @@ function newGame() {
     activeTab: "story",
     pendingChoice: null,
     lastMetAge: -1,
+    lastDateAttemptAge: -1,
     savings: 0,
     investments: { stocks: 0, bonds: 0, crypto: 0 },
     investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
@@ -1099,6 +1112,44 @@ const EVENTS = [
           { label:"Work it out", deltas:[["happiness", rand(2,5)]], result:`${s.name} and ${s.partner} talked it through and decided to try harder.`, flag:"reconcile" },
           { label: married ? "File for divorce" : "End things", deltas:[["happiness", rand(-10,-5)], ["money", married ? -2500 : 0]],
             result: married ? `${s.name} and ${s.partner} divorced. It's a fresh, lonelier start.` : `${s.name} and ${s.partner} broke up.`, flag:"breakup" },
+        ]
+      };
+  }},
+
+  // ---- siblings / extended family ----
+  { cond: s => s.relationships.some(r => r.type === "Sibling") && Math.random() < 0.5, weight: 1.2, build: s => {
+      const sib = pick(s.relationships.filter(r => r.type === "Sibling"));
+      const r = pick([
+        [`${sib.name} bragged about out-earning ${s.name} this year.`, [["happiness", rand(-5,-2)]], -6],
+        [`${s.name} and ${sib.name} got competitive over who their parents liked more.`, [["happiness", rand(-3,1)]], -4],
+        [`${s.name} and ${sib.name} teamed up to prank their parents.`, [["happiness", rand(3,6)]], 8],
+        [`${s.name} and ${sib.name} had a great heart-to-heart catching up.`, [["happiness", rand(2,5)]], 10],
+        [`${sib.name} asked ${s.name} for a small loan.`, [["happiness", rand(-2,1)]], 3],
+      ]);
+      sib.closeness = clamp(sib.closeness + r[2], 0, 100);
+      sib.lastInteractedAge = s.age;
+      return { text: r[0], deltas: r[1] };
+  }},
+  { cond: s => s.relationships.filter(r => r.type === "Sibling").length > 0 && s.age>=20 && s.age<=70 && Math.random() < 0.1, weight: 0.6, build: s => {
+      const sib = pick(s.relationships.filter(r => r.type === "Sibling"));
+      const milestone = pick(["got married","had a baby","started a new job","bought a house","went traveling for a year"]);
+      sib.closeness = clamp(sib.closeness + rand(2,5), 0, 100);
+      return { text: `${sib.name} ${milestone}. ${s.name} couldn't help but feel a mix of pride and envy.`, deltas: [["happiness", rand(-1,4)]] };
+  }},
+  { cond: s => s.relationships.filter(r => ["Parent","Sibling","Grandparent","Aunt/Uncle"].includes(r.type)).length >= 2 && Math.random() < 0.18, weight: 0.9, build: s => {
+      const family = s.relationships.filter(r => ["Parent","Sibling","Grandparent","Aunt/Uncle"].includes(r.type));
+      family.forEach(r => { r.closeness = clamp(r.closeness + rand(3,7), 0, 100); r.lastInteractedAge = s.age; });
+      const names = family.map(r=>r.name).join(", ");
+      return { text: `The whole family got together for a reunion -- ${names} all showed up. It was good to reconnect.`, deltas: [["happiness", rand(3,7)]] };
+  }},
+  { cond: s => s.relationships.some(r => r.type === "Parent") && s.age >= 45 && Math.random() < 0.15, weight: 0.8, build: s => {
+      const parents = s.relationships.filter(r => r.type === "Parent");
+      const parent = pick(parents);
+      return {
+        text: `${parent.name}'s health hasn't been great lately. They could use some support.`,
+        choices: [
+          { label: "Help cover medical costs ($800)", deltas: [["money", -800],["happiness", rand(2,4)]], result: `${s.name} chipped in for ${parent.name}'s care. They're grateful.` },
+          { label: "Just check in by phone", deltas: [["happiness", -1]], result: `${s.name} called to check in. It helped a little.` },
         ]
       };
   }},
@@ -1472,6 +1523,54 @@ function handleDeath() {
   document.getElementById("gameover").classList.add("show");
 }
 
+function askOut(relId) {
+  if (state.partner) { toast("You're already seeing someone."); return; }
+  if (state.lastDateAttemptAge === state.age) { toast("You've already tried pursuing someone this year."); return; }
+  const r = state.relationships.find(x => x.id === relId);
+  if (!r) return;
+  state.lastDateAttemptAge = state.age;
+  const chance = clamp(25 + r.closeness / 2, 10, 90);
+  if (rand(1, 100) <= chance) {
+    r.type = "Partner";
+    r.closeness = clamp(r.closeness + 10, 0, 100);
+    r.lastInteractedAge = state.age;
+    state.partner = r.name;
+    log(`${state.name} asked out ${r.name} -- they said yes!`);
+  } else {
+    r.closeness = clamp(r.closeness - 5, 0, 100);
+    log(`${state.name} asked out ${r.name}, but got turned down this time.`);
+  }
+  saveGame(); render();
+}
+
+function proposeToPartner() {
+  const r = state.relationships.find(x => x.name === state.partner && x.type === "Partner");
+  if (!r) { toast("No partner to propose to."); return; }
+  if (state.money < 3000) { toast("Need $3,000 for a ring and wedding."); return; }
+  if (r.closeness < 60) { toast(`${r.name} doesn't feel ready for that yet -- keep building closeness.`); return; }
+  state.money -= 3000;
+  r.type = "Spouse";
+  r.closeness = clamp(r.closeness + 15, 0, 100);
+  r.lastInteractedAge = state.age;
+  log(`${state.name} proposed to ${r.name} -- they said yes! Married now.`);
+  saveGame(); render();
+}
+
+function endRelationship(relId) {
+  const r = state.relationships.find(x => x.id === relId);
+  if (!r) return;
+  const married = r.type === "Spouse";
+  if (married) {
+    if (state.money < 2500) { toast("Divorce costs at least $2,500 in legal fees -- come back when you can cover it."); return; }
+    state.money -= 2500;
+  }
+  state.relationships = state.relationships.filter(x => x.id !== relId);
+  state.partner = null;
+  state.happiness = clamp(state.happiness - rand(5, 10));
+  log(married ? `${state.name} and ${r.name} divorced. A fresh, lonelier start.` : `${state.name} and ${r.name} broke up.`);
+  saveGame(); render();
+}
+
 function continueAsChild(childIndex) {
   const kid = state.children[childIndex];
   if (!kid) return;
@@ -1506,6 +1605,7 @@ function continueAsChild(childIndex) {
     if (r.id === kid.relId) return;
     if (r.type === "Friend") return;
     if (r.type === "Parent") { newRelationships.push({...r, type:"Grandparent"}); return; }
+    if (r.type === "Sibling") { newRelationships.push({...r, type:"Aunt/Uncle"}); return; }
     if ((r.type==="Spouse"||r.type==="Partner") && r.name===survivingPartnerName) { newRelationships.push({...r, type:"Parent"}); return; }
     if (r.type === "Child") { newRelationships.push({...r, type:"Sibling"}); return; }
     newRelationships.push({...r});
@@ -1542,6 +1642,7 @@ function continueAsChild(childIndex) {
     activeTab: "story",
     pendingChoice: null,
     lastMetAge: -1,
+    lastDateAttemptAge: -1,
     savings: 0,
     investments: { stocks: 0, bonds: 0, crypto: 0 },
     investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
@@ -2265,7 +2366,32 @@ function renderPeople(main) {
       actions.appendChild(date);
     }
 
+    if (r.type === "Partner") {
+      const propose = document.createElement('button');
+      propose.className = 'panel-action small';
+      propose.textContent = 'Propose ($3,000)';
+      propose.onclick = proposeToPartner;
+      actions.appendChild(propose);
+    }
+
+    if (r.type === "Partner" || r.type === "Spouse") {
+      const end = document.createElement('button');
+      end.className = 'panel-action danger small';
+      end.textContent = r.type === "Spouse" ? 'File for Divorce' : 'End Relationship';
+      end.onclick = () => endRelationship(r.id);
+      actions.appendChild(end);
+    }
+
     if (r.type === "Friend") {
+      if (!state.partner) {
+        const askedOutThisYear = state.lastDateAttemptAge === state.age;
+        const askOutBtn = document.createElement('button');
+        askOutBtn.className = 'panel-action small';
+        askOutBtn.textContent = askedOutThisYear ? 'Already Tried This Year' : 'Ask Out';
+        askOutBtn.disabled = askedOutThisYear;
+        askOutBtn.onclick = () => askOut(r.id);
+        actions.appendChild(askOutBtn);
+      }
       const drift = document.createElement('button');
       drift.className = 'panel-action danger small';
       drift.textContent = 'Drift Apart';
