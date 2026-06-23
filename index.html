@@ -908,6 +908,7 @@ const SAVE_DEFAULTS = {
   activeRoomIndex: null, relationships: [], nextRelId: 1, partner: null,
   children: [], feed: [], alive: true, degrees: [], studentLoans: 0,
   vehicles: [], will: {}, peakMoney: 0, activeTab: "story", pendingChoice: null,
+  lastMetAge: -1,
 };
 
 function loadGame() {
@@ -973,6 +974,7 @@ function newGame() {
     peakMoney: 0,
     activeTab: "story",
     pendingChoice: null,
+    lastMetAge: -1,
   };
   log(`${state.name} was born today. A whole life, waiting to happen.`);
   render();
@@ -1209,6 +1211,16 @@ function ageUp() {
     applyDelta("happiness", Math.round(prop.happyBonus/8));
   }
 
+  // vehicle upkeep + the lifestyle bump of actually having a car
+  if (state.vehicles.length) {
+    const totalUpkeep = state.vehicles.reduce((sum,v)=>sum+(v.weeklyUpkeep||0), 0);
+    applyDelta("money", -totalUpkeep*52);
+    const happinessFromCars = state.vehicles.reduce((sum,v)=>sum+(v.happinessBonus||0), 0);
+    const looksFromCars = state.vehicles.reduce((sum,v)=>sum+(v.looksBonus||0), 0);
+    if (happinessFromCars) applyDelta("happiness", Math.round(happinessFromCars/4));
+    if (looksFromCars) applyDelta("looks", Math.round(looksFromCars/6));
+  }
+
   // death check
   if (state.health <= 0 || state.age > 95) {
     handleDeath();
@@ -1282,6 +1294,18 @@ function resolveChoice(choiceIndex) {
   render();
 }
 
+function computeNetWorth(s) {
+  let total = s.money;
+  if (s.property && s.ownership !== "rent") {
+    const prop = PROPERTIES.find(p=>p.id===s.property);
+    if (prop) total += prop.buyPrice - (s.mortgageBalance||0);
+  }
+  if (s.vehicles && s.vehicles.length) {
+    total += s.vehicles.reduce((sum,v)=>sum+Math.round(v.price*VEHICLE_RESALE_RATE), 0);
+  }
+  return total;
+}
+
 function buildLegacy(){
   const age=state.age;
   let cause;
@@ -1313,7 +1337,7 @@ function buildLegacy(){
       <div class="tally-item"><span class="tally-k">Peak wealth</span><span class="tally-v">${fmtMoney(peak)}</span></div>
       <div class="tally-item"><span class="tally-k">Married</span><span class="tally-v">${married?"Yes":"Never"}</span></div>
       <div class="tally-item"><span class="tally-k">Children</span><span class="tally-v">${kids}</span></div>
-      <div class="tally-item"><span class="tally-k">Estate</span><span class="tally-v">${fmtMoney(state.money)}</span></div>
+      <div class="tally-item"><span class="tally-k">Estate</span><span class="tally-v">${fmtMoney(computeNetWorth(state))}</span></div>
       <div class="tally-item"><span class="tally-k">Known by</span><span class="tally-v">${state.relationships.length} people</span></div>
     </div></div>
     ${state.children.length ? `
@@ -1339,8 +1363,9 @@ function handleDeath() {
 
   pruneWill();
   let willText = "";
-  if (state.money > 0 && Object.keys(state.will).length) {
-    const estate = state.money;
+  const netWorthAtDeath = computeNetWorth(state);
+  if (netWorthAtDeath > 0 && Object.keys(state.will).length) {
+    const estate = netWorthAtDeath;
     const totalPctRaw = Object.values(state.will).reduce((a,b)=>a+b,0);
     const scale = totalPctRaw > 100 ? 100/totalPctRaw : 1;
     const shares = Object.entries(state.will).map(([id,pct]) => {
@@ -1351,7 +1376,7 @@ function handleDeath() {
     const totalPct = Math.min(100, totalPctRaw);
     if (totalPct < 100) shares.push(`${fmtMoney(Math.round(estate*((100-totalPct)/100)))} unclaimed`);
     willText = ` Per their will, the estate was split: ${shares.join(", ")}.`;
-  } else if (state.money > 0) {
+  } else if (netWorthAtDeath > 0) {
     willText = " With no will on file, the estate goes unclaimed.";
   }
 
@@ -1640,7 +1665,7 @@ function renderFloorPlan(main, prop, layout) {
   const stage = document.createElement("div");
   stage.id = "room-stage";
   stage.innerHTML = `<div id="room-label-bar" style="border-top:none;">
-      <div><div id="room-name">${prop.name}</div><div id="room-tier">Tier ${prop.tier} ┬╖ ${ownershipLabel()} ┬╖ ${layout.length} rooms</div></div>
+      <div><div id="room-name">${prop.name}</div><div id="room-tier">Tier ${prop.tier} · ${ownershipLabel()} · ${layout.length} rooms</div></div>
     </div>`;
   main.appendChild(stage);
 
@@ -1693,7 +1718,7 @@ function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
   stage.id = "room-stage";
   stage.innerHTML = `<div id="room-canvas-wrap">${renderRoomSVG(prop, roomType, roomIndex)}</div>
     <div id="room-label-bar">
-      <div><div id="room-name">${roomDef.icon} ${roomType==="studio"?prop.name:roomDef.name}</div><div id="room-tier">Tier ${prop.tier} ┬╖ ${ownershipLabel()}</div></div>
+      <div><div id="room-name">${roomDef.icon} ${roomType==="studio"?prop.name:roomDef.name}</div><div id="room-tier">Tier ${prop.tier} · ${ownershipLabel()}</div></div>
     </div>`;
   main.appendChild(stage);
 
@@ -1713,7 +1738,7 @@ function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
   // furniture for this room's slots only
   const ftitle = document.createElement("div");
   ftitle.className = "section-title";
-  ftitle.textContent = `Decorate ┬╖ ${roomType==="studio"?"Studio":roomDef.name}`;
+  ftitle.textContent = `Decorate · ${roomType==="studio"?"Studio":roomDef.name}`;
   main.appendChild(ftitle);
 
   const placed = state.placedFurniture[roomIndex] || {};
@@ -1931,20 +1956,24 @@ function renderPeople(main) {
   title.textContent = "Relationships";
   main.appendChild(title);
 
-  // Meet New People action
+  // Meet New People action (capped to once per in-game year so it can't be spammed)
+  const alreadyMetThisYear = state.lastMetAge === state.age;
   const meetCard = document.createElement("div");
   meetCard.className = "panel-card";
   meetCard.innerHTML = `<div class="panel-row">
-      <div><div class="panel-title">Out and About</div><div class="panel-sub">Meet someone new this year</div></div>
+      <div><div class="panel-title">Out and About</div><div class="panel-sub">${alreadyMetThisYear ? "You've already met someone new this year — try again after your next birthday." : "Meet someone new this year"}</div></div>
     </div>`;
   const meetBtn = document.createElement("button");
   meetBtn.className = "panel-action";
   meetBtn.style.marginTop = "8px";
-  meetBtn.textContent = "Meet Someone";
+  meetBtn.textContent = alreadyMetThisYear ? "Already Met Someone" : "Meet Someone";
+  meetBtn.disabled = alreadyMetThisYear;
   meetBtn.onclick = () => {
+    if (state.lastMetAge === state.age) { toast("You've already met someone new this year."); return; }
     const name = pick(FIRST_NAMES);
     const context = pick(FRIEND_CONTEXTS);
     state.relationships.push({ id: nextRelId(), name, type: "Friend", closeness: rand(20,35), lastInteractedAge: state.age });
+    state.lastMetAge = state.age;
     log(`${state.name} met ${name} ${context}.`);
     saveGame(); render();
   };
@@ -2072,11 +2101,24 @@ function renderPeople(main) {
 
 
 const VEHICLES = [
- {name:"Used Sedan",price:5000},
- {name:"Pickup Truck",price:15000},
- {name:"Sports Car",price:45000},
- {name:"Luxury SUV",price:85000}
+ {id:"sedan", name:"Used Sedan", price:5000, weeklyUpkeep:25, happinessBonus:2, looksBonus:1},
+ {id:"truck", name:"Pickup Truck", price:15000, weeklyUpkeep:45, happinessBonus:3, looksBonus:1},
+ {id:"sports", name:"Sports Car", price:45000, weeklyUpkeep:90, happinessBonus:5, looksBonus:5},
+ {id:"suv", name:"Luxury SUV", price:85000, weeklyUpkeep:140, happinessBonus:6, looksBonus:6},
 ];
+const VEHICLE_RESALE_RATE = 0.6;
+
+function sellVehicle(id) {
+  const idx = state.vehicles.findIndex(v=>v.id===id);
+  if (idx === -1) return;
+  const v = state.vehicles[idx];
+  const refund = Math.round(v.price * VEHICLE_RESALE_RATE);
+  state.vehicles.splice(idx,1);
+  state.money += refund;
+  log(`${state.name} sold the ${v.name} for ${fmtMoney(refund)}.`);
+  saveGame();
+  render();
+}
 
 function renderVehicles(main){
  const title=document.createElement("div");
@@ -2085,25 +2127,43 @@ function renderVehicles(main){
  main.appendChild(title);
 
  if(state.vehicles.length){
+   const owned = document.createElement("div");
+   owned.className = "section-title";
+   owned.textContent = "Garage";
+   main.appendChild(owned);
    state.vehicles.forEach(v=>{
      const c=document.createElement("div");
      c.className="panel-card";
-     c.innerHTML=`<div class="panel-title">${v.name}</div>`;
+     c.innerHTML=`<div class="panel-row"><div><div class="panel-title">${v.name}</div><div class="panel-sub">${fmtMoney(v.weeklyUpkeep)}/wk upkeep</div></div></div>`;
+     const b=document.createElement("button");
+     b.className="panel-action secondary";
+     b.textContent=`Sell for ${fmtMoney(Math.round(v.price*VEHICLE_RESALE_RATE))}`;
+     b.style.marginTop="8px";
+     b.onclick=()=>sellVehicle(v.id);
+     c.appendChild(b);
      main.appendChild(c);
    });
  }
 
+ const shop = document.createElement("div");
+ shop.className = "section-title";
+ shop.textContent = "Dealership";
+ main.appendChild(shop);
+
  VEHICLES.forEach(v=>{
+   const owned = state.vehicles.some(x=>x.id===v.id);
    const c=document.createElement("div");
    c.className="panel-card";
-   c.innerHTML=`<div class="panel-row"><div><div class="panel-title">${v.name}</div><div class="panel-sub">${fmtMoney(v.price)}</div></div></div>`;
+   c.innerHTML=`<div class="panel-row"><div><div class="panel-title">${v.name}</div><div class="panel-sub">${owned ? "Already in your garage" : fmtMoney(v.price)+" · "+fmtMoney(v.weeklyUpkeep)+"/wk upkeep"}</div></div></div>`;
    const b=document.createElement("button");
    b.className="panel-action";
-   b.textContent="Buy";
+   b.textContent= owned ? "Owned" : "Buy";
+   b.disabled = owned;
+   b.style.marginTop="8px";
    b.onclick=()=>{
       if(state.money<v.price){toast("Not enough cash");return;}
       state.money-=v.price;
-      state.vehicles.push(v);
+      state.vehicles.push({...v});
       log(`${state.name} bought a ${v.name}.`);
       saveGame();
       render();
