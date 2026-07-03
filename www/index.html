@@ -1072,6 +1072,7 @@ const PET_TYPES = [
   { id:"dog_poodle",    icon:"🐩", name:"Poodle",           cost:1100, lifespan:14, happy:6, upkeep:1000, smarts:1, blurb:"Smarter than most of your coworkers. Knows it." },
   { id:"dog_corgi",     icon:"🐕‍🦺", name:"Corgi",            cost:1000, lifespan:13, happy:7, upkeep:800,  blurb:"A loaf of bread with ambition and no legs." },
   { id:"dog_greatdane", icon:"🐎", name:"Great Dane",       cost:1200, lifespan:8,  happy:7, upkeep:1600, blurb:"A small horse convinced it's a lap dog." },
+  { id:"dog_doberman",  icon:"🖤", name:"Doberman",         cost:1500, lifespan:11, happy:6, upkeep:1300, health:2, blurb:"Looks like a security system. Is actually a velcro baby." },
   { id:"snake",    icon:"🐍", name:"Snake",    cost:200, lifespan:20, happy:2, upkeep:300, blurb:"Judges you silently from a heated rock." },
   { id:"parrot",   icon:"🦜", name:"Parrot",   cost:900, lifespan:45, happy:4, upkeep:500, blurb:"May outlive you. Will definitely embarrass you." },
 ];
@@ -1613,6 +1614,11 @@ const EVENTS = [
   { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_greatdane") && Math.random()<0.3, weight: 1, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_greatdane");
       return { text:`${dog.name} sat on ${s.partner ? s.partner : "a guest"}. There was no warning. There never is. 🐎`, deltas:[["happiness", rand(2,5)]] };
+  }},
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_doberman") && Math.random()<0.3, weight: 1, build: s => {
+      const dog = s.pets.find(p=>p.typeId==="dog_doberman");
+      const r = pick(["scared off a door-to-door salesman by simply existing, then demanded belly rubs","refused to sleep anywhere except pressed against " + s.name + "'s back, all 90 pounds","stood guard at the window for six hours. The threat was a squirrel","trembled through the entire thunderstorm in " + s.name + "'s lap"]);
+      return { text:`${dog.name} ${r}. 🖤`, deltas:[["happiness", rand(2,5)]] };
   }},
   { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_chihuahua") && Math.random()<0.3, weight: 1, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_chihuahua");
