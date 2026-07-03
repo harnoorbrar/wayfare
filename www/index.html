@@ -700,6 +700,42 @@
    Single state object drives every screen. Read top to bottom.
    ========================================================= */
 
+/* ---------------- ADS (OFF by default — flip ADS.enabled when AdMob account is live) ----------------
+   Uses Google's official TEST ad unit IDs. Before enabling for real:
+   1. Create an AdMob account, register the app, create banner + interstitial units
+   2. Replace the three IDs below AND GADApplicationIdentifier in ios/App/App/Info.plist
+   3. Set enabled: true
+   Wayfare Plus (future IAP) suppresses all ads via localStorage flag. */
+const ADS = {
+  enabled: false,
+  bannerId: "ca-app-pub-3940256099942544/2934735716",       // Google TEST banner (iOS)
+  interstitialId: "ca-app-pub-3940256099942544/4411468910", // Google TEST interstitial (iOS)
+};
+const PLUS_KEY = "wayfare-plus";
+function hasPlus() { try { return localStorage.getItem(PLUS_KEY) === "1"; } catch(e) { return false; } }
+function adsActive() { return ADS.enabled && !hasPlus() && !!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob); }
+
+let _interstitialReady = false;
+async function initAds() {
+  if (!adsActive()) return;
+  const AdMob = window.Capacitor.Plugins.AdMob;
+  try {
+    await AdMob.initialize({});
+    await AdMob.showBanner({ adId: ADS.bannerId, adSize: "ADAPTIVE_BANNER", position: "TOP_CENTER" });
+    await AdMob.prepareInterstitial({ adId: ADS.interstitialId });
+    _interstitialReady = true;
+  } catch(e) { /* ads must never break the game */ }
+}
+async function showDeathInterstitial() {
+  if (!adsActive() || !_interstitialReady) return;
+  const AdMob = window.Capacitor.Plugins.AdMob;
+  try {
+    _interstitialReady = false;
+    await AdMob.showInterstitial();
+    AdMob.prepareInterstitial({ adId: ADS.interstitialId }).then(()=>{ _interstitialReady = true; }).catch(()=>{});
+  } catch(e) {}
+}
+
 /* Haptics: native taps in the iOS app; Safari fallback via the
    hidden switch-toggle trick (iOS 17.4+); silent no-op elsewhere */
 let _hapticSwitch = null;
@@ -1991,6 +2027,7 @@ function buildLegacy(){
 function handleDeath() {
   state.alive = false;
   haptic("heavy");
+  setTimeout(showDeathInterstitial, 1500); // let the death screen land first
   const cause = state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : "");
 
   pruneWill();
@@ -3631,6 +3668,7 @@ function openErrorModal(err) {
   document.getElementById("modal-overlay").classList.add("show");
 }
 
+initAds();
 window.addEventListener("error", (e) => {
   console.error(e.error || e.message);
   openErrorModal(e.error || e.message);
