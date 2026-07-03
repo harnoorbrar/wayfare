@@ -616,6 +616,19 @@
   .tally-v{color:var(--paper);font-weight:600;text-align:right;}
   #gameover{justify-content:flex-start!important;overflow-y:auto;}
 
+  .ach-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 10px 14px; margin-bottom: 10px;
+    background: rgba(0,0,0,0.035); border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 12px; font: inherit; font-weight: 600; font-size: 14px;
+    color: inherit; cursor: pointer; text-align: left;
+  }
+  .ach-bar:active { background: rgba(0,0,0,0.07); }
+  .ach-count {
+    font-size: 12px; font-weight: 700; padding: 2px 9px;
+    background: rgba(0,0,0,0.08); border-radius: 999px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
@@ -948,6 +961,7 @@ const SAVE_KEY = "wayfare-save-v1";
 
 function saveGame() {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e) {}
+  try { checkAchievements(); } catch(e) {}
 }
 
 // Defaults for every field a save might be missing, keyed by what newGame() sets.
@@ -961,7 +975,7 @@ const SAVE_DEFAULTS = {
   vehicles: [], will: {}, peakMoney: 0, activeTab: "story", pendingChoice: null,
   lastMetAge: -1, savings: 0, investments: { stocks: 0, bonds: 0, crypto: 0 },
   investmentReturns: { stocks: 0, bonds: 0, crypto: 0 }, businesses: [],
-  lastDateAttemptAge: -1,
+  lastDateAttemptAge: -1, generation: 1,
 };
 
 function loadGame() {
@@ -989,6 +1003,57 @@ function loadGame() {
 
 function deleteSave() {
   localStorage.removeItem(SAVE_KEY);
+}
+
+/* ---------------- ACHIEVEMENTS (persist across every life) ---------------- */
+const ACH_KEY = "wayfare-ach-v1";
+let unlockedAch = {};
+try { unlockedAch = JSON.parse(localStorage.getItem(ACH_KEY)) || {}; } catch(e) { unlockedAch = {}; }
+
+// Achievements with a check() unlock automatically; ones without are
+// event-driven (unlocked by name from an event) and show as "???" until earned.
+const ACHIEVEMENTS = [
+  { id:"first_steps",   icon:"👣", name:"First Steps",          desc:"Reach age 5.",                          check:s=>s.age>=5 },
+  { id:"adulting",      icon:"📬", name:"Adulting",             desc:"Turn 18.",                              check:s=>s.age>=18 },
+  { id:"first_job",     icon:"🧾", name:"Gainfully Employed",   desc:"Land a job.",                           check:s=>s.job!=="unemployed" },
+  { id:"over_hill",     icon:"⛰️", name:"Over the Hill",        desc:"Turn 50.",                              check:s=>s.age>=50 },
+  { id:"survivor",      icon:"🕰️", name:"Built to Last",        desc:"Reach age 80.",                         check:s=>s.age>=80 },
+  { id:"centenarian",   icon:"🎂", name:"Centenarian",          desc:"Reach age 100.",                        check:s=>s.age>=100 },
+  { id:"homeowner",     icon:"🏠", name:"No Landlords Ever",    desc:"Fully own a home.",                     check:s=>s.ownership==="owned" },
+  { id:"car_collector", icon:"🚗", name:"Garage Goals",         desc:"Own 3 vehicles at once.",               check:s=>(s.vehicles||[]).length>=3 },
+  { id:"scholar",       icon:"🎓", name:"Professional Student", desc:"Earn 3 degrees.",                       check:s=>(s.degrees||[]).length>=3 },
+  { id:"mogul",         icon:"🏢", name:"Mogul",                desc:"Run 2 businesses at once.",             check:s=>(s.businesses||[]).length>=2 },
+  { id:"millionaire",   icon:"💰", name:"Seven Figures",        desc:"Reach $1,000,000 net worth.",           check:s=>computeNetWorth(s)>=1000000 },
+  { id:"in_the_red",    icon:"🕳️", name:"Financially Creative", desc:"Sink $25,000 into debt.",               check:s=>s.money<=-25000 },
+  { id:"diamond_hands", icon:"💎", name:"Diamond Hands",        desc:"Hold $50,000 in crypto.",               check:s=>((s.investments||{}).crypto||0)>=50000 },
+  { id:"full_house",    icon:"👨‍👩‍👧‍👦", name:"Full House",       desc:"Raise 3 children.",                     check:s=>(s.children||[]).length>=3 },
+  { id:"golden_years",  icon:"🌅", name:"Golden Years",         desc:"Be 80+ with 90+ happiness.",            check:s=>s.age>=80&&s.happiness>=90 },
+  { id:"iron_body",     icon:"🏋️", name:"Iron Body",            desc:"Be 60+ with 95+ health.",               check:s=>s.age>=60&&s.health>=95 },
+  { id:"heir",          icon:"🪶", name:"The Torch Passes",     desc:"Continue a life as your child.",        check:s=>(s.generation||1)>=2 },
+  { id:"dynasty",       icon:"👑", name:"Dynasty",              desc:"Reach generation 3.",                   check:s=>(s.generation||1)>=3 },
+  { id:"scratch_that",    icon:"🎟️", name:"Scratch That",     desc:"Win big on a scratch card." },
+  { id:"main_character",  icon:"📱", name:"Main Character",   desc:"Go viral." },
+  { id:"out_there",       icon:"🛸", name:"Out There",        desc:"You know what you saw." },
+  { id:"nine_lives",      icon:"🐈‍⬛", name:"Nine Lives",       desc:"Survive something you shouldn't have." },
+];
+
+function unlockAchievement(id) {
+  if (unlockedAch[id]) return;
+  const a = ACHIEVEMENTS.find(x=>x.id===id);
+  if (!a) return;
+  unlockedAch[id] = Date.now();
+  try { localStorage.setItem(ACH_KEY, JSON.stringify(unlockedAch)); } catch(e) {}
+  toast(`🏆 Achievement unlocked: ${a.name}`);
+  haptic("medium");
+}
+
+function checkAchievements() {
+  if (!state) return;
+  ACHIEVEMENTS.forEach(a => {
+    if (a.check && !unlockedAch[a.id]) {
+      try { if (a.check(state)) unlockAchievement(a.id); } catch(e) {}
+    }
+  });
 }
 
 
@@ -1044,6 +1109,7 @@ function newGame() {
     investments: { stocks: 0, bonds: 0, crypto: 0 },
     investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
     businesses: [],
+    generation: 1,
   };
   log(`${state.name} was born today. A whole life, waiting to happen.`);
   render();
@@ -1329,6 +1395,129 @@ const EVENTS = [
         { label: "Dig in and deny it", deltas: [["happiness", rand(-10,-5)]], result: "That made things worse. Trust took a hit." },
       ]
   })},
+
+  // ---- new: childhood chaos ----
+  { cond: s => s.age>=3 && s.age<=7 && Math.random()<0.3, weight: 1.5, build: s => ({
+      text:`${s.name} put a bean up their nose to see if it would fit. It did. Getting it out was a whole thing.`,
+      deltas:[["health", rand(-2,0)],["smarts", 1]]
+  })},
+  { cond: s => s.age>=4 && s.age<=9 && Math.random()<0.3, weight: 1.5, build: s => ({
+      text:`${s.name}'s imaginary friend ${pick(["Gerald","Mr. Whiskers","Big Dave","Toast"])} was blamed for the broken lamp. The alibi did not hold.`,
+      deltas:[["happiness", rand(1,4)],["smarts", rand(0,2)]]
+  })},
+  { cond: s => s.age>=7 && s.age<=12 && Math.random()<0.35, weight: 1.5, build: s => {
+      const made = rand(8,45);
+      return { text:`${s.name} ran a lemonade stand all summer. Undercut the kid across the street. Ruthless.`, deltas:[["money", made],["happiness", rand(2,5)],["smarts", rand(1,3)]] };
+  }},
+
+  // ---- new: teen years ----
+  { cond: s => s.age>=11 && s.age<=17 && Math.random()<0.12, weight: 1, build: s => ({
+      text:`${s.name} did a dumb dance for a video and it went VIRAL. Three days of fame, one very embarrassed family.`,
+      deltas:[["happiness", rand(6,12)],["looks", rand(1,3)]],
+      ach:"main_character"
+  })},
+  { cond: s => s.age>=15 && s.age<=25 && Math.random()<0.25, weight: 1.2, build: s => ({
+      text:`${s.name} asked for "just a trim." The barber heard something else entirely.`,
+      choices: [
+        { label:"Own the new look", deltas:[["happiness", rand(2,6)],["looks", rand(-2,3)]], result:"Confidence is a hairstyle. Sort of." },
+        { label:"Hat for a month", deltas:[["happiness", rand(-4,-1)]], result:"The hat became a personality trait." },
+      ]
+  })},
+
+  // ---- new: adult absurdity ----
+  { cond: s => s.age>=18 && Math.random()<0.2, weight: 1, build: s => {
+      const win = Math.random() < 0.15;
+      const amount = win ? rand(3000, 25000) : -5;
+      return {
+        text:`Gas station scratch card. ${s.name} feels lucky today.`,
+        choices: [
+          { label:"Buy one", deltas:[["money", amount],["happiness", win?rand(8,15):rand(-2,0)]],
+            result: win ? `JACKPOT. ${fmtMoney(amount)} from a $5 card. The cashier demanded a high five.` : "Two cherries and a lemon. Five dollars, gone forever.",
+            ach: win ? "scratch_that" : undefined },
+          { label:"Save the $5", deltas:[["smarts", 1]], result:"Financial discipline. Boring, effective." },
+        ]
+      };
+  }},
+  { cond: s => s.age>=18 && Math.random()<0.2, weight: 1, build: s => ({
+      text:`Gas station sushi, ${rand(40,70)}% off. ${s.name} stares at it. It stares back.`,
+      choices: [
+        { label:"Eat it", deltas:[["health", rand(-8,-2)],["happiness", rand(3,7)]], result:"A rollercoaster of a night. Zero regrets, several regrets." },
+        { label:"Walk away", deltas:[["smarts", 1]], result:"Survival instincts: intact." },
+      ]
+  })},
+  { cond: s => s.age>=20 && s.age<=55 && Math.random()<0.12, weight: 0.9, build: s => ({
+      text:`An old classmate slid into ${s.name}'s DMs: "hey!! quick question, do you like MONEY? 💸" It's a pyramid. It's always a pyramid.`,
+      choices: [
+        { label:"Buy the starter kit", deltas:[["money", -rand(400,1500)],["happiness", rand(-6,-2)],["smarts", rand(2,4)]], result:"The garage is now full of essential oils. An expensive lesson." },
+        { label:"Leave them on read", deltas:[["happiness", 2],["smarts", 2]], result:"Blocked, reported, moved on with their life." },
+      ]
+  })},
+  { cond: s => s.age>=21 && Math.random()<0.2, weight: 1, build: s => ({
+      text:`Karaoke night. The mic is warm. The crowd is waiting. ${s.name}'s song just came on.`,
+      choices: [
+        { label:"Absolutely destroy it", deltas:[["happiness", rand(5,10)],["looks", rand(0,2)]], result:"Standing ovation from three strangers and one bartender. Legendary." },
+        { label:"Film from the booth", deltas:[["happiness", rand(1,3)]], result:"Someone else butchered it instead. Beautiful." },
+      ]
+  })},
+  { cond: s => s.age>=25 && s.property && Math.random()<0.15, weight: 0.9, build: s => ({
+      text:`The neighbor's hedge has crossed the property line. This is war. Or is it?`,
+      choices: [
+        { label:"Escalate. Measure it. Print evidence.", deltas:[["happiness", rand(-5,-1)],["smarts", rand(1,3)]], result:"Three months of passive-aggressive lawn signage. Nobody won." },
+        { label:"Bring over cookies instead", deltas:[["happiness", rand(4,8)]], result:"Turns out the neighbor is great. The hedge stays. Who cares." },
+      ]
+  })},
+  { cond: s => s.age>=25 && s.age<=50 && Math.random()<0.15, weight: 0.9, build: s => ({
+      text:`${s.name} watched one documentary and now wants to run a marathon.`,
+      choices: [
+        { label:"Actually train for it", deltas:[["health", rand(6,12)],["happiness", rand(2,6)],["money", -200]], result:"Finished in the back third. Cried at the finish line. Worth every blister." },
+        { label:"Buy the shoes, skip the running", deltas:[["money", -180],["happiness", rand(1,3)]], result:"The shoes are very comfortable for walking to the fridge." },
+      ]
+  })},
+  { cond: s => s.age>=28 && s.age<=60 && s.job!=="unemployed" && Math.random()<0.12, weight: 0.8, build: s => ({
+      text:`${s.name} wrote a LinkedIn post that started with "I don't usually post here, but..." It was about synergy.`,
+      deltas:[["happiness", rand(-3,3)],["smarts", rand(-1,1)]]
+  })},
+  { cond: s => s.age>=30 && Math.random()<0.12, weight: 0.8, build: s => {
+      const hobby = pick(["beekeeping","mushroom foraging","fermenting everything in the kitchen","restoring a canoe","competitive birdwatching","making sourdough with a named starter"]);
+      return { text:`${s.name} got extremely into ${hobby}. Nobody asked. Everyone heard about it.`, deltas:[["happiness", rand(4,9)],["money", -rand(100,600)],["smarts", rand(1,3)]] };
+  }},
+  { cond: s => s.age>=40 && s.age<=60 && Math.random()<0.12, weight: 0.8, build: s => ({
+      text:`Something is stirring in ${s.name}. The years are moving fast. A decision must be made.`,
+      choices: [
+        { label:"Questionable ponytail era", deltas:[["happiness", rand(3,8)],["looks", rand(-4,1)]], result:"The ponytail said what words could not." },
+        { label:"Therapy, like a sensible person", deltas:[["happiness", rand(4,8)],["smarts", rand(2,4)],["money", -800]], result:"Turns out talking about it works. Who knew." },
+      ]
+  })},
+
+  // ---- new: rare & weird ----
+  { cond: s => s.age>=16 && Math.random()<0.03, weight: 0.5, build: s => ({
+      text:`Driving home at 2am, ${s.name} saw lights in the sky move in a way lights should not move. No one believes them. They know what they saw.`,
+      deltas:[["happiness", rand(-2,5)],["smarts", rand(1,3)]],
+      ach:"out_there"
+  })},
+  { cond: s => s.age>=18 && Math.random()<0.02, weight: 0.4, build: s => ({
+      text:`A piano being hoisted into a third-floor window snapped its rope and missed ${s.name} by inches. INCHES.`,
+      deltas:[["health", rand(-4,-1)],["happiness", rand(5,10)]],
+      ach:"nine_lives"
+  })},
+  { cond: s => s.age>=18 && Math.random()<0.08, weight: 0.6, build: s => ({
+      text:`Jury duty. ${s.name} spent four days deciding the fate of a man who stole 340 traffic cones. Justice is complicated.`,
+      deltas:[["smarts", rand(2,5)],["happiness", rand(-3,1)],["money", 120]]
+  })},
+
+  // ---- new: golden years ----
+  { cond: s => s.age>=55 && Math.random()<0.2, weight: 1, build: s => ({
+      text:`${s.name} is now the family's entire IT department. "It says error." What says error? "The thing."`,
+      deltas:[["smarts", rand(1,3)],["happiness", rand(-4,-1)]]
+  })},
+  { cond: s => s.age>=62 && Math.random()<0.2, weight: 1, build: s => ({
+      text:`${s.name} joined the 6am mall walkers. They have matching jackets now. The jackets have a logo. There is a hierarchy.`,
+      deltas:[["health", rand(3,7)],["happiness", rand(3,7)]]
+  })},
+  { cond: s => s.age>=68 && Math.random()<0.25, weight: 1, build: s => ({
+      text:`${s.name} told the story about the piano again. Everyone's heard it. ${s.name} does not care. It gets better every time.`,
+      deltas:[["happiness", rand(3,6)]]
+  })},
 ];
 
 function weightedEvent() {
@@ -1531,6 +1720,7 @@ function ageUp() {
     } else {
       (built.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
       log(built.text, built.deltas);
+      if (built.ach) unlockAchievement(built.ach);
     }
   }
 
@@ -1542,6 +1732,7 @@ function resolveChoice(choiceIndex) {
   const c = state.pendingChoice.choices[choiceIndex];
   (c.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
   log(c.result, c.deltas);
+  if (c.ach) unlockAchievement(c.ach);
 
   if (c.flag === "college") state.collegeFlag = true;
   if (c.flag === "promotion") {
@@ -1631,6 +1822,8 @@ function buildLegacy(){
       <div class="tally-item"><span class="tally-k">Peak wealth</span><span class="tally-v">${fmtMoney(peak)}</span></div>
       <div class="tally-item"><span class="tally-k">Married</span><span class="tally-v">${married?"Yes":"Never"}</span></div>
       <div class="tally-item"><span class="tally-k">Children</span><span class="tally-v">${kids}</span></div>
+      <div class="tally-item"><span class="tally-k">Generation</span><span class="tally-v">${state.generation||1}</span></div>
+      <div class="tally-item"><span class="tally-k">Achievements</span><span class="tally-v">${Object.keys(unlockedAch).length}/${ACHIEVEMENTS.length}</span></div>
       <div class="tally-item"><span class="tally-k">Estate</span><span class="tally-v">${fmtMoney(computeNetWorth(state))}</span></div>
       <div class="tally-item"><span class="tally-k">Known by</span><span class="tally-v">${state.relationships.length} people</span></div>
     </div></div>
@@ -1744,6 +1937,7 @@ function continueAsChild(childIndex) {
   }
 
   const oldName = state.name;
+  const nextGeneration = (state.generation || 1) + 1;
   const inheritedProperty = state.property;
   const inheritedOwnership = state.ownership;
   const inheritedMortgageBalance = state.mortgageBalance;
@@ -1804,6 +1998,7 @@ function continueAsChild(childIndex) {
     investments: { stocks: 0, bonds: 0, crypto: 0 },
     investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
     businesses: inheritedBusinesses,
+    generation: nextGeneration,
   };
 
   log(`${state.name} inherited ${oldName}'s home and ${fmtMoney(inheritance)}, and is ready to start their own chapter.`);
@@ -1949,6 +2144,12 @@ function render() {
 }
 
 function renderStory(main) {
+  const achBar = document.createElement("button");
+  achBar.className = "ach-bar";
+  achBar.innerHTML = `🏆 Achievements <span class="ach-count">${Object.keys(unlockedAch).length}/${ACHIEVEMENTS.length}</span>`;
+  achBar.onclick = openAchievementsModal;
+  main.appendChild(achBar);
+
   if (state.pendingChoice) {
     const card = document.createElement("div");
     card.className = "event-card";
@@ -3140,6 +3341,34 @@ function openFurnitureStep(propId, mode) {
 
 function closeModal() {
   document.getElementById("modal-overlay").classList.remove("show");
+}
+
+function openAchievementsModal() {
+  const sheet = document.getElementById("modal-sheet");
+  const got = Object.keys(unlockedAch).length;
+  sheet.innerHTML = `
+    <div class="panel-title" style="margin-bottom:2px;">🏆 Achievements</div>
+    <div class="panel-sub" style="margin-bottom:10px;">${got} of ${ACHIEVEMENTS.length} unlocked. These persist across every life you live.</div>`;
+  ACHIEVEMENTS.forEach(a=>{
+    const has = !!unlockedAch[a.id];
+    const hidden = !a.check && !has; // event-driven ones stay mysterious
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:12px;align-items:center;padding:9px 2px;border-bottom:1px solid rgba(0,0,0,.08);" + (has ? "" : "opacity:.45;");
+    row.innerHTML = `
+      <div style="font-size:24px;width:30px;text-align:center;">${has ? a.icon : "🔒"}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;">${hidden ? "???" : a.name}</div>
+        <div style="font-size:12px;opacity:.8;">${hidden ? "Keep living. You'll know it when it happens." : a.desc}</div>
+      </div>`;
+    sheet.appendChild(row);
+  });
+  const close = document.createElement("button");
+  close.className = "panel-action secondary";
+  close.style.cssText = "width:100%;margin-top:12px;";
+  close.textContent = "Close";
+  close.onclick = closeModal;
+  sheet.appendChild(close);
+  document.getElementById("modal-overlay").classList.add("show");
 }
 
 // Surfaces any crash to the player instead of letting the game silently
