@@ -975,7 +975,7 @@ const SAVE_DEFAULTS = {
   vehicles: [], will: {}, peakMoney: 0, activeTab: "story", pendingChoice: null,
   lastMetAge: -1, savings: 0, investments: { stocks: 0, bonds: 0, crypto: 0 },
   investmentReturns: { stocks: 0, bonds: 0, crypto: 0 }, businesses: [],
-  lastDateAttemptAge: -1, generation: 1,
+  lastDateAttemptAge: -1, generation: 1, pets: [],
 };
 
 function loadGame() {
@@ -1031,10 +1031,13 @@ const ACHIEVEMENTS = [
   { id:"iron_body",     icon:"🏋️", name:"Iron Body",            desc:"Be 60+ with 95+ health.",               check:s=>s.age>=60&&s.health>=95 },
   { id:"heir",          icon:"🪶", name:"The Torch Passes",     desc:"Continue a life as your child.",        check:s=>(s.generation||1)>=2 },
   { id:"dynasty",       icon:"👑", name:"Dynasty",              desc:"Reach generation 3.",                   check:s=>(s.generation||1)>=3 },
+  { id:"best_friend",   icon:"🐾", name:"Best Friend",          desc:"Adopt a pet.",                          check:s=>(s.pets||[]).length>=1 },
+  { id:"menagerie",     icon:"🦁", name:"The Menagerie",        desc:"Own 3 pets at once.",                   check:s=>(s.pets||[]).length>=3 },
   { id:"scratch_that",    icon:"🎟️", name:"Scratch That",     desc:"Win big on a scratch card." },
   { id:"main_character",  icon:"📱", name:"Main Character",   desc:"Go viral." },
   { id:"out_there",       icon:"🛸", name:"Out There",        desc:"You know what you saw." },
   { id:"nine_lives",      icon:"🐈‍⬛", name:"Nine Lives",       desc:"Survive something you shouldn't have." },
+  { id:"old_friend",      icon:"🌈", name:"An Old Friend",    desc:"Give a pet a full, happy life." },
 ];
 
 function unlockAchievement(id) {
@@ -1054,6 +1057,63 @@ function checkAchievements() {
       try { if (a.check(state)) unlockAchievement(a.id); } catch(e) {}
     }
   });
+}
+
+/* ---------------- PETS ---------------- */
+const PET_TYPES = [
+  { id:"goldfish", icon:"🐠", name:"Goldfish", cost:15,  lifespan:4,  happy:1, upkeep:20,  blurb:"Low maintenance. Low expectations. Swims." },
+  { id:"hamster",  icon:"🐹", name:"Hamster",  cost:25,  lifespan:3,  happy:2, upkeep:60,  blurb:"Runs all night on a squeaky wheel. Adorable insomnia machine." },
+  { id:"cat",      icon:"🐈", name:"Cat",      cost:150, lifespan:16, happy:4, upkeep:600, blurb:"Owns you, legally speaking. Occasionally affectionate." },
+  { id:"dog",      icon:"🐕", name:"Dog",      cost:300, lifespan:13, happy:6, upkeep:900, blurb:"Thinks you're the greatest person alive. Correct." },
+  { id:"snake",    icon:"🐍", name:"Snake",    cost:200, lifespan:20, happy:2, upkeep:300, blurb:"Judges you silently from a heated rock." },
+  { id:"parrot",   icon:"🦜", name:"Parrot",   cost:900, lifespan:45, happy:4, upkeep:500, blurb:"May outlive you. Will definitely embarrass you." },
+];
+const PET_NAMES = ["Biscuit","Noodle","Waffles","Beans","Pickle","Mochi","Taco","Ziggy","Pepper","Gizmo","Churro","Bagel","Sprout","Turnip","Meatball","Crouton","Pumpkin","Dumpling","Nacho","Sir Reginald"];
+function petTypeById(id){ return PET_TYPES.find(p=>p.id===id); }
+
+function adoptPet(typeId) {
+  const t = petTypeById(typeId);
+  if (!t) return;
+  if (state.money < t.cost) { toast("Not enough cash for the adoption fee."); return; }
+  applyDelta("money", -t.cost);
+  const name = pick(PET_NAMES);
+  state.pets.push({ name, typeId, age: 0, maxAge: Math.max(1, t.lifespan + rand(-2,3)) });
+  const joy = rand(4,8);
+  applyDelta("happiness", joy);
+  log(`${state.name} adopted a ${t.name.toLowerCase()} and named it ${name}. ${t.icon}`, [["happiness", joy]]);
+  closeModal();
+  saveGame(); render();
+}
+
+function openAdoptModal() {
+  const sheet = document.getElementById("modal-sheet");
+  sheet.innerHTML = `<div class="panel-title" style="margin-bottom:2px;">🏡 Adoption Center</div>
+    <div class="panel-sub" style="margin-bottom:10px;">Every pet adds happiness each year, and costs a bit of upkeep. Some stick around longer than others.</div>`;
+  PET_TYPES.forEach(t=>{
+    const card = document.createElement("div");
+    card.style.cssText = "display:flex;gap:12px;align-items:center;padding:10px 2px;border-bottom:1px solid rgba(0,0,0,.08);";
+    card.innerHTML = `
+      <div style="font-size:26px;width:34px;text-align:center;">${t.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;">${t.name} <span style="font-weight:400;font-size:12px;opacity:.7;">· ${fmtMoney(t.cost)}</span></div>
+        <div style="font-size:12px;opacity:.8;">${t.blurb}</div>
+        <div style="font-size:11px;opacity:.6;">~${t.lifespan} yrs · ${fmtMoney(t.upkeep)}/yr upkeep</div>
+      </div>`;
+    const btn = document.createElement("button");
+    btn.className = "panel-action";
+    btn.textContent = "Adopt";
+    btn.disabled = state.money < t.cost;
+    btn.onclick = ()=>adoptPet(t.id);
+    card.appendChild(btn);
+    sheet.appendChild(card);
+  });
+  const close = document.createElement("button");
+  close.className = "panel-action secondary";
+  close.style.cssText = "width:100%;margin-top:12px;";
+  close.textContent = "Close";
+  close.onclick = closeModal;
+  sheet.appendChild(close);
+  document.getElementById("modal-overlay").classList.add("show");
 }
 
 
@@ -1110,6 +1170,7 @@ function newGame() {
     investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
     businesses: [],
     generation: 1,
+    pets: [],
   };
   log(`${state.name} was born today. A whole life, waiting to happen.`);
   render();
@@ -1505,6 +1566,34 @@ const EVENTS = [
       deltas:[["smarts", rand(2,5)],["happiness", rand(-3,1)],["money", 120]]
   })},
 
+  // ---- new: pet chaos ----
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog") && Math.random()<0.3, weight: 1, build: s => {
+      const dog = s.pets.find(p=>p.typeId==="dog");
+      const r = pick(["ate an entire birthday cake off the counter","buried the TV remote in the yard","barked at the vacuum for a full hour","made best friends with the mail carrier they used to hate"]);
+      return { text:`${dog.name} ${r}. 🐕`, deltas:[["happiness", rand(1,5)]] };
+  }},
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="cat") && Math.random()<0.3, weight: 1, build: s => {
+      const cat = s.pets.find(p=>p.typeId==="cat");
+      const r = pick(["brought home a 'gift.' It was not alive","knocked a glass off the table while maintaining eye contact","sat on the keyboard during the most important moment possible","disappeared for two days, returned smelling like someone else's cologne"]);
+      return { text:`${cat.name} ${r}. 🐈`, deltas:[["happiness", rand(0,4)]] };
+  }},
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="parrot") && Math.random()<0.35, weight: 1, build: s => {
+      const bird = s.pets.find(p=>p.typeId==="parrot");
+      return { text:`${bird.name} learned a new word. Where did ${bird.name} learn that word. Company was over. 🦜`, deltas:[["happiness", rand(1,4)],["looks", rand(-1,0)]] };
+  }},
+  { cond: s => (s.pets||[]).length>0 && Math.random()<0.1, weight: 0.8, build: s => {
+      const pet = pick(s.pets);
+      const t = petTypeById(pet.typeId) || PET_TYPES[0];
+      const bill = rand(300, 1800);
+      return {
+        text:`${pet.name} is acting strange. The vet says it's probably fine, but they could run tests. ${t.icon}`,
+        choices: [
+          { label:`Run the tests (${fmtMoney(bill)})`, deltas:[["money", -bill],["happiness", rand(2,5)]], result:`${pet.name} is fine. It was, and this is a direct quote, "drama."` },
+          { label:"Wait and see", deltas:[["happiness", rand(-4,1)]], result:`A tense week, but ${pet.name} bounced back. Probably ate something weird.` },
+        ]
+      };
+  }},
+
   // ---- new: golden years ----
   { cond: s => s.age>=55 && Math.random()<0.2, weight: 1, build: s => ({
       text:`${s.name} is now the family's entire IT department. "It says error." What says error? "The thing."`,
@@ -1610,6 +1699,28 @@ function ageUp() {
     }
     return true;
   });
+
+  // pets: happiness, upkeep, aging, and eventually goodbyes
+  if (state.pets && state.pets.length) {
+    const survivors = [];
+    state.pets.forEach(pet => {
+      pet.age++;
+      const t = petTypeById(pet.typeId);
+      if (!t) return; // unknown type from a future save — drop quietly
+      applyDelta("happiness", t.happy);
+      applyDelta("money", -t.upkeep);
+      if (pet.age >= pet.maxAge) {
+        const oldAge = pet.maxAge >= t.lifespan;
+        const grief = rand(4,9);
+        applyDelta("happiness", -grief);
+        log(`${pet.name} the ${t.name.toLowerCase()} ${oldAge ? "passed peacefully after a long, good life" : "passed away too soon"}. ${t.icon} Goodbye, ${pet.name}.`, [["happiness", -grief]]);
+        if (oldAge) unlockAchievement("old_friend");
+      } else {
+        survivors.push(pet);
+      }
+    });
+    state.pets = survivors;
+  }
 
   // kids get older too
   if (state.children.length) {
@@ -1946,6 +2057,7 @@ function continueAsChild(childIndex) {
   const inheritedOwnedFurniture = state.ownedFurniture;
   const inheritedVehicles = state.vehicles;
   const inheritedBusinesses = state.businesses;
+  const inheritedPets = state.pets || [];
   const carriedRelId = state.nextRelId;
   const survivingPartnerName = state.partner;
 
@@ -1999,6 +2111,7 @@ function continueAsChild(childIndex) {
     investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
     businesses: inheritedBusinesses,
     generation: nextGeneration,
+    pets: inheritedPets,
   };
 
   log(`${state.name} inherited ${oldName}'s home and ${fmtMoney(inheritance)}, and is ready to start their own chapter.`);
@@ -2675,6 +2788,45 @@ function renderPeople(main) {
   };
   meetCard.appendChild(meetBtn);
   main.appendChild(meetCard);
+
+  // Pets
+  const petsTitle = document.createElement("div");
+  petsTitle.className = "section-title";
+  petsTitle.textContent = "Pets";
+  main.appendChild(petsTitle);
+
+  const petCard = document.createElement("div");
+  petCard.className = "panel-card";
+  if (state.pets && state.pets.length) {
+    state.pets.forEach(pet => {
+      const t = petTypeById(pet.typeId);
+      if (!t) return;
+      const row = document.createElement("div");
+      row.className = "panel-row";
+      row.style.marginBottom = "6px";
+      row.innerHTML = `<div><div class="panel-title">${t.icon} ${pet.name}</div><div class="panel-sub">${t.name} · ${pet.age} yr${pet.age===1?"":"s"} old</div></div>`;
+      const playBtn = document.createElement("button");
+      playBtn.className = "panel-action secondary";
+      playBtn.textContent = "Play";
+      playBtn.onclick = () => {
+        applyDelta("happiness", rand(2,4));
+        log(`${state.name} spent the afternoon with ${pet.name}. Time well wasted. ${t.icon}`);
+        saveGame(); render();
+      };
+      row.appendChild(playBtn);
+      petCard.appendChild(row);
+    });
+  } else {
+    petCard.innerHTML = `<div class="panel-sub" style="margin-bottom:8px;">No pets yet. The house is suspiciously quiet.</div>`;
+  }
+  const adoptBtn = document.createElement("button");
+  adoptBtn.className = "panel-action";
+  adoptBtn.style.marginTop = "8px";
+  adoptBtn.textContent = "Visit Adoption Center";
+  adoptBtn.disabled = state.age < 6;
+  adoptBtn.onclick = openAdoptModal;
+  petCard.appendChild(adoptBtn);
+  main.appendChild(petCard);
 
   // Last Will & Testament summary card
   if (!state.will) state.will = {};
