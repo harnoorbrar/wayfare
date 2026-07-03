@@ -1,0 +1,29 @@
+{
+  "name": "wayfare",
+  "version": "1.0.0",
+  "description": "Psuedo-elegant indie life simulator running as a PWA.",
+  "main": "service-worker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harnoorbrar/wayfare.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/harnoorbrar/wayfare/issues"
+  },
+  "homepage": "https://github.com/harnoorbrar/wayfare#readme",
+  "dependencies": {
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.4.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
+    "playwright": "^1.61.1"
+  }
+}

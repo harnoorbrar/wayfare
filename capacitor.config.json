@@ -1,0 +1,20 @@
+{
+  "appId": "com.harnoorbrar.wayfare",
+  "appName": "Wayfare",
+  "webDir": "www",
+  "backgroundColor": "#f4ede1",
+  "ios": {
+    "contentInset": "always"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "backgroundColor": "#f4ede1",
+      "launchAutoHide": true,
+      "launchFadeOutDuration": 300
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#f4ede1"
+    }
+  }
+}
