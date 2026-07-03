@@ -1033,6 +1033,7 @@ const ACHIEVEMENTS = [
   { id:"dynasty",       icon:"👑", name:"Dynasty",              desc:"Reach generation 3.",                   check:s=>(s.generation||1)>=3 },
   { id:"best_friend",   icon:"🐾", name:"Best Friend",          desc:"Adopt a pet.",                          check:s=>(s.pets||[]).length>=1 },
   { id:"menagerie",     icon:"🦁", name:"The Menagerie",        desc:"Own 3 pets at once.",                   check:s=>(s.pets||[]).length>=3 },
+  { id:"good_boys",     icon:"🐕", name:"The Good Boys",        desc:"Own 3 dogs at once.",                   check:s=>(s.pets||[]).filter(isDog).length>=3 },
   { id:"scratch_that",    icon:"🎟️", name:"Scratch That",     desc:"Win big on a scratch card." },
   { id:"main_character",  icon:"📱", name:"Main Character",   desc:"Go viral." },
   { id:"out_there",       icon:"🛸", name:"Out There",        desc:"You know what you saw." },
@@ -1064,12 +1065,19 @@ const PET_TYPES = [
   { id:"goldfish", icon:"🐠", name:"Goldfish", cost:15,  lifespan:4,  happy:1, upkeep:20,  blurb:"Low maintenance. Low expectations. Swims." },
   { id:"hamster",  icon:"🐹", name:"Hamster",  cost:25,  lifespan:3,  happy:2, upkeep:60,  blurb:"Runs all night on a squeaky wheel. Adorable insomnia machine." },
   { id:"cat",      icon:"🐈", name:"Cat",      cost:150, lifespan:16, happy:4, upkeep:600, blurb:"Owns you, legally speaking. Occasionally affectionate." },
-  { id:"dog",      icon:"🐕", name:"Dog",      cost:300, lifespan:13, happy:6, upkeep:900, blurb:"Thinks you're the greatest person alive. Correct." },
+  { id:"dog",           icon:"🐕", name:"Rescue Mutt",      cost:100,  lifespan:14, happy:6, upkeep:700,  health:1, blurb:"One of everything. Loyal to the bone." },
+  { id:"dog_golden",    icon:"🦮", name:"Golden Retriever", cost:900,  lifespan:11, happy:8, upkeep:1100, health:1, blurb:"Aggressively friendly. Sheds a second dog per week." },
+  { id:"dog_chihuahua", icon:"🐶", name:"Chihuahua",        cost:500,  lifespan:16, happy:4, upkeep:500,  blurb:"Four pounds of pure rage and devotion." },
+  { id:"dog_husky",     icon:"🐺", name:"Husky",            cost:800,  lifespan:12, happy:6, upkeep:1200, health:2, blurb:"Screams instead of barking. Requires a daily marathon." },
+  { id:"dog_poodle",    icon:"🐩", name:"Poodle",           cost:1100, lifespan:14, happy:6, upkeep:1000, smarts:1, blurb:"Smarter than most of your coworkers. Knows it." },
+  { id:"dog_corgi",     icon:"🐕‍🦺", name:"Corgi",            cost:1000, lifespan:13, happy:7, upkeep:800,  blurb:"A loaf of bread with ambition and no legs." },
+  { id:"dog_greatdane", icon:"🐎", name:"Great Dane",       cost:1200, lifespan:8,  happy:7, upkeep:1600, blurb:"A small horse convinced it's a lap dog." },
   { id:"snake",    icon:"🐍", name:"Snake",    cost:200, lifespan:20, happy:2, upkeep:300, blurb:"Judges you silently from a heated rock." },
   { id:"parrot",   icon:"🦜", name:"Parrot",   cost:900, lifespan:45, happy:4, upkeep:500, blurb:"May outlive you. Will definitely embarrass you." },
 ];
 const PET_NAMES = ["Biscuit","Noodle","Waffles","Beans","Pickle","Mochi","Taco","Ziggy","Pepper","Gizmo","Churro","Bagel","Sprout","Turnip","Meatball","Crouton","Pumpkin","Dumpling","Nacho","Sir Reginald"];
 function petTypeById(id){ return PET_TYPES.find(p=>p.id===id); }
+function isDog(pet){ return pet.typeId === "dog" || (pet.typeId||"").indexOf("dog_") === 0; }
 
 function adoptPet(typeId) {
   const t = petTypeById(typeId);
@@ -1567,8 +1575,8 @@ const EVENTS = [
   })},
 
   // ---- new: pet chaos ----
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog") && Math.random()<0.3, weight: 1, build: s => {
-      const dog = s.pets.find(p=>p.typeId==="dog");
+  { cond: s => (s.pets||[]).some(isDog) && Math.random()<0.3, weight: 1, build: s => {
+      const dog = pick(s.pets.filter(isDog));
       const r = pick(["ate an entire birthday cake off the counter","buried the TV remote in the yard","barked at the vacuum for a full hour","made best friends with the mail carrier they used to hate"]);
       return { text:`${dog.name} ${r}. 🐕`, deltas:[["happiness", rand(1,5)]] };
   }},
@@ -1592,6 +1600,23 @@ const EVENTS = [
           { label:"Wait and see", deltas:[["happiness", rand(-4,1)]], result:`A tense week, but ${pet.name} bounced back. Probably ate something weird.` },
         ]
       };
+  }},
+
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_husky") && Math.random()<0.35, weight: 1, build: s => {
+      const dog = s.pets.find(p=>p.typeId==="dog_husky");
+      return { text:`${dog.name} was told "no" and delivered a four-minute rebuttal speech. The neighbors have opinions. 🐺`, deltas:[["happiness", rand(1,4)]] };
+  }},
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_corgi") && Math.random()<0.15, weight: 0.8, build: s => {
+      const dog = s.pets.find(p=>p.typeId==="dog_corgi");
+      return { text:`A video of ${dog.name} failing to climb one (1) stair got two million views. ${dog.name} remains humble. 🐕‍🦺`, deltas:[["happiness", rand(3,7)]] };
+  }},
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_greatdane") && Math.random()<0.3, weight: 1, build: s => {
+      const dog = s.pets.find(p=>p.typeId==="dog_greatdane");
+      return { text:`${dog.name} sat on ${s.partner ? s.partner : "a guest"}. There was no warning. There never is. 🐎`, deltas:[["happiness", rand(2,5)]] };
+  }},
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_chihuahua") && Math.random()<0.3, weight: 1, build: s => {
+      const dog = s.pets.find(p=>p.typeId==="dog_chihuahua");
+      return { text:`${dog.name} declared war on a Great Dane at the park. The Great Dane apologized. 🐶`, deltas:[["happiness", rand(2,5)]] };
   }},
 
   // ---- new: golden years ----
@@ -1709,6 +1734,8 @@ function ageUp() {
       if (!t) return; // unknown type from a future save — drop quietly
       applyDelta("happiness", t.happy);
       applyDelta("money", -t.upkeep);
+      if (t.health) applyDelta("health", t.health);
+      if (t.smarts) applyDelta("smarts", t.smarts);
       if (pet.age >= pet.maxAge) {
         const oldAge = pet.maxAge >= t.lifespan;
         const grief = rand(4,9);
