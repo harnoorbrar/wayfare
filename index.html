@@ -687,14 +687,29 @@
    Single state object drives every screen. Read top to bottom.
    ========================================================= */
 
-/* Haptics: real taps in the native iOS app, silent no-op in browser */
+/* Haptics: native taps in the iOS app; Safari fallback via the
+   hidden switch-toggle trick (iOS 17.4+); silent no-op elsewhere */
+let _hapticSwitch = null;
 function haptic(kind) {
   try {
     const H = window.Capacitor?.Plugins?.Haptics;
-    if (!H) return;
-    if (kind === "heavy") H.impact({ style: "HEAVY" });
-    else if (kind === "medium") H.impact({ style: "MEDIUM" });
-    else H.impact({ style: "LIGHT" });
+    if (H) {
+      if (kind === "heavy") H.impact({ style: "HEAVY" });
+      else if (kind === "medium") H.impact({ style: "MEDIUM" });
+      else H.impact({ style: "LIGHT" });
+      return;
+    }
+    // Safari: toggling a switch-style checkbox inside a user gesture
+    // triggers a real haptic tap on iOS 17.4+
+    if (!_hapticSwitch) {
+      _hapticSwitch = document.createElement("input");
+      _hapticSwitch.type = "checkbox";
+      _hapticSwitch.setAttribute("switch", "");
+      _hapticSwitch.style.cssText = "position:fixed;opacity:0;pointer-events:none;left:-100px";
+      document.body.appendChild(_hapticSwitch);
+    }
+    _hapticSwitch.click();
+    if (kind === "heavy" || kind === "medium") _hapticSwitch.click();
   } catch (e) { /* never let feedback break the game */ }
 }
 
