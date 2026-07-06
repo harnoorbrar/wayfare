@@ -1,7 +1,7 @@
 # Wayfare — App Store Listing
 
 ## App Name (30 char max)
-Wayfare — A Life, Lived
+Wayfare: Life Simulator
 (23 chars — fits)
 
 ## Subtitle (30 char max)
