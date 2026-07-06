@@ -21,15 +21,30 @@ jobs:
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
           PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_BASE64: ${{ secrets.ASC_KEY_BASE64 }}
         run: |
           SIGNING_READY=true
+          HAS_UPLOAD_SECRETS=true
+          missing_signing=()
 
-          if [ -z "$CERT_P12_BASE64" ] || [ -z "$CERT_PASSWORD" ] || [ -z "$PROVISIONING_PROFILE_BASE64" ] || [ -z "$APPLE_TEAM_ID" ]; then
-            echo "Required signing secrets are missing; switching to unsigned simulator build."
+          [ -z "$CERT_P12_BASE64" ] && missing_signing+=("CERT_P12_BASE64")
+          [ -z "$CERT_PASSWORD" ] && missing_signing+=("CERT_PASSWORD")
+          [ -z "$PROVISIONING_PROFILE_BASE64" ] && missing_signing+=("PROVISIONING_PROFILE_BASE64")
+          [ -z "$APPLE_TEAM_ID" ] && missing_signing+=("APPLE_TEAM_ID")
+
+          if [ "${#missing_signing[@]}" -gt 0 ]; then
+            echo "Required signing secrets are missing (${missing_signing[*]}); switching to unsigned simulator build."
             SIGNING_READY=false
           fi
 
+          if [ -z "$ASC_KEY_ID" ] || [ -z "$ASC_ISSUER_ID" ] || [ -z "$ASC_KEY_BASE64" ]; then
+            HAS_UPLOAD_SECRETS=false
+          fi
+
           echo "SIGNING_READY=$SIGNING_READY" >> "$GITHUB_ENV"
+          echo "HAS_UPLOAD_SECRETS=$HAS_UPLOAD_SECRETS" >> "$GITHUB_ENV"
 
       - name: Import signing certificate
         if: env.SIGNING_READY == 'true'
@@ -37,6 +52,7 @@ jobs:
           CERT_P12_BASE64: ${{ secrets.CERT_P12_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
         run: |
+          # Keep going on import errors so we can switch to the unsigned fallback path.
           set +e
           echo "$CERT_P12_BASE64" | base64 --decode > cert.p12
           security create-keychain -p "" build.keychain
@@ -98,7 +114,7 @@ jobs:
             -exportOptionsPlist ios/exportOptions.plist
 
       - name: Upload to TestFlight
-        if: env.SIGNING_READY == 'true' && secrets.ASC_KEY_ID != '' && secrets.ASC_ISSUER_ID != '' && secrets.ASC_KEY_BASE64 != ''
+        if: env.SIGNING_READY == 'true' && env.HAS_UPLOAD_SECRETS == 'true'
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
