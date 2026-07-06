@@ -23,10 +23,6 @@ async function shot(page, name) {
   console.log('saved', name);
 }
 
-// Click via direct DOM dispatch instead of simulated mouse input.
-// Headless Chromium sometimes flags real UI elements as "not visible/stable"
-// due to layout timing quirks that don't affect real usage — this sidesteps
-// that entirely by just invoking the click handler.
 async function clickId(page, id) {
   return page.evaluate((elId) => {
     const el = document.getElementById(elId);
@@ -35,7 +31,22 @@ async function clickId(page, id) {
   }, id);
 }
 
+// The game shows an inline choice prompt (not a modal) whenever
+// state.pendingChoice is set, and forces the UI back to the Story tab
+// until it's answered. Age Up and tab switches both silently no-op
+// while a choice is pending. This must be resolved before anything else.
+async function resolvePendingChoiceIfAny(page) {
+  const resolved = await page.evaluate(() => {
+    const btn = document.querySelector('.choice-btns .choice-btn');
+    if (btn) { btn.click(); return true; }
+    return false;
+  });
+  if (resolved) await page.waitForTimeout(400);
+  return resolved;
+}
+
 async function clickTab(page, dataTab) {
+  await resolvePendingChoiceIfAny(page);
   const ok = await page.evaluate((tab) => {
     const el = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
     if (el) { el.click(); return true; }
@@ -47,26 +58,19 @@ async function clickTab(page, dataTab) {
 
 async function ageUp(page, times = 1) {
   for (let i = 0; i < times; i++) {
-    const clicked = await clickId(page, 'ageup-btn');
-    if (!clicked) break;
-    await page.waitForTimeout(350);
-
-    // Some ages trigger a choice modal instead of advancing directly.
-    // If a modal is open, dismiss it by picking the first choice so the
-    // age-up loop doesn't stall waiting on user input.
-    const modalOpen = await page.evaluate(() => {
-      const m = document.getElementById('modal-overlay');
-      return !!m && getComputedStyle(m).display !== 'none';
-    }).catch(() => false);
-
-    if (modalOpen) {
-      await page.evaluate(() => {
-        const choice = document.querySelector('.choice-btn, .modal-action, .panel-action');
-        if (choice) choice.click();
-      });
-      await page.waitForTimeout(350);
+    // Resolve any choice left over from the previous age-up before
+    // trying to advance further.
+    let guard = 0;
+    while (await resolvePendingChoiceIfAny(page)) {
+      guard++;
+      if (guard > 5) break; // safety valve, shouldn't normally trigger
     }
+    await clickId(page, 'ageup-btn');
+    await page.waitForTimeout(350);
   }
+  // Resolve whatever choice the final age-up produced, so the screen
+  // we screenshot isn't mid-prompt.
+  await resolvePendingChoiceIfAny(page);
 }
 
 (async () => {
