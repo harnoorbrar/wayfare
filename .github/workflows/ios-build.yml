@@ -15,19 +15,64 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync ios
 
+      - name: Configure signing mode
+        env:
+          CERT_P12_BASE64: ${{ secrets.CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_BASE64: ${{ secrets.ASC_KEY_BASE64 }}
+        run: |
+          SIGNING_READY=false
+          HAS_UPLOAD_SECRETS=false
+          missing_signing=()
+
+          [ -z "$CERT_P12_BASE64" ] && missing_signing+=("CERT_P12_BASE64")
+          [ -z "$CERT_PASSWORD" ] && missing_signing+=("CERT_PASSWORD")
+          [ -z "$PROVISIONING_PROFILE_BASE64" ] && missing_signing+=("PROVISIONING_PROFILE_BASE64")
+          [ -z "$APPLE_TEAM_ID" ] && missing_signing+=("APPLE_TEAM_ID")
+
+          if [ "${#missing_signing[@]}" -gt 0 ]; then
+            echo "Required signing secrets are missing (${missing_signing[*]}); switching to unsigned simulator build."
+          else
+            SIGNING_READY=true
+          fi
+
+          if [ -n "$ASC_KEY_ID" ] && [ -n "$ASC_ISSUER_ID" ] && [ -n "$ASC_KEY_BASE64" ]; then
+            HAS_UPLOAD_SECRETS=true
+          fi
+
+          echo "SIGNING_READY=$SIGNING_READY" >> "$GITHUB_ENV"
+          echo "HAS_UPLOAD_SECRETS=$HAS_UPLOAD_SECRETS" >> "$GITHUB_ENV"
+
       - name: Import signing certificate
+        if: env.SIGNING_READY == 'true'
         env:
           CERT_P12_BASE64: ${{ secrets.CERT_P12_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
         run: |
+          # Keep going on import errors so we can switch to the unsigned fallback path.
+          set +e
           echo "$CERT_P12_BASE64" | base64 --decode > cert.p12
           security create-keychain -p "" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "" build.keychain
           security import cert.p12 -k build.keychain -P "$CERT_PASSWORD" -T /usr/bin/codesign
+          import_status=$?
+          if [ "$import_status" -ne 0 ]; then
+            echo "Certificate import failed; switching to unsigned simulator build."
+            rm -f cert.p12
+            security delete-keychain build.keychain || true
+            echo "SIGNING_READY=false" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          rm -f cert.p12
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
       - name: Install provisioning profile
+        if: env.SIGNING_READY == 'true'
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
         run: |
@@ -35,6 +80,7 @@ jobs:
           echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/wayfare.mobileprovision
 
       - name: Build archive
+        if: env.SIGNING_READY == 'true'
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
@@ -48,7 +94,19 @@ jobs:
             PROVISIONING_PROFILE_SPECIFIER="Wayfare App Store" \
             archive
 
+      - name: Build simulator app (unsigned fallback)
+        if: env.SIGNING_READY != 'true'
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
       - name: Export IPA
+        if: env.SIGNING_READY == 'true'
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
@@ -60,6 +118,7 @@ jobs:
             -exportOptionsPlist ios/exportOptions.plist
 
       - name: Upload to TestFlight
+        if: env.SIGNING_READY == 'true' && env.HAS_UPLOAD_SECRETS == 'true'
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
