@@ -1,9 +1,9 @@
 // Captures App Store screenshots (6.7" iPhone: 1290x2796) by driving the
 // live game in a headless browser and clicking through to interesting states.
 //
-// Run locally (not in this sandbox — needs a real Chromium download):
-//   npm install playwright
-//   npx playwright install chromium
+// Run locally:
+//   cd wayfare
+//   git pull
 //   node scripts/capture-screenshots.js
 //
 // Output lands in ./screenshots/*.png — upload those directly to
@@ -23,33 +23,47 @@ async function shot(page, name) {
   console.log('saved', name);
 }
 
-async function clickText(page, text) {
-  const el = page.locator(`text=${text}`).first();
-  if (await el.count()) {
-    await el.click();
-    await page.waitForTimeout(400);
-    return true;
-  }
-  return false;
+// Click via direct DOM dispatch instead of simulated mouse input.
+// Headless Chromium sometimes flags real UI elements as "not visible/stable"
+// due to layout timing quirks that don't affect real usage — this sidesteps
+// that entirely by just invoking the click handler.
+async function clickId(page, id) {
+  return page.evaluate((elId) => {
+    const el = document.getElementById(elId);
+    if (el) { el.click(); return true; }
+    return false;
+  }, id);
 }
 
-// Bottom tab bar, confirmed from the real UI.
-async function clickTab(page, label) {
-  const el = page.locator(`nav >> text=${label}`).first();
-  const target = (await el.count()) ? el : page.locator(`text=${label}`).first();
-  if (await target.count()) {
-    await target.click();
-    await page.waitForTimeout(500);
-    return true;
-  }
-  return false;
+async function clickTab(page, dataTab) {
+  const ok = await page.evaluate((tab) => {
+    const el = document.querySelector(`.nav-btn[data-tab="${tab}"]`);
+    if (el) { el.click(); return true; }
+    return false;
+  }, dataTab);
+  await page.waitForTimeout(500);
+  return ok;
 }
 
 async function ageUp(page, times = 1) {
   for (let i = 0; i < times; i++) {
-    const btn = page.locator('text=Age Up').first();
-    if (await btn.count()) {
-      await btn.click();
+    const clicked = await clickId(page, 'ageup-btn');
+    if (!clicked) break;
+    await page.waitForTimeout(350);
+
+    // Some ages trigger a choice modal instead of advancing directly.
+    // If a modal is open, dismiss it by picking the first choice so the
+    // age-up loop doesn't stall waiting on user input.
+    const modalOpen = await page.evaluate(() => {
+      const m = document.getElementById('modal-overlay');
+      return !!m && getComputedStyle(m).display !== 'none';
+    }).catch(() => false);
+
+    if (modalOpen) {
+      await page.evaluate(() => {
+        const choice = document.querySelector('.choice-btn, .modal-action, .panel-action');
+        if (choice) choice.click();
+      });
       await page.waitForTimeout(350);
     }
   }
@@ -66,42 +80,39 @@ async function ageUp(page, times = 1) {
   await page.goto(URL, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1000);
 
-  // 1. Newborn / Story tab — confirmed working state
+  // 1. Newborn / Story tab
   await shot(page, '01-start');
 
-  // 2. Age up to 18 so career/education/vehicles/bank have content
+  // 2. Age up to ~18 so career/education/vehicles/bank have content
   await ageUp(page, 18);
   await shot(page, '02-adult-story');
 
   // 3. Career tab
-  if (await clickTab(page, 'Career')) await shot(page, '03-career');
+  if (await clickTab(page, 'job')) await shot(page, '03-career');
 
   // 4. People tab (family/relationships)
-  if (await clickTab(page, 'People')) await shot(page, '04-people');
+  if (await clickTab(page, 'people')) await shot(page, '04-people');
 
   // 5. Education tab
-  if (await clickTab(page, 'Education')) await shot(page, '05-education');
+  if (await clickTab(page, 'education')) await shot(page, '05-education');
 
   // 6. Vehicles tab
-  if (await clickTab(page, 'Vehicles')) await shot(page, '06-vehicles');
+  if (await clickTab(page, 'vehicles')) await shot(page, '06-vehicles');
 
   // 7. Bank tab
-  if (await clickTab(page, 'Bank')) await shot(page, '07-bank');
+  if (await clickTab(page, 'bank')) await shot(page, '07-bank');
 
   // 8. Business tab
-  if (await clickTab(page, 'Business')) await shot(page, '08-business');
+  if (await clickTab(page, 'business')) await shot(page, '08-business');
 
   // 9. Home tab
-  if (await clickTab(page, 'Home')) await shot(page, '09-home');
+  if (await clickTab(page, 'home')) await shot(page, '09-home');
 
-  // 10. Back to Story, age up further, screenshot a richer life state
-  await clickTab(page, 'Story');
+  // 10. Back to Story, age further, capture a richer life state
+  await clickTab(page, 'story');
   await ageUp(page, 15);
   await shot(page, '10-later-life');
 
   await browser.close();
   console.log('\nDone. Review screenshots/ and pick the best 3-10 for App Store Connect.');
-  console.log('Note: selectors above are best-guess by button label — if a step');
-  console.log('produced a blank/wrong screen, open the page manually and tell Claude');
-  console.log('the exact button text so the script can be corrected.');
 })();
