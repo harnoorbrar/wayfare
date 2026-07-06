@@ -33,6 +33,28 @@ async function clickText(page, text) {
   return false;
 }
 
+// Bottom tab bar, confirmed from the real UI.
+async function clickTab(page, label) {
+  const el = page.locator(`nav >> text=${label}`).first();
+  const target = (await el.count()) ? el : page.locator(`text=${label}`).first();
+  if (await target.count()) {
+    await target.click();
+    await page.waitForTimeout(500);
+    return true;
+  }
+  return false;
+}
+
+async function ageUp(page, times = 1) {
+  for (let i = 0; i < times; i++) {
+    const btn = page.locator('text=Age Up').first();
+    if (await btn.count()) {
+      await btn.click();
+      await page.waitForTimeout(350);
+    }
+  }
+}
+
 (async () => {
   const browser = await chromium.launch();
   const context = await browser.newContext({
@@ -44,53 +66,38 @@ async function clickText(page, text) {
   await page.goto(URL, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1000);
 
-  // 1. Fresh start / character creation screen
+  // 1. Newborn / Story tab — confirmed working state
   await shot(page, '01-start');
 
-  // 2. Try to start a new life if a name/start prompt exists
-  for (const label of ['New Life', 'Start', 'Begin', 'Play']) {
-    if (await clickText(page, label)) break;
-  }
-  await page.waitForTimeout(500);
-  await shot(page, '02-life-begins');
+  // 2. Age up to 18 so career/education/vehicles/bank have content
+  await ageUp(page, 18);
+  await shot(page, '02-adult-story');
 
-  // 3. Age up a handful of times to reach a populated stats screen
-  for (let i = 0; i < 6; i++) {
-    for (const label of ['Age Up', 'Next Year', 'Continue']) {
-      if (await clickText(page, label)) break;
-    }
-    await page.waitForTimeout(300);
-  }
-  await shot(page, '03-growing-up');
+  // 3. Career tab
+  if (await clickTab(page, 'Career')) await shot(page, '03-career');
 
-  // 4. Open achievements/trophy view if present
-  for (const label of ['Achievements', 'Trophies', 'Trophy']) {
-    if (await clickText(page, label)) {
-      await page.waitForTimeout(400);
-      await shot(page, '04-achievements');
-      await page.keyboard.press('Escape').catch(() => {});
-      break;
-    }
-  }
+  // 4. People tab (family/relationships)
+  if (await clickTab(page, 'People')) await shot(page, '04-people');
 
-  // 5. Open pets/adoption view if present
-  for (const label of ['Pets', 'Adopt', 'Adoption Center']) {
-    if (await clickText(page, label)) {
-      await page.waitForTimeout(400);
-      await shot(page, '05-pets');
-      await page.keyboard.press('Escape').catch(() => {});
-      break;
-    }
-  }
+  // 5. Education tab
+  if (await clickTab(page, 'Education')) await shot(page, '05-education');
 
-  // 6. Age further toward a career/money-heavy state
-  for (let i = 0; i < 10; i++) {
-    for (const label of ['Age Up', 'Next Year', 'Continue']) {
-      if (await clickText(page, label)) break;
-    }
-    await page.waitForTimeout(200);
-  }
-  await shot(page, '06-adult-life');
+  // 6. Vehicles tab
+  if (await clickTab(page, 'Vehicles')) await shot(page, '06-vehicles');
+
+  // 7. Bank tab
+  if (await clickTab(page, 'Bank')) await shot(page, '07-bank');
+
+  // 8. Business tab
+  if (await clickTab(page, 'Business')) await shot(page, '08-business');
+
+  // 9. Home tab
+  if (await clickTab(page, 'Home')) await shot(page, '09-home');
+
+  // 10. Back to Story, age up further, screenshot a richer life state
+  await clickTab(page, 'Story');
+  await ageUp(page, 15);
+  await shot(page, '10-later-life');
 
   await browser.close();
   console.log('\nDone. Review screenshots/ and pick the best 3-10 for App Store Connect.');
