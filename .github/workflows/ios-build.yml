@@ -69,7 +69,7 @@ jobs:
             archive
 
       - name: Build app without signing
-        if: fromJSON(steps.release_secrets.outputs.available) == false
+        if: '!fromJSON(steps.release_secrets.outputs.available)'
         run: |
           xcodebuild -workspace ios/App/App.xcworkspace \
             -scheme App \
