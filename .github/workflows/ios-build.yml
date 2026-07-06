@@ -33,7 +33,7 @@ jobs:
           fi
 
       - name: Import signing certificate
-        if: steps.release_secrets.outputs.available == 'true'
+        if: fromJSON(steps.release_secrets.outputs.available)
         env:
           CERT_P12_BASE64: ${{ secrets.CERT_P12_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
@@ -46,7 +46,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
       - name: Install provisioning profile
-        if: steps.release_secrets.outputs.available == 'true'
+        if: fromJSON(steps.release_secrets.outputs.available)
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
         run: |
@@ -54,7 +54,7 @@ jobs:
           echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/wayfare.mobileprovision
 
       - name: Build archive
-        if: steps.release_secrets.outputs.available == 'true'
+        if: fromJSON(steps.release_secrets.outputs.available)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
@@ -69,7 +69,7 @@ jobs:
             archive
 
       - name: Build app without signing
-        if: steps.release_secrets.outputs.available != 'true'
+        if: fromJSON(steps.release_secrets.outputs.available) == false
         run: |
           xcodebuild -workspace ios/App/App.xcworkspace \
             -scheme App \
@@ -79,7 +79,7 @@ jobs:
             build
 
       - name: Export IPA
-        if: steps.release_secrets.outputs.available == 'true'
+        if: fromJSON(steps.release_secrets.outputs.available)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
@@ -91,7 +91,7 @@ jobs:
             -exportOptionsPlist ios/exportOptions.plist
 
       - name: Upload to TestFlight
-        if: steps.release_secrets.outputs.available == 'true'
+        if: fromJSON(steps.release_secrets.outputs.available)
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
