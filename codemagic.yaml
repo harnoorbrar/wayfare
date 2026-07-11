@@ -9,11 +9,12 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.harnoorbrar.wayfare
       vars:
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        # Capacitor 8 uses Swift Package Manager, not CocoaPods, so there is NO
+        # top-level App.xcworkspace -- build against the .xcodeproj directly.
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
       node: latest
       xcode: latest
-      cocoapods: default
     triggering:
       events:
         - push
@@ -27,9 +28,6 @@ workflows:
       - name: Sync Capacitor iOS project
         script: |
           npx cap sync ios
-      - name: Install CocoaPods dependencies
-        script: |
-          find . -name "Podfile" -maxdepth 3 -execdir pod install \;
       - name: Set up code signing
         script: |
           xcode-project use-profiles
@@ -40,7 +38,7 @@ workflows:
       - name: Build ipa for App Store distribution
         script: |
           xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
+            --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
@@ -50,4 +48,8 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        submit_to_app_store: false
+        # Set submit_to_app_store true to auto-submit for review after upload. It
+        # only succeeds if the app record + listing metadata (screenshots,
+        # description, age rating, privacy answers) are complete in App Store
+        # Connect; otherwise the build still uploads and you submit manually.
+        submit_to_app_store: true
