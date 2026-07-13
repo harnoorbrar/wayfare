@@ -1071,7 +1071,6 @@ const ACHIEVEMENTS = [
   { id:"best_friend",   icon:"🐾", name:"Best Friend",          desc:"Adopt a pet.",                          check:s=>(s.pets||[]).length>=1 },
   { id:"menagerie",     icon:"🦁", name:"The Menagerie",        desc:"Own 3 pets at once.",                   check:s=>(s.pets||[]).length>=3 },
   { id:"good_boys",     icon:"🐕", name:"The Good Boys",        desc:"Own 3 dogs at once.",                   check:s=>(s.pets||[]).filter(isDog).length>=3 },
-  { id:"scratch_that",    icon:"🎟️", name:"Scratch That",     desc:"Win big on a scratch card." },
   { id:"main_character",  icon:"📱", name:"Main Character",   desc:"Go viral." },
   { id:"out_there",       icon:"🛸", name:"Out There",        desc:"You know what you saw." },
   { id:"nine_lives",      icon:"🐈‍⬛", name:"Nine Lives",       desc:"Survive something you shouldn't have." },
@@ -1456,10 +1455,10 @@ const EVENTS = [
       ]
   })},
 
-  // ---- lottery / lucky breaks ----
+  // ---- lucky breaks ----
   { cond: s => s.age>=18 && Math.random()<0.02, weight: 0.3, build: s => {
-      const winnings = pick([500, 1000, 5000, 25000, 100000]);
-      return { text: `${s.name} bought a lottery ticket on a whim and won ${fmtMoney(winnings)}!`, deltas: [["money", winnings],["happiness", rand(8,15)]] };
+      const windfall = pick([500, 1000, 5000, 25000]);
+      return { text: `${s.name} received a surprise inheritance from a distant relative — ${fmtMoney(windfall)}.`, deltas: [["money", windfall],["happiness", rand(8,15)]] };
   }},
   { cond: s => s.age>=16 && Math.random()<0.015, weight: 0.3, build: s => {
       const followers = pick(["a goofy dance", "a pet doing something hilarious", "a heartfelt rant", "an oddly satisfying cleaning video"]);
@@ -1532,19 +1531,6 @@ const EVENTS = [
   })},
 
   // ---- new: adult absurdity ----
-  { cond: s => s.age>=18 && Math.random()<0.2, weight: 1, build: s => {
-      const win = Math.random() < 0.15;
-      const amount = win ? rand(3000, 25000) : -5;
-      return {
-        text:`Gas station scratch card. ${s.name} feels lucky today.`,
-        choices: [
-          { label:"Buy one", deltas:[["money", amount],["happiness", win?rand(8,15):rand(-2,0)]],
-            result: win ? `JACKPOT. ${fmtMoney(amount)} from a $5 card. The cashier demanded a high five.` : "Two cherries and a lemon. Five dollars, gone forever.",
-            ach: win ? "scratch_that" : undefined },
-          { label:"Save the $5", deltas:[["smarts", 1]], result:"Financial discipline. Boring, effective." },
-        ]
-      };
-  }},
   { cond: s => s.age>=18 && Math.random()<0.2, weight: 1, build: s => ({
       text:`Gas station sushi, ${rand(40,70)}% off. ${s.name} stares at it. It stares back.`,
       choices: [
