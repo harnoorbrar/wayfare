@@ -431,7 +431,7 @@
     background: rgba(43,36,32,0.45);
     display: none;
     align-items: flex-end;
-    z-index: 50;
+    z-index: 70;
   }
   #modal-overlay.show { display: flex; }
   #modal-sheet {
@@ -569,6 +569,13 @@
   #gameover.show { display: flex; }
   #gameover h1 { font-family: var(--font-display); font-size: 26px; margin-bottom: 10px; }
   #gameover p { font-size: 14px; opacity: 0.75; margin-bottom: 24px; line-height: 1.6; }
+  #timemachine-btn {
+    font: inherit; font-weight: 700; font-size: 15px;
+    color: #2b2420; background: #c9ab6b;
+    border: none; border-radius: 12px;
+    padding: 14px 22px; margin-bottom: 12px; cursor: pointer;
+  }
+  #timemachine-btn:active { transform: scale(0.96); }
   #restart-btn {
     background: var(--accent);
     color: #fff;
@@ -617,6 +624,39 @@
   .tally-v{color:var(--paper);font-weight:600;text-align:right;}
   #gameover{justify-content:flex-start!important;overflow-y:auto;}
 
+  #header-right { display:flex; align-items:baseline; gap:10px; }
+  #plus-btn {
+    font: inherit; font-size: 13px; font-weight: 700; line-height: 1;
+    color: #a8925f; background: rgba(168,146,95,0.10);
+    border: 1px solid rgba(168,146,95,0.35); border-radius: 999px;
+    padding: 3px 9px; cursor: pointer;
+  }
+  #plus-btn.owned { color: #6d5a2e; background: rgba(168,146,95,0.22); }
+  .paywall-sub { font-size: 13px; color: #6a6258; margin: 4px 0 12px; line-height: 1.45; }
+  .paywall-perks { display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
+  .pw-perk { font-size: 13.5px; font-weight: 600; }
+  .paywall-loading { font-size: 13px; color:#8a7d6b; text-align:center; padding:14px 0; }
+  .pw-buy {
+    display:flex; justify-content:space-between; align-items:center; width:100%;
+    font: inherit; font-weight:700; font-size:14.5px; color:inherit;
+    background: rgba(0,0,0,0.035); border:1px solid rgba(0,0,0,0.15);
+    border-radius:12px; padding:13px 15px; margin-bottom:9px; cursor:pointer;
+  }
+  .pw-buy:active { background: rgba(0,0,0,0.07); }
+  .pw-buy.pw-life { border-color:#a8925f; background:rgba(168,146,95,0.10); }
+  .pw-price { font-variant-numeric: tabular-nums; color:#6d5a2e; }
+  .pw-restore {
+    display:block; width:100%; font:inherit; font-size:13px; font-weight:600;
+    color:#6a6258; background:none; border:none; padding:8px 0 2px; cursor:pointer;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .pw-legal { font-size:10.5px; color:#8a7d6b; line-height:1.5; text-align:center; margin:10px 0 12px; }
+  .pw-legal a { color:#6d5a2e; }
+  .pw-close {
+    display:block; width:100%; font:inherit; font-weight:700; font-size:14px;
+    color:inherit; background:rgba(0,0,0,0.06); border:none; border-radius:12px;
+    padding:12px; cursor:pointer;
+  }
   .ach-bar {
     display: flex; align-items: center; justify-content: space-between;
     width: 100%; padding: 10px 14px; margin-bottom: 10px;
@@ -645,7 +685,10 @@
   <div id="header">
     <div id="header-top">
       <div id="char-name">Sage Delgado</div>
-      <div id="char-age">Age 3</div>
+      <div id="header-right">
+        <button id="plus-btn" title="Wayfare Plus">✦</button>
+        <div id="char-age">Age 3</div>
+      </div>
     </div>
     <div id="stats-row">
       <div class="stat-pill" id="pill-health">
@@ -690,6 +733,7 @@
 
   <div id="gameover">
     <div id="legacy-content"></div>
+    <button id="timemachine-btn" style="display:none;">⏪ Time Machine — undo this death</button>
     <button id="restart-btn">Begin a New Life</button>
   </div>
 
@@ -712,8 +756,139 @@ const ADS = {
   bannerId: "ca-app-pub-3940256099942544/2934735716",       // Google TEST banner (iOS)
   interstitialId: "ca-app-pub-3940256099942544/4411468910", // Google TEST interstitial (iOS)
 };
+/* ---------------- WAYFARE PLUS (RevenueCat IAP) ----------------
+   Products (create in App Store Connect, attach in RevenueCat dashboard):
+     - com.harnoorbrar.wayfare.plus.monthly   (auto-renewing subscription)
+     - com.harnoorbrar.wayfare.plus.lifetime  (non-consumable)
+   Both grant the "plus" entitlement. localStorage is only a cache;
+   RevenueCat is the source of truth (synced on every launch). */
+const PLUS = {
+  apiKey: "appl_REPLACE_WITH_REVENUECAT_PUBLIC_KEY",
+  entitlement: "plus",
+};
 const PLUS_KEY = "wayfare-plus";
 function hasPlus() { try { return localStorage.getItem(PLUS_KEY) === "1"; } catch(e) { return false; } }
+function setPlus(v) {
+  try { localStorage.setItem(PLUS_KEY, v ? "1" : "0"); } catch(e) {}
+  const b = document.getElementById("plus-btn");
+  if (b) b.classList.toggle("owned", !!v);
+}
+function purchasesPlugin() {
+  const P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Purchases;
+  return P || null;
+}
+function customerHasPlus(info) {
+  try { return !!(info && info.entitlements && info.entitlements.active && info.entitlements.active[PLUS.entitlement]); }
+  catch(e) { return false; }
+}
+async function initPlus() {
+  const P = purchasesPlugin();
+  setPlus(hasPlus()); // reflect cache immediately
+  if (!P || PLUS.apiKey.indexOf("REPLACE") !== -1) return;
+  try {
+    await P.configure({ apiKey: PLUS.apiKey });
+    const { customerInfo } = await P.getCustomerInfo();
+    const owned = customerHasPlus(customerInfo);
+    setPlus(owned);
+    if (owned) removeAdsNow();
+  } catch(e) { /* IAP must never break the game */ }
+}
+function removeAdsNow() {
+  const AdMob = window.Capacitor?.Plugins?.AdMob;
+  if (AdMob) { try { AdMob.removeBanner(); } catch(e) {} }
+}
+function plusPriceLabel(pkg) {
+  try { return pkg.product.priceString; } catch(e) { return ""; }
+}
+async function openPaywall() {
+  haptic("light");
+  const overlay = document.getElementById("modal-overlay");
+  const sheet = document.getElementById("modal-sheet");
+  const owned = hasPlus();
+  sheet.innerHTML = `
+    <div class="panel-title" style="margin-bottom:2px;">✦ Wayfare Plus</div>
+    <div class="paywall-sub">${owned
+      ? "You have Wayfare Plus. Thank you for supporting a solo developer."
+      : "Support a solo-built life sim — and play it uninterrupted."}</div>
+    <div class="paywall-perks">
+      <div class="pw-perk">⏪ Time Machine — undo death, once per life</div>
+      <div class="pw-perk">🦉 Exclusive pets — owl, fennec fox &amp; tiny dragon</div>
+      <div class="pw-perk">🚫 No ads, ever</div>
+      <div class="pw-perk">✦ Plus badge on your legacy tombstone</div>
+      <div class="pw-perk">🛠 Funds new life events, careers &amp; features</div>
+    </div>
+    <div id="paywall-packages"><div class="paywall-loading">Loading options…</div></div>
+    <button class="pw-restore" id="pw-restore">Restore Purchases</button>
+    <div class="pw-legal">
+      Subscriptions renew automatically until cancelled in Settings.
+      <a href="https://harnoorbrar.github.io/wayfare/terms.html" target="_blank" rel="noopener">Terms of Use</a> ·
+      <a href="https://harnoorbrar.github.io/wayfare/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+    </div>
+    <button class="pw-close" id="pw-close">Close</button>`;
+  overlay.classList.add("show");
+  document.getElementById("pw-close").onclick = () => overlay.classList.remove("show");
+  document.getElementById("pw-restore").onclick = restorePlus;
+  renderPaywallPackages();
+}
+async function renderPaywallPackages() {
+  const box = document.getElementById("paywall-packages");
+  if (!box) return;
+  if (hasPlus()) { box.innerHTML = `<div class="paywall-loading">✦ Active</div>`; return; }
+  const P = purchasesPlugin();
+  if (!P) {
+    box.innerHTML = `<div class="paywall-loading">Purchases are available in the iOS app.</div>`;
+    return;
+  }
+  try {
+    const { current } = await P.getOfferings();
+    const pkgs = (current && current.availablePackages) || [];
+    if (!pkgs.length) { box.innerHTML = `<div class="paywall-loading">No options available right now.</div>`; return; }
+    box.innerHTML = "";
+    // Show monthly first, lifetime second, anything else after
+    const order = { "MONTHLY": 0, "LIFETIME": 1 };
+    pkgs.sort((a,b) => (order[a.packageType] ?? 9) - (order[b.packageType] ?? 9));
+    pkgs.forEach(pkg => {
+      const isLife = pkg.packageType === "LIFETIME";
+      const btn = document.createElement("button");
+      btn.className = "pw-buy" + (isLife ? " pw-life" : "");
+      btn.innerHTML = `<span>${isLife ? "Lifetime — pay once" : "Monthly"}</span><span class="pw-price">${plusPriceLabel(pkg)}${isLife ? "" : "/mo"}</span>`;
+      btn.onclick = () => buyPlus(pkg, btn);
+      box.appendChild(btn);
+    });
+  } catch(e) {
+    box.innerHTML = `<div class="paywall-loading">Couldn't load options. Check your connection.</div>`;
+  }
+}
+async function buyPlus(pkg, btn) {
+  const P = purchasesPlugin();
+  if (!P) return;
+  const old = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = "<span>Purchasing…</span>";
+  try {
+    const { customerInfo } = await P.purchasePackage({ aPackage: pkg });
+    if (customerHasPlus(customerInfo)) {
+      setPlus(true); removeAdsNow(); haptic("heavy");
+      toast("✦ Welcome to Wayfare Plus!");
+      document.getElementById("modal-overlay").classList.remove("show");
+      return;
+    }
+  } catch(e) { /* cancelled or failed — fall through */ }
+  btn.disabled = false; btn.innerHTML = old;
+}
+async function restorePlus() {
+  const P = purchasesPlugin();
+  if (!P) { toast("Restore is available in the iOS app."); return; }
+  try {
+    const { customerInfo } = await P.restorePurchases();
+    if (customerHasPlus(customerInfo)) {
+      setPlus(true); removeAdsNow();
+      toast("✦ Wayfare Plus restored.");
+      document.getElementById("modal-overlay").classList.remove("show");
+    } else {
+      toast("No previous purchase found.");
+    }
+  } catch(e) { toast("Restore failed. Try again later."); }
+}
 function adsActive() { return ADS.enabled && !hasPlus() && !!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob); }
 
 let _interstitialReady = false;
@@ -1111,6 +1286,9 @@ const PET_TYPES = [
   { id:"dog_doberman",  icon:"🖤", name:"Doberman",         cost:1500, lifespan:11, happy:6, upkeep:1300, health:2, blurb:"Looks like a security system. Is actually a velcro baby." },
   { id:"snake",    icon:"🐍", name:"Snake",    cost:200, lifespan:20, happy:2, upkeep:300, blurb:"Judges you silently from a heated rock." },
   { id:"parrot",   icon:"🦜", name:"Parrot",   cost:900, lifespan:45, happy:4, upkeep:500, blurb:"May outlive you. Will definitely embarrass you." },
+  { id:"owl",      icon:"🦉", name:"Owl",      cost:2500, lifespan:25, happy:6, upkeep:900,  smarts:2, plus:true, blurb:"Silent. Wise. Definitely reading your mail." },
+  { id:"fennec",   icon:"🦊", name:"Fennec Fox", cost:3000, lifespan:13, happy:9, upkeep:1400, plus:true, blurb:"Ninety percent ears, ten percent chaos." },
+  { id:"dragon",   icon:"🐉", name:"Tiny Dragon", cost:10000, lifespan:60, happy:12, upkeep:2500, health:2, plus:true, blurb:"Technically a very committed iguana. Do not fact-check this." },
 ];
 const PET_NAMES = ["Biscuit","Noodle","Waffles","Beans","Pickle","Mochi","Taco","Ziggy","Pepper","Gizmo","Churro","Bagel","Sprout","Turnip","Meatball","Crouton","Pumpkin","Dumpling","Nacho","Sir Reginald"];
 function petTypeById(id){ return PET_TYPES.find(p=>p.id===id); }
@@ -1119,6 +1297,7 @@ function isDog(pet){ return pet.typeId === "dog" || (pet.typeId||"").indexOf("do
 function adoptPet(typeId) {
   const t = petTypeById(typeId);
   if (!t) return;
+  if (t.plus && !hasPlus()) { openPaywall(); return; }
   if (state.money < t.cost) { toast("Not enough cash for the adoption fee."); return; }
   applyDelta("money", -t.cost);
   const name = pick(PET_NAMES);
@@ -1140,14 +1319,15 @@ function openAdoptModal() {
     card.innerHTML = `
       <div style="font-size:26px;width:34px;text-align:center;">${t.icon}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-weight:700;">${t.name} <span style="font-weight:400;font-size:12px;opacity:.7;">· ${fmtMoney(t.cost)}</span></div>
+        <div style="font-weight:700;">${t.name}${t.plus ? ' <span style="color:#a8925f;font-size:11px;font-weight:800;">✦ PLUS</span>' : ''} <span style="font-weight:400;font-size:12px;opacity:.7;">· ${fmtMoney(t.cost)}</span></div>
         <div style="font-size:12px;opacity:.8;">${t.blurb}</div>
         <div style="font-size:11px;opacity:.6;">~${t.lifespan} yrs · ${fmtMoney(t.upkeep)}/yr upkeep</div>
       </div>`;
     const btn = document.createElement("button");
     btn.className = "panel-action";
-    btn.textContent = "Adopt";
-    btn.disabled = state.money < t.cost;
+    const locked = t.plus && !hasPlus();
+    btn.textContent = locked ? "✦ Plus" : "Adopt";
+    btn.disabled = !locked && state.money < t.cost;
     btn.onclick = ()=>adoptPet(t.id);
     card.appendChild(btn);
     sheet.appendChild(card);
@@ -1724,10 +1904,12 @@ function investSell(type, amount) {
   saveGame(); render();
 }
 
+let _preAgeSnapshot = null;
 function ageUp() {
   if (!state.alive) return;
   if (state.pendingChoice) { toast("Resolve the current moment first."); return; }
 
+  if (!state.timeMachineUsed) { try { _preAgeSnapshot = JSON.stringify(state); } catch(e) { _preAgeSnapshot = null; } }
   state.age++;
   haptic("medium");
 
@@ -1977,7 +2159,7 @@ function buildLegacy(){
   const statRow=stats.map(([n,v,c])=>`<div class="fs"><div class="fs-bar"><div class="fs-fill" style="width:${Math.max(0,Math.min(100,v))}%;background:${c}"></div></div><div class="fs-val">${Math.round(v)}</div><div class="fs-label">${n}</div></div>`).join("");
   document.getElementById("legacy-content").innerHTML=`
     <div class="tomb"><div class="tomb-cross">✝</div><div class="rip">R · I · P</div>
-    <div class="tomb-name">${state.name}</div>
+    <div class="tomb-name">${state.name}${hasPlus() ? ' <span style="color:#a8925f;font-size:15px;" title="Wayfare Plus">✦</span>' : ''}</div>
     <div class="tomb-dates">lived to ${age}</div>
     <div class="tomb-epitaph">"${epitaph}"</div></div>
     <div class="cause">${cause}</div>
@@ -2038,6 +2220,8 @@ function handleDeath() {
 
   saveGame();
   try { buildLegacy(); } catch(e) { console.error(e); }
+  const tmBtn = document.getElementById("timemachine-btn");
+  tmBtn.style.display = (_preAgeSnapshot && !state.timeMachineUsed) ? "block" : "none";
   document.getElementById("gameover").classList.add("show");
 }
 
@@ -3675,6 +3859,8 @@ function openErrorModal(err) {
 }
 
 initAds();
+initPlus();
+document.getElementById("plus-btn").addEventListener("click", openPaywall);
 window.addEventListener("error", (e) => {
   console.error(e.error || e.message);
   openErrorModal(e.error || e.message);
@@ -3707,6 +3893,24 @@ document.getElementById("ageup-btn").addEventListener("click", () => {
 document.getElementById("modal-overlay").addEventListener("click", e=>{
   if (e.target.id === "modal-overlay") closeModal();
 });
+function useTimeMachine() {
+  if (!_preAgeSnapshot || state.timeMachineUsed) return;
+  if (!hasPlus()) { openPaywall(); return; }
+  try {
+    state = JSON.parse(_preAgeSnapshot);
+  } catch(e) { toast("The timeline resisted. Rewind failed."); return; }
+  _preAgeSnapshot = null;
+  state.alive = true;
+  state.timeMachineUsed = true;
+  state.pendingChoice = null;
+  document.getElementById("gameover").classList.remove("show");
+  haptic("heavy");
+  log(`⏪ ${state.name} wrenched time backward. Death will have to wait — but the Time Machine only works once per life.`);
+  toast("⏪ Time rewound one year.");
+  saveGame();
+  render();
+}
+document.getElementById("timemachine-btn").addEventListener("click", useTimeMachine);
 document.getElementById("restart-btn").addEventListener("click", ()=>{
   document.getElementById("gameover").classList.remove("show");
   newGame();

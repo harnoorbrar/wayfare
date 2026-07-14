@@ -28,7 +28,7 @@ WHAT YOU CAN DO
 • Buy homes and cars, finance them, or default and start over
 • Adopt pets — six species, eight dog breeds, each with their own quirks
 • Chase 22+ achievements, from surviving to 100 to founding a dynasty
-• Play the market, gamble a little (or a lot), and live with the outcome
+• Play the market — stocks, bonds, crypto — and live with the outcome
 • Die, and — if you've built something worth inheriting — play on as
   your own child in a new generation
 
@@ -43,25 +43,29 @@ Age up in seconds between meetings, or sit down and play out a whole
 lifetime start to finish. Your progress and achievements carry across
 every life you play.
 
-Free to play. No ads, no pop-ups, no pressure — just you, a clock, and
-however many years you get.
+Free to play. Wayfare Plus (optional) removes ads and unlocks the Time
+Machine — one chance per life to undo your own death — plus exclusive
+pets, including a tiny dragon who is technically a very committed iguana.
 
 ## Keywords (100 char max, comma-separated, no spaces after commas)
-life sim,bitlife,simulator,idle game,rpg,career,family,pets,dynasty,choices,text game
+life sim,bitlife,simulator,life game,rpg,career,family,pets,dynasty,choices,text adventure
 
-## What's New (Version 1.0)
-Welcome to Wayfare. This is the first release — build your life, raise a
-family, adopt a pet, and see how far one story can go.
+## What's New (Version 1.1)
+Introducing Wayfare Plus: undo your own death with the Time Machine (once
+per life), adopt three exclusive new pets — an owl, a fennec fox, and a
+tiny dragon — and play forever ad-free. Available monthly or as a one-time
+lifetime unlock.
 
 ## App Store Category
 Primary: Games
 Secondary: Simulation
 
 ## Age Rating (questionnaire answers — confirm before submitting)
-- Simulated Gambling: Yes (scratch cards, market investing framed as risk)
+- Simulated Gambling: No (scratch cards & lottery removed in 1.0 build 5;
+  market investing is not simulated gambling per Apple's definition)
 - Alcohol/Tobacco/Drug Use: Infrequent/Mild (life-event references)
 - Mature/Suggestive Themes: Infrequent/Mild (dating, marriage, death)
-→ Expected result: 12+
+→ Expected result: 9+ (confirm via questionnaire)
 
 ## Support URL
 https://harnoorbrar.github.io/wayfare/ (or a dedicated support page —
