@@ -63,6 +63,12 @@ export interface GameState {
   skills: Record<string, number>;
   /** Years at the current career level; resets on hire/promotion. */
   yearsAtJob: number;
+  /**
+   * The living economy. Loosely typed here to avoid a circular import with
+   * the world domain module; the world engine owns the real WorldState shape.
+   * Undefined on pre-world saves — backfilled lazily on first tick/render.
+   */
+  world?: Record<string, unknown>;
   [monolithField: string]: unknown;
 }
 

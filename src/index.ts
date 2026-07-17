@@ -41,6 +41,19 @@ import {
   weeklyRevenue as bizWeeklyRevenue,
   type OwnedBusiness,
 } from './domain/businesses';
+import {
+  createWorld,
+  worldYearTick as worldTickImpl,
+  phaseLabel,
+  mortgageRate,
+  personalLoanRate,
+  creditCardRate,
+  savingsRate,
+  jobMarketFactor,
+  wageMultiplier,
+  housingMultiplier,
+  type WorldState,
+} from './domain/world';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -108,6 +121,48 @@ export const businesses = {
   hireStaff,
   letStaffGo,
   runMarketing: (state: GameState, biz: OwnedBusiness) => runMarketing(state, biz, rng),
+};
+
+/**
+ * Ensure the game has a world (older saves and fresh lives created by the
+ * monolith won't). Idempotent — safe to call on every tick and render.
+ */
+export function ensureWorld(state: GameState): WorldState {
+  if (!state.world || typeof (state.world as unknown as WorldState).phase !== 'string') {
+    state.world = createWorld(rng) as unknown as Record<string, unknown>;
+  }
+  return state.world as unknown as WorldState;
+}
+
+/** One simulated year of the economy. Tick this BEFORE player systems. */
+export function worldYearTick(state: GameState) {
+  const world = ensureWorld(state);
+  return worldTickImpl(world, rng);
+}
+
+export const world = {
+  ensure: ensureWorld,
+  phaseLabel: (state: GameState) => phaseLabel(ensureWorld(state)),
+  mortgageRate: (state: GameState) => mortgageRate(ensureWorld(state)),
+  personalLoanRate: (state: GameState) => personalLoanRate(ensureWorld(state)),
+  creditCardRate: (state: GameState) => creditCardRate(ensureWorld(state)),
+  savingsRate: (state: GameState) => savingsRate(ensureWorld(state)),
+  jobMarketFactor: (state: GameState) => jobMarketFactor(ensureWorld(state)),
+  wageMultiplier: (state: GameState) => wageMultiplier(ensureWorld(state)),
+  housingMultiplier: (state: GameState) => housingMultiplier(ensureWorld(state)),
+  snapshot: (state: GameState) => {
+    const w = ensureWorld(state);
+    return {
+      phase: phaseLabel(w),
+      growth: w.growth,
+      inflation: w.inflation,
+      interestRate: w.interestRate,
+      unemployment: w.unemployment,
+      housingIndex: w.housingIndex,
+      marketIndex: w.marketIndex,
+      taxRate: w.taxRate,
+    };
+  },
 };
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };

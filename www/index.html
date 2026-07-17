@@ -1852,6 +1852,14 @@ function ageUp() {
   state.age++;
   haptic("medium");
 
+  // world economy advances first: this year's growth, inflation, rates,
+  // housing, markets, shocks and elections are set before any player-facing
+  // system reads them (domain layer)
+  try {
+    const worldTick = WayfareCore.worldYearTick(state);
+    worldTick.messages.forEach(m => log(m.text, m.deltas));
+  } catch(e) {}
+
   // passive decay
   applyDelta("health", -rand(0,2));
   applyDelta("happiness", -rand(0,2));
@@ -1899,8 +1907,13 @@ function ageUp() {
     });
   }
 
-  // income & housing costs (weekly * 52, simplified to once per year)
-  if (state.salary) applyDelta("money", state.salary * 52);
+  // income & housing costs (weekly * 52, simplified to once per year).
+  // Wages ride cumulative inflation so pay keeps pace with the price level.
+  if (state.salary) {
+    let wageMult = 1;
+    try { wageMult = WayfareCore.world.wageMultiplier(state); } catch(e) {}
+    applyDelta("money", Math.round(state.salary * 52 * wageMult));
+  }
 
   // careers: skill growth, raises, promotions, terminations (domain layer)
   try {
@@ -1953,9 +1966,11 @@ function ageUp() {
     } catch(e) {}
   }
 
-  // bank: savings interest + investment returns
+  // bank: savings interest tracks the central-bank rate + investment returns
   if (state.savings > 0) {
-    const interest = Math.round(state.savings * SAVINGS_APY);
+    let apy = SAVINGS_APY;
+    try { apy = WayfareCore.world.savingsRate(state) / 100; } catch(e) {}
+    const interest = Math.round(state.savings * apy);
     state.savings += interest;
   }
   Object.keys(INVESTMENT_TYPES).forEach(key => {
@@ -3334,11 +3349,37 @@ function renderBank(main) {
   title.textContent = "Bank & Investments";
   main.appendChild(title);
 
+  // ---- The Economy ----
+  // Live world conditions. Rates below and returns elsewhere derive from here.
+  let econ = null, savingsRate = SAVINGS_APY * 100;
+  try {
+    econ = WayfareCore.world.snapshot(state);
+    savingsRate = WayfareCore.world.savingsRate(state);
+  } catch(e) {}
+  if (econ) {
+    const trend = econ.growth >= 2 ? "📈" : econ.growth < 0 ? "📉" : "➖";
+    const ecoCard = document.createElement("div");
+    ecoCard.className = "panel-card";
+    ecoCard.innerHTML = `<div class="panel-row" style="margin-bottom:8px;">
+        <div><div class="panel-title">The Economy ${trend}</div><div class="panel-sub">${econ.phase}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:12px;color:#6b5f4e;">
+        <div>Growth <b style="color:var(--ink);">${econ.growth.toFixed(1)}%</b></div>
+        <div>Inflation <b style="color:var(--ink);">${econ.inflation.toFixed(1)}%</b></div>
+        <div>Interest <b style="color:var(--ink);">${econ.interestRate.toFixed(1)}%</b></div>
+        <div>Unemployment <b style="color:var(--ink);">${econ.unemployment.toFixed(1)}%</b></div>
+        <div>Housing idx <b style="color:var(--ink);">${Math.round(econ.housingIndex)}</b></div>
+        <div>Market idx <b style="color:var(--ink);">${Math.round(econ.marketIndex)}</b></div>
+        <div>Income tax <b style="color:var(--ink);">${Math.round(econ.taxRate)}%</b></div>
+      </div>`;
+    main.appendChild(ecoCard);
+  }
+
   // ---- Savings ----
   const savCard = document.createElement("div");
   savCard.className = "panel-card";
   savCard.innerHTML = `<div class="panel-row">
-      <div><div class="panel-title">Savings Account</div><div class="panel-sub">${(SAVINGS_APY*100).toFixed(1)}% interest, paid yearly, no risk</div></div>
+      <div><div class="panel-title">Savings Account</div><div class="panel-sub">${savingsRate.toFixed(1)}% interest, paid yearly, no risk</div></div>
       <div style="font-weight:700;">${fmtMoney(state.savings)}</div>
     </div>`;
   main.appendChild(savCard);

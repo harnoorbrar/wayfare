@@ -32,10 +32,41 @@ export class Rng {
     return Math.floor(this.next() * (max - min + 1)) + min;
   }
 
+  /** Uniform float in [min, max). */
+  float(min: number, max: number): number {
+    return min + this.next() * (max - min);
+  }
+
   /** Uniform pick from a non-empty array. */
   pick<T>(arr: readonly T[]): T {
     if (arr.length === 0) throw new Error('Rng.pick: empty array');
     return arr[this.int(0, arr.length - 1)];
+  }
+
+  /**
+   * Weighted pick from [value, weight] entries. Weights need not sum to 1;
+   * non-positive weights are skipped.
+   */
+  weighted<T>(entries: readonly (readonly [T, number])[]): T {
+    const total = entries.reduce((sum, [, w]) => sum + Math.max(0, w), 0);
+    if (total <= 0) throw new Error('Rng.weighted: no positive weights');
+    let roll = this.next() * total;
+    for (const [value, weight] of entries) {
+      if (weight <= 0) continue;
+      roll -= weight;
+      if (roll < 0) return value;
+    }
+    return entries[entries.length - 1][0];
+  }
+
+  /**
+   * Approximately normal sample (mean, standard deviation) via the central
+   * limit theorem. Cheap, and bounded to roughly +/- 3 sd, which suits
+   * economic noise better than a uniform draw.
+   */
+  normal(mean: number, sd: number): number {
+    const sum = this.next() + this.next() + this.next() + this.next() + this.next() + this.next();
+    return mean + (sum - 3) * sd;
   }
 
   /** True with probability p (0..1). */
