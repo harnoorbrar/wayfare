@@ -2157,6 +2157,7 @@ function buildLegacy(){
       <div class="tally-item"><span class="tally-k">Achievements</span><span class="tally-v">${Object.keys(unlockedAch).length}/${ACHIEVEMENTS.length}</span></div>
       <div class="tally-item"><span class="tally-k">Estate</span><span class="tally-v">${fmtMoney(computeNetWorth(state))}</span></div>
       <div class="tally-item"><span class="tally-k">Known by</span><span class="tally-v">${state.relationships.length} people</span></div>
+      ${(()=>{ try { const life=WayfareCore.legacy.lifeScore(state); const dyn=(state.legacyTotal||0)+life.total; return `<div class="tally-item"><span class="tally-k">Life score</span><span class="tally-v">${life.total}</span></div><div class="tally-item"><span class="tally-k">Dynasty</span><span class="tally-v">${Math.round(dyn)} · ${WayfareCore.legacy.rank(dyn)}</span></div>`; } catch(e){ return ""; } })()}
     </div></div>
     ${state.children.length ? `
     <div class="legacy-panel">
@@ -2274,6 +2275,14 @@ function continueAsChild(childIndex) {
 
   const oldName = state.name;
   const nextGeneration = (state.generation || 1) + 1;
+  // Heir inherits traits from the parent (nature, regressing to the mean with
+  // variance) rather than rolling from scratch, and carries the dynasty score.
+  let heirTraits = { smarts: rand(25,35), looks: rand(40,70) };
+  let dynastyTotal = state.legacyTotal || 0;
+  try {
+    heirTraits = WayfareCore.legacy.inheritTraits(state);
+    dynastyTotal = WayfareCore.legacy.accumulate(state.legacyTotal || 0, state);
+  } catch(e) {}
   const inheritedProperty = state.property;
   const inheritedOwnership = state.ownership;
   const inheritedMortgageBalance = state.mortgageBalance;
@@ -2305,8 +2314,8 @@ function continueAsChild(childIndex) {
     money: inheritance,
     health: 100,
     happiness: 80,
-    smarts: clamp(rand(25,35)),
-    looks: rand(40,70),
+    smarts: heirTraits.smarts,
+    looks: heirTraits.looks,
     job: "unemployed",
     salary: 0,
     property: inheritedProperty,
@@ -2339,9 +2348,11 @@ function continueAsChild(childIndex) {
     pets: inheritedPets,
     skills: {},
     yearsAtJob: 0,
+    legacyTotal: dynastyTotal,
   };
 
   log(`${state.name} inherited ${oldName}'s home and ${fmtMoney(inheritance)}, and is ready to start their own chapter.`);
+  try { log(`The ${state.name.split(' ').slice(-1)[0]} legacy stands at ${Math.round(dynastyTotal)} — ${WayfareCore.legacy.rank(dynastyTotal)}.`); } catch(e) {}
   document.getElementById("gameover").classList.remove("show");
   saveGame();
   render();

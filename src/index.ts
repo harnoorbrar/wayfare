@@ -95,6 +95,12 @@ import {
   pendingCount,
   type EventChoice,
 } from './domain/events';
+import {
+  computeLifeScore,
+  inheritTraits as inheritTraitsImpl,
+  accumulateLegacy,
+  legacyRank,
+} from './domain/legacy';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -274,6 +280,13 @@ export const events = {
   affordable: choiceAffordable,
   ensure: ensureEvents,
   pendingCount,
+};
+
+export const legacy = {
+  lifeScore: computeLifeScore,
+  inheritTraits: (parent: GameState) => inheritTraitsImpl(parent, rng),
+  accumulate: accumulateLegacy,
+  rank: legacyRank,
 };
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
