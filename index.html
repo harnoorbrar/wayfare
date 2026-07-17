@@ -739,6 +739,7 @@
 
 </div>
 
+<script src="js/core.js"></script>
 <script>
 /* =========================================================
    WAYFARE — a solo-buildable life sim
@@ -1158,8 +1159,8 @@ function degreeMet(job) {
   return !job.requiredDegree || hasDegree(job.requiredDegree);
 }
 
-function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function pick(arr) { return arr[rand(0, arr.length - 1)]; }
+function rand(min, max) { return WayfareCore.rng.int(min, max); }
+function pick(arr) { return WayfareCore.rng.pick(arr); }
 function clamp(v, lo=0, hi=100) { return Math.max(lo, Math.min(hi, v)); }
 function fmtMoney(n) {
   const sign = n < 0 ? "-" : "";
@@ -1169,52 +1170,23 @@ function fmtMoney(n) {
 /* ---------------- STATE ---------------- */
 let state = null;
 
-const SAVE_KEY = "wayfare-save-v1";
-
+// Persistence lives in WayfareCore (src/domain/save.ts): versioned envelope,
+// legacy-save migration, default backfill, and RNG state for determinism.
 function saveGame() {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e) {}
+  try { WayfareCore.persistSave(state); } catch(e) {}
   try { checkAchievements(); } catch(e) {}
 }
 
-// Defaults for every field a save might be missing, keyed by what newGame() sets.
-// Used to backfill old saves so loadGame() never hands back a half-formed state object.
-const SAVE_DEFAULTS = {
-  money: 0, health: 100, happiness: 80, smarts: 30, looks: 50,
-  job: "unemployed", salary: 0, property: null, ownership: null,
-  mortgageBalance: 0, mortgageWeekly: 0, placedFurniture: {}, ownedFurniture: [],
-  activeRoomIndex: null, relationships: [], nextRelId: 1, partner: null,
-  children: [], feed: [], alive: true, degrees: [], studentLoans: 0,
-  vehicles: [], will: {}, peakMoney: 0, activeTab: "story", pendingChoice: null,
-  lastMetAge: -1, savings: 0, investments: { stocks: 0, bonds: 0, crypto: 0 },
-  investmentReturns: { stocks: 0, bonds: 0, crypto: 0 }, businesses: [],
-  lastDateAttemptAge: -1, generation: 1, pets: [],
-};
-
 function loadGame() {
   try {
-    const save = localStorage.getItem(SAVE_KEY);
-    if (save) {
-      state = JSON.parse(save);
-      if (!state.degrees) {
-        // migrate old single-tier educationLevel saves to the new degrees array
-        state.degrees = (state.educationLevel && state.educationLevel !== "None") ? ["hs"] : [];
-        delete state.educationLevel;
-      }
-      Object.keys(SAVE_DEFAULTS).forEach(key => {
-        if (state[key] === undefined) {
-          // clone arrays/objects so saves don't share references to the defaults
-          const d = SAVE_DEFAULTS[key];
-          state[key] = Array.isArray(d) ? [...d] : (typeof d === "object" && d !== null) ? {...d} : d;
-        }
-      });
-      return true;
-    }
+    const loaded = WayfareCore.restoreSave();
+    if (loaded) { state = loaded; return true; }
   } catch(e) {}
   return false;
 }
 
 function deleteSave() {
-  localStorage.removeItem(SAVE_KEY);
+  WayfareCore.clearSave();
 }
 
 /* ---------------- ACHIEVEMENTS (persist across every life) ---------------- */
@@ -1357,6 +1329,7 @@ function makeStartingFamily() {
 }
 
 function newGame() {
+  WayfareCore.reseed(); // fresh RNG seed per life; persisted with the save
   const startingFamily = makeStartingFamily();
   state = {
     name: pick(FIRST_NAMES) + " " + pick(LAST_NAMES),
@@ -1464,7 +1437,7 @@ const EVENTS = [
       ]);
       return { text: `${s.name} ${r[0].charAt(0).toLowerCase()+r[0].slice(1)}`, deltas: r[1] };
   }},
-  { cond: s => s.age>=22 && s.age<=60 && Math.random()<0.5, weight: 1.5, build: s => ({
+  { cond: s => s.age>=22 && s.age<=60 && WayfareCore.rng.next()<0.5, weight: 1.5, build: s => ({
       text: `A promotion opportunity opened up at work. It means more hours.`,
       choices: [
         { label:"Go for it", deltas:[["happiness", rand(2,5)],["health", -3]], result:"Promoted! The pay bump shows up next paycheck.", flag:"promotion" },
@@ -1480,7 +1453,7 @@ const EVENTS = [
         { label:"Keep it platonic", deltas:[], result:"Decided to just be friends for now." },
       ]
   })},
-  { cond: s => s.partner && Math.random()<0.4, weight: 1.2, build: s => {
+  { cond: s => s.partner && WayfareCore.rng.next()<0.4, weight: 1.2, build: s => {
       const r = pick([
         [`${s.name} and ${s.partner} had a wonderful date night.`, [["happiness", rand(3,6)]]],
         [`${s.name} and ${s.partner} had a small argument over chores.`, [["happiness", rand(-4,-1)]]],
@@ -1488,14 +1461,14 @@ const EVENTS = [
       ]);
       return { text: r[0], deltas: r[1] };
   }},
-  { cond: s => s.partner && s.age>=20 && s.age<=50 && Math.random()<0.15, weight: 0.8, build: s => ({
+  { cond: s => s.partner && s.age>=20 && s.age<=50 && WayfareCore.rng.next()<0.15, weight: 0.8, build: s => ({
       text: `${s.partner} brought up marriage.`,
       choices: [
         { label:"Propose", deltas:[["happiness", rand(8,14)],["money", -3000]], result:`Married! ${s.name} and ${s.partner} are now a household.`, flag:"marry" },
         { label:"Not ready yet", deltas:[["happiness", -3]], result:"Decided to wait a little longer." },
       ]
   })},
-  { cond: s => s.partner && s.age>=22 && s.age<=45 && Math.random()<0.12, weight: 0.7, build: s => ({
+  { cond: s => s.partner && s.age>=22 && s.age<=45 && WayfareCore.rng.next()<0.12, weight: 0.7, build: s => ({
       text: `${s.name} and ${s.partner} have been talking about having a baby.`,
       choices: [
         { label:"Start trying", deltas:[["happiness", rand(4,8)],["money", -1500]], result:"A baby is on the way!", flag:"baby" },
@@ -1520,7 +1493,7 @@ const EVENTS = [
   }},
 
   // ---- siblings / extended family ----
-  { cond: s => s.relationships.some(r => r.type === "Sibling") && Math.random() < 0.5, weight: 1.2, build: s => {
+  { cond: s => s.relationships.some(r => r.type === "Sibling") && WayfareCore.rng.next() < 0.5, weight: 1.2, build: s => {
       const sib = pick(s.relationships.filter(r => r.type === "Sibling"));
       const r = pick([
         [`${sib.name} bragged about out-earning ${s.name} this year.`, [["happiness", rand(-5,-2)]], -6],
@@ -1533,19 +1506,19 @@ const EVENTS = [
       sib.lastInteractedAge = s.age;
       return { text: r[0], deltas: r[1] };
   }},
-  { cond: s => s.relationships.filter(r => r.type === "Sibling").length > 0 && s.age>=20 && s.age<=70 && Math.random() < 0.1, weight: 0.6, build: s => {
+  { cond: s => s.relationships.filter(r => r.type === "Sibling").length > 0 && s.age>=20 && s.age<=70 && WayfareCore.rng.next() < 0.1, weight: 0.6, build: s => {
       const sib = pick(s.relationships.filter(r => r.type === "Sibling"));
       const milestone = pick(["got married","had a baby","started a new job","bought a house","went traveling for a year"]);
       sib.closeness = clamp(sib.closeness + rand(2,5), 0, 100);
       return { text: `${sib.name} ${milestone}. ${s.name} couldn't help but feel a mix of pride and envy.`, deltas: [["happiness", rand(-1,4)]] };
   }},
-  { cond: s => s.relationships.filter(r => ["Parent","Sibling","Grandparent","Aunt/Uncle"].includes(r.type)).length >= 2 && Math.random() < 0.18, weight: 0.9, build: s => {
+  { cond: s => s.relationships.filter(r => ["Parent","Sibling","Grandparent","Aunt/Uncle"].includes(r.type)).length >= 2 && WayfareCore.rng.next() < 0.18, weight: 0.9, build: s => {
       const family = s.relationships.filter(r => ["Parent","Sibling","Grandparent","Aunt/Uncle"].includes(r.type));
       family.forEach(r => { r.closeness = clamp(r.closeness + rand(3,7), 0, 100); r.lastInteractedAge = s.age; });
       const names = family.map(r=>r.name).join(", ");
       return { text: `The whole family got together for a reunion -- ${names} all showed up. It was good to reconnect.`, deltas: [["happiness", rand(3,7)]] };
   }},
-  { cond: s => s.relationships.some(r => r.type === "Parent") && s.age >= 45 && Math.random() < 0.15, weight: 0.8, build: s => {
+  { cond: s => s.relationships.some(r => r.type === "Parent") && s.age >= 45 && WayfareCore.rng.next() < 0.15, weight: 0.8, build: s => {
       const parents = s.relationships.filter(r => r.type === "Parent");
       const parent = pick(parents);
       return {
@@ -1589,7 +1562,7 @@ const EVENTS = [
   }},
 
   // ---- accidents / injuries ----
-  { cond: s => s.age>=5 && Math.random()<0.06, weight: 0.5, build: s => {
+  { cond: s => s.age>=5 && WayfareCore.rng.next()<0.06, weight: 0.5, build: s => {
       const r = pick([
         ["tripped down a flight of stairs.", [["health", rand(-15,-8)]], 400],
         ["got into a minor fender-bender.", [["health", rand(-10,-4)]], 1200],
@@ -1606,7 +1579,7 @@ const EVENTS = [
         ]
       };
   }},
-  { cond: s => s.age>=18 && s.age<=70 && Math.random()<0.03, weight: 0.4, build: s => ({
+  { cond: s => s.age>=18 && s.age<=70 && WayfareCore.rng.next()<0.03, weight: 0.4, build: s => ({
       text: `${s.name} was in a serious car accident. It's going to take a while to recover.`,
       choices: [
         { label: "Spend big on the best care ($5,000)", deltas: [["money", -5000],["health", rand(0,5)]], result: "Recovered about as well as anyone could hope." },
@@ -1615,7 +1588,7 @@ const EVENTS = [
   })},
 
   // ---- lawsuits ----
-  { cond: s => s.age>=18 && (s.businesses||[]).length>0 && Math.random()<0.08, weight: 0.5, build: s => {
+  { cond: s => s.age>=18 && (s.businesses||[]).length>0 && WayfareCore.rng.next()<0.08, weight: 0.5, build: s => {
       const biz = pick(s.businesses);
       const def = businessTypeById(biz.typeId);
       const bizName = def ? def.name : "one of their businesses";
@@ -1627,7 +1600,7 @@ const EVENTS = [
         ]
       };
   }},
-  { cond: s => s.age>=25 && s.age<=70 && Math.random()<0.025, weight: 0.35, build: s => ({
+  { cond: s => s.age>=25 && s.age<=70 && WayfareCore.rng.next()<0.025, weight: 0.35, build: s => ({
       text: `${s.name} got served with a lawsuit over a dispute with a neighbor.`,
       choices: [
         { label: "Hire a lawyer ($3,500)", deltas: [["money", -3500],["happiness", -2]], result: "The lawyer got the case dismissed. Expensive, but it's over." },
@@ -1636,20 +1609,20 @@ const EVENTS = [
   })},
 
   // ---- lucky breaks ----
-  { cond: s => s.age>=18 && Math.random()<0.02, weight: 0.3, build: s => {
+  { cond: s => s.age>=18 && WayfareCore.rng.next()<0.02, weight: 0.3, build: s => {
       const windfall = pick([500, 1000, 5000, 25000]);
       return { text: `${s.name} received a surprise inheritance from a distant relative — ${fmtMoney(windfall)}.`, deltas: [["money", windfall],["happiness", rand(8,15)]] };
   }},
-  { cond: s => s.age>=16 && Math.random()<0.015, weight: 0.3, build: s => {
+  { cond: s => s.age>=16 && WayfareCore.rng.next()<0.015, weight: 0.3, build: s => {
       const followers = pick(["a goofy dance", "a pet doing something hilarious", "a heartfelt rant", "an oddly satisfying cleaning video"]);
       const earnings = rand(200,3000);
       return { text: `${s.name} posted ${followers} online and it went viral overnight. Brand deals rolled in (${fmtMoney(earnings)}).`, deltas: [["money", earnings],["happiness", rand(4,9)],["looks", rand(0,3)]] };
   }},
-  { cond: s => s.age>=20 && Math.random()<0.012, weight: 0.25, build: s => {
+  { cond: s => s.age>=20 && WayfareCore.rng.next()<0.012, weight: 0.25, build: s => {
       const amount = rand(3000, 40000);
       return { text: `A distant relative ${s.name} barely knew passed away and left them ${fmtMoney(amount)} in their will.`, deltas: [["money", amount],["happiness", rand(-2,3)]] };
   }},
-  { cond: s => s.age>=18 && s.age<=60 && Math.random()<0.02, weight: 0.3, build: s => ({
+  { cond: s => s.age>=18 && s.age<=60 && WayfareCore.rng.next()<0.02, weight: 0.3, build: s => ({
       text: `${s.name} found an old item in storage that turned out to be valuable.`,
       choices: [
         { label: "Sell it", deltas: [["money", rand(500,8000)]], result: "Sold it to a collector for a tidy sum." },
@@ -1658,7 +1631,7 @@ const EVENTS = [
   })},
 
   // ---- scandals / embarrassments ----
-  { cond: s => s.age>=14 && Math.random()<0.025, weight: 0.35, build: s => {
+  { cond: s => s.age>=14 && WayfareCore.rng.next()<0.025, weight: 0.35, build: s => {
       const r = pick([
         "an old embarrassing photo of them resurfaced online",
         "a group chat screenshot of theirs leaked",
@@ -1667,14 +1640,14 @@ const EVENTS = [
       ]);
       return { text: `${r.charAt(0).toUpperCase()+r.slice(1)}. ${s.name} is mortified.`, deltas: [["happiness", rand(-10,-4)],["looks", rand(-3,0)]] };
   }},
-  { cond: s => s.age>=18 && s.job!=="unemployed" && Math.random()<0.015, weight: 0.3, build: s => ({
+  { cond: s => s.age>=18 && s.job!=="unemployed" && WayfareCore.rng.next()<0.015, weight: 0.3, build: s => ({
       text: `${s.name} accidentally sent a complaint about their boss... to their boss.`,
       choices: [
         { label: "Own up to it", deltas: [["happiness", -5]], result: "Awkward conversation, but it blew over." },
         { label: "Pretend it didn't happen", deltas: [["happiness", -8],["money", state.salary?-state.salary*2:0]], result: "It did not blow over. Things got tense, and it cost them." },
       ]
   })},
-  { cond: s => s.age>=20 && s.partner && Math.random()<0.01, weight: 0.25, build: s => ({
+  { cond: s => s.age>=20 && s.partner && WayfareCore.rng.next()<0.01, weight: 0.25, build: s => ({
       text: `${s.name} got caught in a small lie by ${s.partner}.`,
       choices: [
         { label: "Come clean immediately", deltas: [["happiness", rand(-3,0)]], result: "Honesty smoothed things over faster than expected." },
@@ -1683,26 +1656,26 @@ const EVENTS = [
   })},
 
   // ---- new: childhood chaos ----
-  { cond: s => s.age>=3 && s.age<=7 && Math.random()<0.3, weight: 1.5, build: s => ({
+  { cond: s => s.age>=3 && s.age<=7 && WayfareCore.rng.next()<0.3, weight: 1.5, build: s => ({
       text:`${s.name} put a bean up their nose to see if it would fit. It did. Getting it out was a whole thing.`,
       deltas:[["health", rand(-2,0)],["smarts", 1]]
   })},
-  { cond: s => s.age>=4 && s.age<=9 && Math.random()<0.3, weight: 1.5, build: s => ({
+  { cond: s => s.age>=4 && s.age<=9 && WayfareCore.rng.next()<0.3, weight: 1.5, build: s => ({
       text:`${s.name}'s imaginary friend ${pick(["Gerald","Mr. Whiskers","Big Dave","Toast"])} was blamed for the broken lamp. The alibi did not hold.`,
       deltas:[["happiness", rand(1,4)],["smarts", rand(0,2)]]
   })},
-  { cond: s => s.age>=7 && s.age<=12 && Math.random()<0.35, weight: 1.5, build: s => {
+  { cond: s => s.age>=7 && s.age<=12 && WayfareCore.rng.next()<0.35, weight: 1.5, build: s => {
       const made = rand(8,45);
       return { text:`${s.name} ran a lemonade stand all summer. Undercut the kid across the street. Ruthless.`, deltas:[["money", made],["happiness", rand(2,5)],["smarts", rand(1,3)]] };
   }},
 
   // ---- new: teen years ----
-  { cond: s => s.age>=11 && s.age<=17 && Math.random()<0.12, weight: 1, build: s => ({
+  { cond: s => s.age>=11 && s.age<=17 && WayfareCore.rng.next()<0.12, weight: 1, build: s => ({
       text:`${s.name} did a dumb dance for a video and it went VIRAL. Three days of fame, one very embarrassed family.`,
       deltas:[["happiness", rand(6,12)],["looks", rand(1,3)]],
       ach:"main_character"
   })},
-  { cond: s => s.age>=15 && s.age<=25 && Math.random()<0.25, weight: 1.2, build: s => ({
+  { cond: s => s.age>=15 && s.age<=25 && WayfareCore.rng.next()<0.25, weight: 1.2, build: s => ({
       text:`${s.name} asked for "just a trim." The barber heard something else entirely.`,
       choices: [
         { label:"Own the new look", deltas:[["happiness", rand(2,6)],["looks", rand(-2,3)]], result:"Confidence is a hairstyle. Sort of." },
@@ -1711,50 +1684,50 @@ const EVENTS = [
   })},
 
   // ---- new: adult absurdity ----
-  { cond: s => s.age>=18 && Math.random()<0.2, weight: 1, build: s => ({
+  { cond: s => s.age>=18 && WayfareCore.rng.next()<0.2, weight: 1, build: s => ({
       text:`Gas station sushi, ${rand(40,70)}% off. ${s.name} stares at it. It stares back.`,
       choices: [
         { label:"Eat it", deltas:[["health", rand(-8,-2)],["happiness", rand(3,7)]], result:"A rollercoaster of a night. Zero regrets, several regrets." },
         { label:"Walk away", deltas:[["smarts", 1]], result:"Survival instincts: intact." },
       ]
   })},
-  { cond: s => s.age>=20 && s.age<=55 && Math.random()<0.12, weight: 0.9, build: s => ({
+  { cond: s => s.age>=20 && s.age<=55 && WayfareCore.rng.next()<0.12, weight: 0.9, build: s => ({
       text:`An old classmate slid into ${s.name}'s DMs: "hey!! quick question, do you like MONEY? 💸" It's a pyramid. It's always a pyramid.`,
       choices: [
         { label:"Buy the starter kit", deltas:[["money", -rand(400,1500)],["happiness", rand(-6,-2)],["smarts", rand(2,4)]], result:"The garage is now full of essential oils. An expensive lesson." },
         { label:"Leave them on read", deltas:[["happiness", 2],["smarts", 2]], result:"Blocked, reported, moved on with their life." },
       ]
   })},
-  { cond: s => s.age>=21 && Math.random()<0.2, weight: 1, build: s => ({
+  { cond: s => s.age>=21 && WayfareCore.rng.next()<0.2, weight: 1, build: s => ({
       text:`Karaoke night. The mic is warm. The crowd is waiting. ${s.name}'s song just came on.`,
       choices: [
         { label:"Absolutely destroy it", deltas:[["happiness", rand(5,10)],["looks", rand(0,2)]], result:"Standing ovation from three strangers and one bartender. Legendary." },
         { label:"Film from the booth", deltas:[["happiness", rand(1,3)]], result:"Someone else butchered it instead. Beautiful." },
       ]
   })},
-  { cond: s => s.age>=25 && s.property && Math.random()<0.15, weight: 0.9, build: s => ({
+  { cond: s => s.age>=25 && s.property && WayfareCore.rng.next()<0.15, weight: 0.9, build: s => ({
       text:`The neighbor's hedge has crossed the property line. This is war. Or is it?`,
       choices: [
         { label:"Escalate. Measure it. Print evidence.", deltas:[["happiness", rand(-5,-1)],["smarts", rand(1,3)]], result:"Three months of passive-aggressive lawn signage. Nobody won." },
         { label:"Bring over cookies instead", deltas:[["happiness", rand(4,8)]], result:"Turns out the neighbor is great. The hedge stays. Who cares." },
       ]
   })},
-  { cond: s => s.age>=25 && s.age<=50 && Math.random()<0.15, weight: 0.9, build: s => ({
+  { cond: s => s.age>=25 && s.age<=50 && WayfareCore.rng.next()<0.15, weight: 0.9, build: s => ({
       text:`${s.name} watched one documentary and now wants to run a marathon.`,
       choices: [
         { label:"Actually train for it", deltas:[["health", rand(6,12)],["happiness", rand(2,6)],["money", -200]], result:"Finished in the back third. Cried at the finish line. Worth every blister." },
         { label:"Buy the shoes, skip the running", deltas:[["money", -180],["happiness", rand(1,3)]], result:"The shoes are very comfortable for walking to the fridge." },
       ]
   })},
-  { cond: s => s.age>=28 && s.age<=60 && s.job!=="unemployed" && Math.random()<0.12, weight: 0.8, build: s => ({
+  { cond: s => s.age>=28 && s.age<=60 && s.job!=="unemployed" && WayfareCore.rng.next()<0.12, weight: 0.8, build: s => ({
       text:`${s.name} wrote a LinkedIn post that started with "I don't usually post here, but..." It was about synergy.`,
       deltas:[["happiness", rand(-3,3)],["smarts", rand(-1,1)]]
   })},
-  { cond: s => s.age>=30 && Math.random()<0.12, weight: 0.8, build: s => {
+  { cond: s => s.age>=30 && WayfareCore.rng.next()<0.12, weight: 0.8, build: s => {
       const hobby = pick(["beekeeping","mushroom foraging","fermenting everything in the kitchen","restoring a canoe","competitive birdwatching","making sourdough with a named starter"]);
       return { text:`${s.name} got extremely into ${hobby}. Nobody asked. Everyone heard about it.`, deltas:[["happiness", rand(4,9)],["money", -rand(100,600)],["smarts", rand(1,3)]] };
   }},
-  { cond: s => s.age>=40 && s.age<=60 && Math.random()<0.12, weight: 0.8, build: s => ({
+  { cond: s => s.age>=40 && s.age<=60 && WayfareCore.rng.next()<0.12, weight: 0.8, build: s => ({
       text:`Something is stirring in ${s.name}. The years are moving fast. A decision must be made.`,
       choices: [
         { label:"Questionable ponytail era", deltas:[["happiness", rand(3,8)],["looks", rand(-4,1)]], result:"The ponytail said what words could not." },
@@ -1763,37 +1736,37 @@ const EVENTS = [
   })},
 
   // ---- new: rare & weird ----
-  { cond: s => s.age>=16 && Math.random()<0.03, weight: 0.5, build: s => ({
+  { cond: s => s.age>=16 && WayfareCore.rng.next()<0.03, weight: 0.5, build: s => ({
       text:`Driving home at 2am, ${s.name} saw lights in the sky move in a way lights should not move. No one believes them. They know what they saw.`,
       deltas:[["happiness", rand(-2,5)],["smarts", rand(1,3)]],
       ach:"out_there"
   })},
-  { cond: s => s.age>=18 && Math.random()<0.02, weight: 0.4, build: s => ({
+  { cond: s => s.age>=18 && WayfareCore.rng.next()<0.02, weight: 0.4, build: s => ({
       text:`A piano being hoisted into a third-floor window snapped its rope and missed ${s.name} by inches. INCHES.`,
       deltas:[["health", rand(-4,-1)],["happiness", rand(5,10)]],
       ach:"nine_lives"
   })},
-  { cond: s => s.age>=18 && Math.random()<0.08, weight: 0.6, build: s => ({
+  { cond: s => s.age>=18 && WayfareCore.rng.next()<0.08, weight: 0.6, build: s => ({
       text:`Jury duty. ${s.name} spent four days deciding the fate of a man who stole 340 traffic cones. Justice is complicated.`,
       deltas:[["smarts", rand(2,5)],["happiness", rand(-3,1)],["money", 120]]
   })},
 
   // ---- new: pet chaos ----
-  { cond: s => (s.pets||[]).some(isDog) && Math.random()<0.3, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(isDog) && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
       const dog = pick(s.pets.filter(isDog));
       const r = pick(["ate an entire birthday cake off the counter","buried the TV remote in the yard","barked at the vacuum for a full hour","made best friends with the mail carrier they used to hate"]);
       return { text:`${dog.name} ${r}. 🐕`, deltas:[["happiness", rand(1,5)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="cat") && Math.random()<0.3, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="cat") && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
       const cat = s.pets.find(p=>p.typeId==="cat");
       const r = pick(["brought home a 'gift.' It was not alive","knocked a glass off the table while maintaining eye contact","sat on the keyboard during the most important moment possible","disappeared for two days, returned smelling like someone else's cologne"]);
       return { text:`${cat.name} ${r}. 🐈`, deltas:[["happiness", rand(0,4)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="parrot") && Math.random()<0.35, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="parrot") && WayfareCore.rng.next()<0.35, weight: 1, build: s => {
       const bird = s.pets.find(p=>p.typeId==="parrot");
       return { text:`${bird.name} learned a new word. Where did ${bird.name} learn that word. Company was over. 🦜`, deltas:[["happiness", rand(1,4)],["looks", rand(-1,0)]] };
   }},
-  { cond: s => (s.pets||[]).length>0 && Math.random()<0.1, weight: 0.8, build: s => {
+  { cond: s => (s.pets||[]).length>0 && WayfareCore.rng.next()<0.1, weight: 0.8, build: s => {
       const pet = pick(s.pets);
       const t = petTypeById(pet.typeId) || PET_TYPES[0];
       const bill = rand(300, 1800);
@@ -1806,38 +1779,38 @@ const EVENTS = [
       };
   }},
 
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_husky") && Math.random()<0.35, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_husky") && WayfareCore.rng.next()<0.35, weight: 1, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_husky");
       return { text:`${dog.name} was told "no" and delivered a four-minute rebuttal speech. The neighbors have opinions. 🐺`, deltas:[["happiness", rand(1,4)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_corgi") && Math.random()<0.15, weight: 0.8, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_corgi") && WayfareCore.rng.next()<0.15, weight: 0.8, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_corgi");
       return { text:`A video of ${dog.name} failing to climb one (1) stair got two million views. ${dog.name} remains humble. 🐕‍🦺`, deltas:[["happiness", rand(3,7)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_greatdane") && Math.random()<0.3, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_greatdane") && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_greatdane");
       return { text:`${dog.name} sat on ${s.partner ? s.partner : "a guest"}. There was no warning. There never is. 🐎`, deltas:[["happiness", rand(2,5)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_doberman") && Math.random()<0.3, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_doberman") && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_doberman");
       const r = pick(["scared off a door-to-door salesman by simply existing, then demanded belly rubs","refused to sleep anywhere except pressed against " + s.name + "'s back, all 90 pounds","stood guard at the window for six hours. The threat was a squirrel","trembled through the entire thunderstorm in " + s.name + "'s lap"]);
       return { text:`${dog.name} ${r}. 🖤`, deltas:[["happiness", rand(2,5)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_chihuahua") && Math.random()<0.3, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_chihuahua") && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_chihuahua");
       return { text:`${dog.name} declared war on a Great Dane at the park. The Great Dane apologized. 🐶`, deltas:[["happiness", rand(2,5)]] };
   }},
 
   // ---- new: golden years ----
-  { cond: s => s.age>=55 && Math.random()<0.2, weight: 1, build: s => ({
+  { cond: s => s.age>=55 && WayfareCore.rng.next()<0.2, weight: 1, build: s => ({
       text:`${s.name} is now the family's entire IT department. "It says error." What says error? "The thing."`,
       deltas:[["smarts", rand(1,3)],["happiness", rand(-4,-1)]]
   })},
-  { cond: s => s.age>=62 && Math.random()<0.2, weight: 1, build: s => ({
+  { cond: s => s.age>=62 && WayfareCore.rng.next()<0.2, weight: 1, build: s => ({
       text:`${s.name} joined the 6am mall walkers. They have matching jackets now. The jackets have a logo. There is a hierarchy.`,
       deltas:[["health", rand(3,7)],["happiness", rand(3,7)]]
   })},
-  { cond: s => s.age>=68 && Math.random()<0.25, weight: 1, build: s => ({
+  { cond: s => s.age>=68 && WayfareCore.rng.next()<0.25, weight: 1, build: s => ({
       text:`${s.name} told the story about the piano again. Everyone's heard it. ${s.name} does not care. It gets better every time.`,
       deltas:[["happiness", rand(3,6)]]
   })},
@@ -1847,7 +1820,7 @@ function weightedEvent() {
   const pool = EVENTS.filter(e => e.cond(state));
   if (pool.length === 0) return null;
   const total = pool.reduce((a,e)=>a+e.weight,0);
-  let r = Math.random()*total;
+  let r = WayfareCore.rng.next()*total;
   for (const e of pool) { r -= e.weight; if (r<=0) return e; }
   return pool[pool.length-1];
 }
@@ -2144,7 +2117,7 @@ function buildLegacy(){
   const age=state.age;
   let cause;
   if(age>95) cause="Died peacefully of old age, mid-nap, mid-dream.";
-  else if(state.health<=0){const f=["Health finally filed its resignation.","The body called it a day.","Ran out of hit points the old-fashioned way."];cause=f[Math.floor(Math.random()*f.length)];}
+  else if(state.health<=0){const f=["Health finally filed its resignation.","The body called it a day.","Ran out of hit points the old-fashioned way."];cause=f[Math.floor(WayfareCore.rng.next()*f.length)];}
   else cause="Cause unknown. The universe shrugged.";
   let epitaph;
   if(state.happiness>70) epitaph="Lived gladly, loved loudly, left light.";
