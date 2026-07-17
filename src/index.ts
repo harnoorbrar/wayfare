@@ -87,6 +87,14 @@ import {
   mortalityRisk,
 } from './domain/health';
 import { CONDITIONS, INSURANCE_PLANS } from './data/health';
+import {
+  drawEvent as drawEventImpl,
+  resolveChoiceSchedule,
+  choiceAffordable,
+  ensureEvents,
+  pendingCount,
+  type EventChoice,
+} from './domain/events';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -255,5 +263,18 @@ export const health = {
   mortalityRisk: (state: GameState) => mortalityRisk(state),
 };
 
+/** The next chain/scheduled event to present this year, or null. */
+export function drawEvent(state: GameState) {
+  return drawEventImpl(state, rng);
+}
+
+export const events = {
+  draw: drawEvent,
+  resolveSchedule: resolveChoiceSchedule,
+  affordable: choiceAffordable,
+  ensure: ensureEvents,
+  pendingCount,
+};
+
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
-export type { GameState, Financials };
+export type { GameState, Financials, EventChoice };

@@ -2015,16 +2015,37 @@ function ageUp() {
     applyDelta("happiness", -8);
   }
 
-  const ev = pickNonRepeatingEvent();
-  if (ev) {
-    const built = ev.build(state);
-    if (built.choices) {
-      state.pendingChoice = built;
-      log(built.text);
-    } else {
-      (built.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
-      log(built.text, built.deltas);
-      if (built.ach) unlockAchievement(built.ach);
+  // Domain chain events (scheduled follow-ups + multi-year narratives) take
+  // priority; they're what make choices echo years later. Fall back to the
+  // legacy one-shot event pool when no chain event fires this year.
+  let domainEvent = null;
+  try { domainEvent = WayfareCore.events.draw(state); } catch(e) {}
+  if (domainEvent) {
+    // Normalize the domain choice shape to what resolveChoice expects, and
+    // tag it so resolveChoice knows to queue any scheduled follow-up.
+    state.pendingChoice = {
+      _chain: true,
+      text: domainEvent.text,
+      choices: domainEvent.choices.map(c => ({
+        label: c.label,
+        deltas: (c.effects||[]).map(e => [e.stat, e.amount]),
+        result: c.result,
+        _schedule: c.schedule || null,
+      })),
+    };
+    log(domainEvent.text);
+  } else {
+    const ev = pickNonRepeatingEvent();
+    if (ev) {
+      const built = ev.build(state);
+      if (built.choices) {
+        state.pendingChoice = built;
+        log(built.text);
+      } else {
+        (built.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
+        log(built.text, built.deltas);
+        if (built.ach) unlockAchievement(built.ach);
+      }
     }
   }
 
@@ -2037,6 +2058,12 @@ function resolveChoice(choiceIndex) {
   (c.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
   log(c.result, c.deltas);
   if (c.ach) unlockAchievement(c.ach);
+
+  // Chain events: queue any follow-up beat this choice scheduled (the
+  // consequence that surfaces years from now).
+  if (c._schedule) {
+    try { WayfareCore.events.resolveSchedule(state, { schedule: c._schedule }); } catch(e) {}
+  }
 
   if (c.flag === "college") state.collegeFlag = true;
   if (c.flag === "promotion") {
