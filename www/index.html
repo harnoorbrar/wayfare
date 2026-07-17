@@ -1943,25 +1943,14 @@ function ageUp() {
   }
 
   // businesses: weekly profit (or loss) compounded yearly, plus an occasional swing year
+  // businesses: reputation, staffing, marketing, competition, bankruptcy
+  // (domain layer; owner skills feed the numbers)
   if (state.businesses.length) {
-    // drop any business whose catalog entry no longer exists instead of
-    // crashing every year forever -- keeps an old save playable even if the
-    // BUSINESS_TYPES catalog changes in a future update.
-    state.businesses = state.businesses.filter(biz => businessTypeById(biz.typeId));
-    state.businesses.forEach(biz => {
-      const def = businessTypeById(biz.typeId);
-      const rev = businessRevenue(biz), exp = businessExpense(biz);
-      let net = (rev - exp) * 52;
-      if (rand(1,100) <= 20) {
-        const swingPct = rand(-40,60);
-        const swing = Math.round(net * swingPct / 100);
-        net += swing;
-        if (Math.abs(swingPct) >= 25) {
-          log(`${def.name} had a ${swingPct>=0?"banner":"rough"} year — ${swingPct>=0?"+":""}${fmtMoney(swing)} ${swingPct>=0?"extra":"less"} than usual.`);
-        }
-      }
-      applyDelta("money", net);
-    });
+    try {
+      const bizTick = WayfareCore.businessYearTick(state);
+      bizTick.messages.forEach(m => log(m.text, m.deltas));
+      if (bizTick.netTotal) applyDelta("money", bizTick.netTotal);
+    } catch(e) {}
   }
 
   // bank: savings interest + investment returns
@@ -3214,21 +3203,13 @@ function renderPeople(main) {
 
 
 
-const BUSINESS_TYPES = [
- { id:"lemonade", name:"Lemonade Stand", icon:"\ud83c\udf4b", cost:500, weeklyRevenue:60, weeklyExpense:20, minSmarts:0, category:"Food" },
- { id:"foodtruck", name:"Food Truck", icon:"\ud83c\udf2e", cost:8000, weeklyRevenue:600, weeklyExpense:380, minSmarts:15, category:"Food" },
- { id:"onlinestore", name:"Online Store", icon:"\ud83d\uded2", cost:5000, weeklyRevenue:450, weeklyExpense:250, minSmarts:25, category:"Retail" },
- { id:"coffeeshop", name:"Coffee Shop", icon:"\u2615", cost:25000, weeklyRevenue:1800, weeklyExpense:1200, minSmarts:30, category:"Food" },
- { id:"consulting", name:"Consulting Firm", icon:"\ud83d\udcca", cost:15000, weeklyRevenue:1400, weeklyExpense:700, minSmarts:60, category:"Services" },
- { id:"realestate", name:"Rental Properties", icon:"\ud83c\udfd7\ufe0f", cost:100000, weeklyRevenue:2200, weeklyExpense:900, minSmarts:40, category:"Real Estate" },
- { id:"techstartup", name:"Tech Startup", icon:"\ud83d\ude80", cost:60000, weeklyRevenue:4000, weeklyExpense:3200, minSmarts:75, category:"Tech" },
-];
+// Business economics live in the domain layer (src/domain/businesses.ts):
+// staffing, marketing, reputation, competition, bankruptcy, skill bonuses.
+const BUSINESS_TYPES = WayfareCore.businesses.catalog();
 const BUSINESS_MAX_LEVEL = 5;
 
-function businessTypeById(id) { return BUSINESS_TYPES.find(b=>b.id===id); }
+function businessTypeById(id) { return WayfareCore.businesses.typeById(id); }
 function ownedBusiness(id) { return state.businesses.find(b=>b.typeId===id); }
-function businessRevenue(biz) { const def = businessTypeById(biz.typeId); if (!def) return 0; return Math.round(def.weeklyRevenue * Math.pow(1.18, biz.level-1)); }
-function businessExpense(biz) { const def = businessTypeById(biz.typeId); if (!def) return 0; return Math.round(def.weeklyExpense * Math.pow(1.08, biz.level-1)); }
 function businessUpgradeCost(biz) { const def = businessTypeById(biz.typeId); if (!def) return Infinity; return Math.round(def.cost * 0.6 * biz.level); }
 function businessResaleValue(biz) { return Math.round(biz.totalInvested * 0.55); }
 
@@ -3483,13 +3464,18 @@ function renderBusiness(main) {
     main.appendChild(owned);
 
     state.businesses.forEach(biz => {
+      WayfareCore.businesses.ensure(biz);
       const def = businessTypeById(biz.typeId);
-      const rev = businessRevenue(biz), exp = businessExpense(biz);
-      const weeklyNet = rev - exp;
+      const weeklyNet = WayfareCore.businesses.weeklyNet(state, biz);
       const card = document.createElement("div");
       card.className = "panel-card";
       card.innerHTML = `<div class="panel-row">
-          <div><div class="panel-title">${def.icon} ${def.name}</div><div class="panel-sub">Level ${biz.level}/${BUSINESS_MAX_LEVEL} · ${weeklyNet>=0?"+":""}${fmtMoney(weeklyNet)}/wk net</div></div>
+          <div style="width:100%;">
+            <div class="panel-title">${def.icon} ${def.name}</div>
+            <div class="panel-sub">Level ${biz.level}/${BUSINESS_MAX_LEVEL} · Staff ${biz.staff}/${def.maxStaff} · ${weeklyNet>=0?"+":""}${fmtMoney(weeklyNet)}/wk net${biz.marketingYears>0 ? " · 📣 campaign live" : ""}${biz.lossYears>0 ? ` · ⚠️ ${biz.lossYears} losing yr${biz.lossYears===1?"":"s"}` : ""}</div>
+            <div class="rel-closeness-track" style="margin-top:6px;"><div class="rel-closeness-fill" style="width:${biz.reputation}%; background:var(--gold);"></div></div>
+            <div class="rel-meta">Reputation ${biz.reputation}</div>
+          </div>
         </div>`;
       main.appendChild(card);
 
@@ -3503,13 +3489,43 @@ function renderBusiness(main) {
         upBtn.disabled = state.money < upCost;
         upBtn.onclick = () => upgradeBusiness(biz.typeId);
         row.appendChild(upBtn);
-      } else {
-        const maxed = document.createElement("button");
-        maxed.className = "panel-action secondary";
-        maxed.textContent = "Fully Upgraded";
-        maxed.disabled = true;
-        row.appendChild(maxed);
       }
+      if (biz.staff < def.maxStaff) {
+        const hireBtn = document.createElement("button");
+        hireBtn.className = "panel-action secondary";
+        hireBtn.textContent = `Hire (${fmtMoney(def.staffSalaryWeek)}/wk)`;
+        hireBtn.onclick = () => {
+          const out = WayfareCore.businesses.hireStaff(biz);
+          if (!out.ok) { toast(out.reason); return; }
+          log(`${state.name} hired someone at ${def.name}.`);
+          saveGame(); render();
+        };
+        row.appendChild(hireBtn);
+      }
+      if (biz.staff > 0) {
+        const fireBtn = document.createElement("button");
+        fireBtn.className = "panel-action secondary";
+        fireBtn.textContent = "Let One Go";
+        fireBtn.onclick = () => {
+          const out = WayfareCore.businesses.letStaffGo(biz);
+          if (!out.ok) { toast(out.reason); return; }
+          log(`${state.name} let someone go at ${def.name}. Word gets around.`);
+          saveGame(); render();
+        };
+        row.appendChild(fireBtn);
+      }
+      const mktCost = WayfareCore.businesses.marketingCost(biz);
+      const mktBtn = document.createElement("button");
+      mktBtn.className = "panel-action secondary";
+      mktBtn.textContent = biz.marketingYears > 0 ? "Campaign Running" : `Marketing (${fmtMoney(mktCost)})`;
+      mktBtn.disabled = biz.marketingYears > 0 || state.money < mktCost;
+      mktBtn.onclick = () => {
+        const out = WayfareCore.businesses.runMarketing(state, biz);
+        if (!out.ok) { toast(out.reason); return; }
+        log(`${state.name} launched a marketing push for ${def.name}. 📣`);
+        saveGame(); render();
+      };
+      row.appendChild(mktBtn);
       const sellBtn = document.createElement("button");
       sellBtn.className = "panel-action secondary";
       sellBtn.textContent = `Sell (${fmtMoney(businessResaleValue(biz))})`;

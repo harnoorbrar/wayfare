@@ -27,6 +27,20 @@ import {
   ensureAllNpcs,
   relationshipYearTick as relTickImpl,
 } from './domain/relationships';
+import {
+  businessYearTick as bizTickImpl,
+  catalog as businessCatalog,
+  ensureBusiness,
+  hireStaff,
+  letStaffGo,
+  marketingCost,
+  runMarketing,
+  typeById as businessTypeById,
+  weeklyExpense as bizWeeklyExpense,
+  weeklyNet as bizWeeklyNet,
+  weeklyRevenue as bizWeeklyRevenue,
+  type OwnedBusiness,
+} from './domain/businesses';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -76,6 +90,24 @@ export const relationships = {
   ensureAll: (state: GameState) => ensureAllNpcs(state, rng),
   blurbFor,
   compatibilityWithPlayer,
+};
+
+/** One year of every business the player owns, using the shared RNG. */
+export function businessYearTick(state: GameState) {
+  return bizTickImpl(state, rng);
+}
+
+export const businesses = {
+  catalog: businessCatalog,
+  typeById: businessTypeById,
+  ensure: ensureBusiness,
+  weeklyRevenue: bizWeeklyRevenue,
+  weeklyExpense: bizWeeklyExpense,
+  weeklyNet: bizWeeklyNet,
+  marketingCost,
+  hireStaff,
+  letStaffGo,
+  runMarketing: (state: GameState, biz: OwnedBusiness) => runMarketing(state, biz, rng),
 };
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
