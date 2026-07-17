@@ -13,4 +13,12 @@ if (!fs.existsSync(src)) {
 }
 fs.mkdirSync(destDir, { recursive: true });
 fs.copyFileSync(src, path.join(destDir, 'core.js'));
-console.log('Copied js/core.js -> www/js/core.js');
+
+// The Capacitor shell ships from www/, so keep its document shell and cache
+// manifest in lockstep with the source files too. This prevents a polished UI
+// change in index.html from being accidentally omitted from an iOS build.
+for (const file of ['index.html', 'service-worker.js']) {
+  fs.copyFileSync(path.join(root, file), path.join(root, 'www', file));
+}
+
+console.log('Synced core bundle, index.html, and service worker -> www/');

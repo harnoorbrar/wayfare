@@ -28,6 +28,7 @@
     --bad: #b3433a;
     --gold: #c99a3a;
     --line: #d8cdb8;
+    --ink-dim: #8a7d6b;
     --shadow: rgba(43,36,32,0.18);
     --font-display: 'Lora', Georgia, serif;
     --font-body: 'Inter', -apple-system, sans-serif;
@@ -326,6 +327,75 @@
     gap: 6px;
     margin-bottom: 10px;
   }
+
+  /* ---------- DOMAIN PANEL COMPONENTS ----------
+     Shared building blocks for the v1.2 system panels (economy, credit,
+     health, education, relationships). Keep new panels on these classes
+     instead of inline styles so theming stays in one place. */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px 12px;
+  }
+  .stat-cell .k {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--ink-dim);
+    margin-bottom: 2px;
+  }
+  .stat-cell .v {
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .meter { min-width: 0; }
+  .meter .k {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--ink-dim);
+    margin-bottom: 3px;
+  }
+  .meter .track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--paper-dim);
+    overflow: hidden;
+  }
+  .meter .fill { height: 100%; border-radius: 2px; background: var(--accent); }
+  .meter-row { display: flex; gap: 14px; margin-top: 8px; }
+  .meter-row .meter { flex: 1; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--paper-dim);
+    color: var(--ink);
+  }
+  .chip.warn { background: rgba(179,67,58,0.12); color: var(--bad); }
+
+  /* Horizontally scrolling row of quick-amount actions; keeps tall button
+     stacks (deposit/withdraw/borrow) to one thumb-friendly line each. */
+  .amount-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .amount-row::-webkit-scrollbar { display: none; }
+  .amount-row .panel-action { flex-shrink: 0; }
+
+  /* A disabled button that represents the CURRENT selection (not an
+     unavailable action) keeps full contrast. */
+  .panel-action.current:disabled { background: var(--accent); opacity: 1; }
   .filter-chip {
     background: transparent;
     border: 1px solid var(--line);
@@ -677,6 +747,136 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  /* ---------- PREMIUM UI PASS ----------
+     A quiet, layered surface system keeps dense life-sim data easy to scan
+     without compromising the warm editorial character of the game. */
+  #app {
+    background:
+      radial-gradient(circle at 92% -4%, rgba(201,154,58,.13), transparent 29%),
+      linear-gradient(180deg, #fbf7ef 0%, var(--paper) 44%);
+  }
+  #header {
+    padding: 16px 16px 12px;
+    background: rgba(251,247,239,.92);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom-color: rgba(216,205,184,.82);
+  }
+  #header-top { margin-bottom: 11px; }
+  #char-name { font-size: 21px; letter-spacing: -.25px; }
+  #char-age { font-weight: 650; color: var(--ink-dim); }
+  #stats-row { gap: 8px; }
+  .stat-pill {
+    gap: 5px;
+    padding: 7px 7px 6px;
+    background: rgba(255,255,255,.56);
+    border: 1px solid rgba(216,205,184,.64);
+    border-radius: 9px;
+  }
+  .stat-label { font-size: 8.5px; letter-spacing: .62px; }
+  .stat-track { height: 5px; box-shadow: inset 0 1px 1px rgba(43,36,32,.05); }
+  #money-row {
+    margin-top: 10px;
+    padding-top: 9px;
+    border-top: 1px solid rgba(216,205,184,.62);
+  }
+  #money-amt { font-size: 17px; letter-spacing: -.2px; }
+  #main {
+    padding: 18px 16px 106px;
+    background: linear-gradient(180deg, rgba(255,255,255,.18), transparent 140px);
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 22px 2px 9px;
+    font-size: 10px;
+    letter-spacing: 1.1px;
+  }
+  .section-title::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, var(--line), transparent);
+  }
+  .panel-card, .event-card, .floorplan-tile, .furniture-item, .property-card {
+    border-color: rgba(216,205,184,.9);
+    box-shadow: 0 2px 3px rgba(43,36,32,.025), 0 8px 22px rgba(43,36,32,.035);
+  }
+  .panel-card, .event-card, .property-card { border-radius: 14px; }
+  .panel-card { padding: 15px; }
+  .event-card {
+    position: relative;
+    padding: 16px;
+    margin-bottom: 11px;
+    overflow: hidden;
+  }
+  .event-card::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 14px; bottom: 14px;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    background: var(--accent);
+    opacity: .72;
+  }
+  .event-age { font-size: 9.5px; letter-spacing: .85px; }
+  .event-text { font-size: 15px; line-height: 1.55; }
+  .choice-btn {
+    min-height: 46px;
+    padding: 12px 13px;
+    border-radius: 10px;
+    background: rgba(232,223,208,.72);
+    transition: transform .16s ease, background .16s ease, border-color .16s ease;
+  }
+  .choice-btn:active { transform: scale(.985); background: var(--accent-dim); }
+  .panel-action {
+    min-height: 36px;
+    border-radius: 9px;
+    box-shadow: 0 2px 5px rgba(194,84,47,.16);
+    transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+  }
+  .panel-action:active:not(:disabled) { transform: scale(.97); box-shadow: none; }
+  .panel-action.secondary { box-shadow: none; background: rgba(255,255,255,.5); }
+  .filter-chip { min-height: 32px; border-radius: 999px; }
+  #bottom-nav {
+    gap: 2px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255,253,249,.94);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 -8px 26px rgba(43,36,32,.07);
+  }
+  #bottom-nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    flex: 0 0 62px;
+    min-height: 49px;
+    padding: 5px 3px;
+    border-radius: 11px;
+    scroll-snap-align: center;
+    transition: color .16s ease, background .16s ease, transform .16s ease;
+  }
+  .nav-btn.active { color: var(--accent); background: rgba(194,84,47,.10); }
+  .nav-btn:active { transform: scale(.94); }
+  .nav-icon { font-size: 18px; line-height: 1.1; }
+  .nav-label { font-size: 9px; letter-spacing: .12px; }
+  #ageup-btn {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    min-height: 48px;
+    padding: 13px 19px;
+    border: 1px solid rgba(255,255,255,.28);
+    box-shadow: 0 10px 24px rgba(194,84,47,.30), 0 2px 5px rgba(43,36,32,.16);
+  }
+  #room-stage { border-radius: 16px; box-shadow: 0 10px 24px rgba(43,36,32,.08); }
+  .floorplan-tile { border-radius: 13px; transition: transform .16s ease, background .16s ease; }
+  .floorplan-tile:active, .furniture-item:active { transform: scale(.97); }
+  .furniture-item { border-radius: 12px; }
+  #modal-sheet { border-radius: 22px 22px 0 0; box-shadow: 0 -16px 42px rgba(43,36,32,.18); }
 </style>
 </head>
 <body>
@@ -3457,17 +3657,18 @@ function renderBank(main) {
     const trend = econ.growth >= 2 ? "📈" : econ.growth < 0 ? "📉" : "➖";
     const ecoCard = document.createElement("div");
     ecoCard.className = "panel-card";
-    ecoCard.innerHTML = `<div class="panel-row" style="margin-bottom:8px;">
+    const stat = (k, v) => `<div class="stat-cell"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+    ecoCard.innerHTML = `<div class="panel-row" style="margin-bottom:10px;">
         <div><div class="panel-title">The Economy ${trend}</div><div class="panel-sub">${econ.phase}</div></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;font-size:12px;color:#6b5f4e;">
-        <div>Growth <b style="color:var(--ink);">${econ.growth.toFixed(1)}%</b></div>
-        <div>Inflation <b style="color:var(--ink);">${econ.inflation.toFixed(1)}%</b></div>
-        <div>Interest <b style="color:var(--ink);">${econ.interestRate.toFixed(1)}%</b></div>
-        <div>Unemployment <b style="color:var(--ink);">${econ.unemployment.toFixed(1)}%</b></div>
-        <div>Housing idx <b style="color:var(--ink);">${Math.round(econ.housingIndex)}</b></div>
-        <div>Market idx <b style="color:var(--ink);">${Math.round(econ.marketIndex)}</b></div>
-        <div>Income tax <b style="color:var(--ink);">${Math.round(econ.taxRate)}%</b></div>
+      <div class="stat-grid">
+        ${stat("Growth", econ.growth.toFixed(1)+"%")}
+        ${stat("Inflation", econ.inflation.toFixed(1)+"%")}
+        ${stat("Interest", econ.interestRate.toFixed(1)+"%")}
+        ${stat("Jobless", econ.unemployment.toFixed(1)+"%")}
+        ${stat("Housing", Math.round(econ.housingIndex))}
+        ${stat("Market", Math.round(econ.marketIndex))}
+        ${stat("Income tax", Math.round(econ.taxRate)+"%")}
       </div>`;
     main.appendChild(ecoCard);
   }
@@ -3487,7 +3688,7 @@ function renderBank(main) {
   // (that dead-end state read as a bug in App Review -- Guideline 2.1a).
   if (state.money > 0) {
     const savRow = document.createElement("div");
-    savRow.className = "filter-row";
+    savRow.className = "amount-row";
     QUICK_AMOUNTS.filter(amt => amt <= state.money).forEach(amt => {
       const b = document.createElement("button");
       b.className = "panel-action secondary";
@@ -3510,7 +3711,7 @@ function renderBank(main) {
 
   if (state.savings > 0) {
     const wdRow = document.createElement("div");
-    wdRow.className = "filter-row";
+    wdRow.className = "amount-row";
     QUICK_AMOUNTS.filter(amt => amt <= state.savings).forEach(amt => {
       const b = document.createElement("button");
       b.className = "panel-action secondary";
@@ -3547,7 +3748,7 @@ function renderBank(main) {
         <div><div class="panel-title">Credit Score</div><div class="panel-sub">${band}${debt>0?` · ${fmtMoney(debt)} owed`:""}</div></div>
         <div style="font-weight:700;color:${scoreColor};">${score}</div>
       </div>
-      <div class="rel-closeness-track"><div class="rel-closeness-fill" style="width:${scorePct}%;background:${scoreColor};"></div></div>`;
+      <div class="meter"><div class="track"><div class="fill" style="width:${scorePct}%;background:${scoreColor};"></div></div></div>`;
     main.appendChild(creditCard);
 
     loans.forEach(loan => {
@@ -3563,7 +3764,7 @@ function renderBank(main) {
 
     if (limit > 0) {
       const borrowRow = document.createElement("div");
-      borrowRow.className = "filter-row";
+      borrowRow.className = "amount-row";
       [5000, 20000, 50000].filter(a => a <= limit).forEach(amt => {
         const b = document.createElement("button");
         b.className = "panel-action secondary";
