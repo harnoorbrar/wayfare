@@ -67,6 +67,17 @@ import {
   ensureFinancials,
   type Financials,
 } from './domain/finance';
+import {
+  educationYearTick as eduTickImpl,
+  enroll as enrollImpl,
+  canEnroll,
+  ensureEducation,
+  programById,
+  currentGpa,
+  scholarshipFor,
+  hasDegree,
+} from './domain/education';
+import { PROGRAMS } from './data/education';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -197,6 +208,26 @@ export const finance = {
   takeLoan: (state: GameState, amount: number, termYears?: number) =>
     takeLoanImpl(state, ensureWorld(state), amount, termYears),
   loans: (state: GameState) => ensureFinancials(state).loans,
+};
+
+/** One year of study for an enrolled student (no-op otherwise). */
+export function educationYearTick(state: GameState) {
+  return eduTickImpl(state, rng);
+}
+
+export const education = {
+  programs: PROGRAMS,
+  programById,
+  enroll: enrollImpl,
+  canEnroll: (state: GameState, programId: string) => {
+    const p = programById(programId);
+    return p ? canEnroll(state, p) : { ok: false, reason: 'Unknown program.' };
+  },
+  scholarshipFor,
+  currentGpa,
+  hasDegree,
+  state: ensureEducation,
+  current: (state: GameState) => ensureEducation(state).current,
 };
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };

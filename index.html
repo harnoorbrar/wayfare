@@ -1919,6 +1919,14 @@ function ageUp() {
     applyDelta("money", net);
   }
 
+  // education: advance any enrolled program a year (grades, skills, tuition,
+  // graduation awarding the degree the career ladders gate on) — domain layer
+  try {
+    const edu = WayfareCore.educationYearTick(state);
+    edu.messages.forEach(m => log(m.text, m.deltas));
+    if (edu.graduated) haptic("medium");
+  } catch(e) {}
+
   // careers: skill growth, raises, promotions, terminations (domain layer)
   try {
     const career = WayfareCore.careerYearTick(state);
@@ -3677,6 +3685,24 @@ function renderEducation(main) {
     : `<div class="panel-title">No degrees yet</div><div class="panel-sub">A high school diploma unlocks trade school and university</div>`;
   main.appendChild(card);
 
+  // Currently enrolled? Show progress instead of the catalog's Enroll button.
+  let enrollment = null;
+  try { enrollment = WayfareCore.education.current(state); } catch(e) {}
+  if (enrollment) {
+    const prog = DEGREES.find(d => d.id === enrollment.programId);
+    const pct = Math.round((enrollment.yearsDone / enrollment.totalYears) * 100);
+    let gpa = null; try { gpa = WayfareCore.education.currentGpa(state); } catch(e) {}
+    const ec = document.createElement("div");
+    ec.className = "panel-card";
+    ec.innerHTML = `<div class="panel-row" style="margin-bottom:8px;">
+        <div><div class="panel-title">📚 Enrolled: ${prog ? prog.name : enrollment.programId}</div>
+        <div class="panel-sub">Year ${enrollment.yearsDone} of ${enrollment.totalYears}${gpa!=null?` · GPA ${gpa.toFixed(2)}`:""}${enrollment.scholarship>0?` · ${Math.round(enrollment.scholarship*100)}% scholarship`:""}</div></div>
+      </div>
+      <div class="rel-closeness-track"><div class="rel-closeness-fill" style="width:${pct}%;background:var(--good);"></div></div>
+      <div class="rel-meta" style="margin-top:6px;">Age up to keep studying. Tuition ${fmtMoney(enrollment.yearlyTuition)}/yr becomes student debt.</div>`;
+    main.appendChild(ec);
+  }
+
   ["High School","Trade School","University"].forEach(tier => {
     const tdiv = document.createElement("div");
     tdiv.className = "section-title";
@@ -3685,28 +3711,27 @@ function renderEducation(main) {
 
     DEGREES.filter(d => d.tier === tier).forEach(d => {
       const already = hasDegree(d.id);
-      const prereqMet = !d.prereq || hasDegree(d.prereq);
+      let check = { ok: false, reason: "" };
+      try { check = WayfareCore.education.canEnroll(state, d.id); } catch(e) {}
+      const prog = WayfareCore.education.programById ? WayfareCore.education.programById(d.id) : null;
+      const years = prog ? prog.years : 1;
       const c = document.createElement("div");
       c.className = "panel-card";
       const sub = already
         ? "Completed"
-        : !prereqMet
-          ? `Needs ${degreeById(d.prereq).name} first`
-          : (d.cost===0 ? "Free" : "Tuition "+fmtMoney(d.cost)) + (d.field ? ` · ${d.field}` : "");
+        : !check.ok
+          ? (check.reason || "Locked")
+          : `${years} yr${years===1?"":"s"} · Tuition ${d.cost===0?"Free":fmtMoney(d.cost)}${check.scholarship>0?` · ${Math.round(check.scholarship*100)}% scholarship`:""}${d.field?` · ${d.field}`:""}`;
       c.innerHTML = `<div class="panel-row"><div><div class="panel-title">${d.name}</div><div class="panel-sub">${sub}</div></div></div>`;
       const b=document.createElement("button");
-      b.className="panel-action" + (already || !prereqMet ? "" : "");
+      b.className="panel-action";
       b.textContent = already ? "Owned" : "Enroll";
-      b.disabled = already || !prereqMet || state.age<18;
+      b.disabled = already || !check.ok || !!enrollment;
       b.style.marginTop = "8px";
       b.onclick=()=>{
-        if(state.age<18){toast("Must be 18+");return;}
-        if(!prereqMet){toast(`Needs ${degreeById(d.prereq).name} first`);return;}
-        if(d.cost>0){state.studentLoans+=d.cost;}
-        state.degrees = state.degrees || [];
-        state.degrees.push(d.id);
-        state.smarts=clamp(state.smarts+d.smarts);
-        log(`${state.name} completed ${d.name}.`);
+        const res = WayfareCore.education.enroll(state, d.id);
+        if (!res.ok) { toast(res.reason || "Can't enroll."); return; }
+        log(`${state.name} enrolled in ${d.name}${res.scholarship>0?` on a ${Math.round(res.scholarship*100)}% scholarship`:""}.`);
         saveGame();
         render();
       };
