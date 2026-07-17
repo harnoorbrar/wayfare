@@ -53,11 +53,11 @@ export const INSURANCE_PLANS: readonly InsurancePlan[] = [
 
 export const HEALTH = {
   /** Age at which the baseline decline curve begins to bite. */
-  declineStartAge: 30,
+  declineStartAge: 35,
   /** Extra health lost per year, per year of age beyond declineStartAge. */
-  declinePerAgeYear: 0.06,
+  declinePerAgeYear: 0.035,
   /** Baseline yearly decline before the age term. */
-  baselineDecline: 1,
+  baselineDecline: 0.6,
   /** Fitness skill at/above which lifestyle onset risk is meaningfully cut. */
   fitReference: 60,
   /** Old-age mortality begins climbing here. */
