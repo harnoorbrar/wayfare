@@ -11,6 +11,15 @@ import {
   clearSave,
   CURRENT_SAVE_VERSION,
 } from './domain/save';
+import {
+  careerYearTick as careerTickImpl,
+  eligibilityGap,
+  legacyJobList,
+  levelById,
+  nextLevel,
+  trackOf,
+} from './domain/careers';
+import { SKILLS, skillName } from './domain/skills';
 import type { GameState } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -33,6 +42,21 @@ export function restoreSave(): GameState | null {
 export function reseed(): void {
   rng.setState(Rng.randomSeed());
 }
+
+/** One year of career life for the current job, using the shared RNG. */
+export function careerYearTick(state: GameState) {
+  return careerTickImpl(state, rng);
+}
+
+export const careers = {
+  legacyJobList,
+  levelById,
+  nextLevel,
+  trackOf,
+  eligibilityGap,
+};
+
+export const skills = { SKILLS, skillName };
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
 export type { GameState };

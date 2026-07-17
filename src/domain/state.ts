@@ -59,6 +59,10 @@ export interface GameState {
   businesses: unknown[];
   generation: number;
   pets: unknown[];
+  /** skillId -> 0-100. Grows through work and actions; gates promotions. */
+  skills: Record<string, number>;
+  /** Years at the current career level; resets on hire/promotion. */
+  yearsAtJob: number;
   [monolithField: string]: unknown;
 }
 
@@ -104,6 +108,8 @@ export function saveDefaults(): Partial<GameState> {
     businesses: [],
     generation: 1,
     pets: [],
+    skills: {},
+    yearsAtJob: 0,
   };
 }
 

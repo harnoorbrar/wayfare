@@ -8,11 +8,12 @@
  * must never be broken.
  */
 import { GameState, backfillDefaults } from './state';
+import { levelById } from './careers';
 
 /** Same key the shipped game has always used — do not change. */
 export const SAVE_KEY = 'wayfare-save-v1';
 
-export const CURRENT_SAVE_VERSION = 2;
+export const CURRENT_SAVE_VERSION = 3;
 
 interface SaveEnvelope {
   __wayfare: true;
@@ -51,6 +52,7 @@ export function setStorageForTesting(fake: KVStorage | null): void {
  */
 const migrations: Record<number, (s: Record<string, unknown>) => Record<string, unknown>> = {
   1: migrateLegacyEducation,
+  2: migrateCareersAndSkills,
 };
 
 /** v1 -> v2: single-tier educationLevel became the degrees array. */
@@ -58,6 +60,28 @@ function migrateLegacyEducation(s: Record<string, unknown>): Record<string, unkn
   if (!s.degrees) {
     s.degrees = s.educationLevel && s.educationLevel !== 'None' ? ['hs'] : [];
     delete s.educationLevel;
+  }
+  return s;
+}
+
+/**
+ * v2 -> v3: careers gained ladders and skills. Seed a working character
+ * with ~5 years of their job's skill growth so long-running saves aren't
+ * suddenly a decade away from a promotion they'd plausibly earned.
+ */
+function migrateCareersAndSkills(s: Record<string, unknown>): Record<string, unknown> {
+  if (!s.skills || typeof s.skills !== 'object') {
+    const skills: Record<string, number> = {};
+    const level = typeof s.job === 'string' ? levelById(s.job) : null;
+    if (level) {
+      for (const [id, perYear] of Object.entries(level.skillGrowth)) {
+        skills[id] = Math.min(100, perYear * 5);
+      }
+    }
+    s.skills = skills;
+  }
+  if (typeof s.yearsAtJob !== 'number') {
+    s.yearsAtJob = typeof s.job === 'string' && s.job !== 'unemployed' ? 2 : 0;
   }
   return s;
 }

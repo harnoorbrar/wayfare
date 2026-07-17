@@ -1108,46 +1108,10 @@ const DEGREES = [
 
 const JOB_CATEGORIES = ["Entry-Level","Trade","Business","Tech","Engineering","Healthcare","Law","Science","Arts & Media","Education","Public Service"];
 
-const JOBS = [
-  { id:"unemployed", title:"Unemployed", payWeek:0, minSmarts:0, requiredDegree:null, category:null },
-  // Entry-Level — no degree needed
-  { id:"retail", title:"Retail Associate", payWeek:480, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
-  { id:"barista", title:"Barista", payWeek:420, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
-  { id:"warehouse", title:"Warehouse Associate", payWeek:500, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
-  { id:"server", title:"Restaurant Server", payWeek:460, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
-  // Trade — trade cert required
-  { id:"electrician", title:"Electrician", payWeek:980, minSmarts:20, requiredDegree:"trade_elec", category:"Trade" },
-  { id:"plumber", title:"Plumber", payWeek:940, minSmarts:18, requiredDegree:"trade_plumb", category:"Trade" },
-  { id:"hvac", title:"HVAC Technician", payWeek:900, minSmarts:18, requiredDegree:"trade_hvac", category:"Trade" },
-  { id:"chef", title:"Chef", payWeek:850, minSmarts:20, requiredDegree:"trade_culinary", category:"Trade" },
-  // Business
-  { id:"office", title:"Office Assistant", payWeek:650, minSmarts:25, requiredDegree:"hs", category:"Business" },
-  { id:"accountant", title:"Accountant", payWeek:1450, minSmarts:45, requiredDegree:"deg_finance", category:"Business" },
-  { id:"marketing", title:"Marketing Manager", payWeek:1550, minSmarts:45, requiredDegree:"deg_business", category:"Business" },
-  { id:"exec", title:"Company Executive", payWeek:4800, minSmarts:65, requiredDegree:"deg_business", category:"Business" },
-  // Tech
-  { id:"itsupport", title:"IT Support Specialist", payWeek:900, minSmarts:30, requiredDegree:"hs", category:"Tech" },
-  { id:"engineer", title:"Software Engineer", payWeek:1900, minSmarts:60, requiredDegree:"deg_cs", category:"Tech" },
-  { id:"datasci", title:"Data Scientist", payWeek:2400, minSmarts:70, requiredDegree:"deg_cs", category:"Tech" },
-  // Engineering
-  { id:"civileng", title:"Civil Engineer", payWeek:1850, minSmarts:55, requiredDegree:"deg_engineering", category:"Engineering" },
-  // Healthcare
-  { id:"nurse", title:"Nurse", payWeek:1350, minSmarts:55, requiredDegree:"deg_nursing", category:"Healthcare" },
-  { id:"doctor", title:"Physician", payWeek:3200, minSmarts:80, requiredDegree:"deg_medicine", category:"Healthcare" },
-  // Law
-  { id:"paralegal", title:"Paralegal", payWeek:1000, minSmarts:40, requiredDegree:"hs", category:"Law" },
-  { id:"lawyer", title:"Lawyer", payWeek:2800, minSmarts:70, requiredDegree:"deg_law", category:"Law" },
-  // Science
-  { id:"researcher", title:"Research Scientist", payWeek:2200, minSmarts:70, requiredDegree:"deg_science", category:"Science" },
-  // Arts & Media
-  { id:"designer", title:"Graphic Designer", payWeek:1100, minSmarts:35, requiredDegree:"deg_arts", category:"Arts & Media" },
-  { id:"journalist", title:"Journalist", payWeek:1150, minSmarts:40, requiredDegree:"deg_communications", category:"Arts & Media" },
-  // Education
-  { id:"teacher", title:"Teacher", payWeek:1050, minSmarts:40, requiredDegree:"deg_education", category:"Education" },
-  // Public Service
-  { id:"police", title:"Police Officer", payWeek:1100, minSmarts:30, requiredDegree:"hs", category:"Public Service" },
-  { id:"firefighter", title:"Firefighter", payWeek:1080, minSmarts:28, requiredDegree:"hs", category:"Public Service" },
-];
+// Careers now live in the typed domain layer (src/data/careers.ts) as
+// ladders with promotions, skills, stress, and prestige. This flat view
+// keeps the legacy shape for the job board and lookups.
+const JOBS = WayfareCore.careers.legacyJobList();
 
 function hasDegree(id) {
   return !!(state.degrees && state.degrees.includes(id));
@@ -1369,6 +1333,8 @@ function newGame() {
     businesses: [],
     generation: 1,
     pets: [],
+    skills: {},
+    yearsAtJob: 0,
   };
   log(`${state.name} was born today. A whole life, waiting to happen.`);
   render();
@@ -1946,6 +1912,13 @@ function ageUp() {
 
   // income & housing costs (weekly * 52, simplified to once per year)
   if (state.salary) applyDelta("money", state.salary * 52);
+
+  // careers: skill growth, raises, promotions, terminations (domain layer)
+  try {
+    const career = WayfareCore.careerYearTick(state);
+    career.messages.forEach(m => log(m.text, m.deltas));
+    if (career.promoted) haptic("medium");
+  } catch(e) {}
   if (state.property && !PROPERTIES.find(p=>p.id===state.property)) {
     // stale/unknown property id from an old save -- fall back to "no property"
     // instead of crashing every year on a lookup that can never succeed.
@@ -2326,6 +2299,8 @@ function continueAsChild(childIndex) {
     businesses: inheritedBusinesses,
     generation: nextGeneration,
     pets: inheritedPets,
+    skills: {},
+    yearsAtJob: 0,
   };
 
   log(`${state.name} inherited ${oldName}'s home and ${fmtMoney(inheritance)}, and is ready to start their own chapter.`);
@@ -2405,10 +2380,12 @@ function buyFurniture(fid) {
 
 function applyForJob(jobId) {
   const job = JOBS.find(j=>j.id===jobId);
+  if (!job.entry) { toast("That role is earned by promotion, not application."); return; }
   if (state.smarts < job.minSmarts) { toast(`Needs ${job.minSmarts} smarts.`); return; }
   if (!degreeMet(job)) { toast(`Needs ${degreeById(job.requiredDegree).name}.`); return; }
   state.job = jobId;
   state.salary = job.payWeek;
+  state.yearsAtJob = 0;
   log(`${state.name} got hired as a ${job.title}.`);
   toast(`Hired as ${job.title}!`);
   saveGame();
@@ -2913,13 +2890,55 @@ function renderJob(main) {
   main.appendChild(title);
 
   const cur = JOBS.find(j=>j.id===state.job) || JOBS.find(j=>j.id==="unemployed");
+  const track = WayfareCore.careers.trackOf(state.job);
+  const years = state.yearsAtJob || 0;
   const card = document.createElement("div");
   card.className = "panel-card";
   card.innerHTML = `<div class="panel-row">
-      <div><div class="panel-title">${cur.title}</div><div class="panel-sub">Current position</div></div>
+      <div><div class="panel-title">${cur.title}</div><div class="panel-sub">${track ? track.name + " · " + (years === 1 ? "1 year in" : years + " years in") : "Current position"}</div></div>
       <div style="font-weight:700; color:var(--good);">${fmtMoney(state.salary||cur.payWeek)}/wk</div>
     </div>`;
   main.appendChild(card);
+
+  // Career path: what's next on the ladder, and what's still missing
+  const next = WayfareCore.careers.nextLevel(state.job);
+  if (next) {
+    const gap = WayfareCore.careers.eligibilityGap(state, next, years);
+    const needs = [];
+    if (gap.missingDegree) needs.push(`${(degreeById(gap.missingDegree)||{name:gap.missingDegree}).name}`);
+    if (gap.missingSmarts > 0) needs.push(`${gap.missingSmarts} more smarts`);
+    if (gap.missingYears > 0) needs.push(`${gap.missingYears} more year${gap.missingYears===1?"":"s"} here`);
+    gap.missingSkills.forEach(ms => needs.push(`${WayfareCore.skills.skillName(ms.id)} ${ms.have}/${ms.need}`));
+    const pathCard = document.createElement("div");
+    pathCard.className = "panel-card";
+    pathCard.innerHTML = `<div class="panel-row">
+        <div><div class="panel-title">Next: ${next.title}</div>
+        <div class="panel-sub">${gap.ok ? "Qualified — promotion is a matter of time." : "Needs: " + needs.join(" · ")}</div></div>
+        <div style="font-weight:700; color:var(--gold);">${fmtMoney(next.payWeek)}/wk</div>
+      </div>`;
+    main.appendChild(pathCard);
+  }
+
+  // Skills earned through work
+  const skillIds = Object.keys(state.skills || {}).filter(id => (state.skills[id]||0) > 0);
+  if (skillIds.length) {
+    const stitle = document.createElement("div");
+    stitle.className = "section-title";
+    stitle.textContent = "Skills";
+    main.appendChild(stitle);
+    const sCard = document.createElement("div");
+    sCard.className = "panel-card";
+    sCard.innerHTML = skillIds
+      .sort((a,b) => (state.skills[b]||0) - (state.skills[a]||0))
+      .map(id => {
+        const v = Math.round(state.skills[id]||0);
+        return `<div style="margin:6px 0;">
+          <div class="stat-label"><span>${WayfareCore.skills.skillName(id)}</span><span>${v}</span></div>
+          <div class="stat-track"><div class="stat-fill" style="width:${v}%; background:var(--gold);"></div></div>
+        </div>`;
+      }).join("");
+    main.appendChild(sCard);
+  }
 
   const jtitle = document.createElement("div");
   jtitle.className = "section-title";
@@ -2939,7 +2958,7 @@ function renderJob(main) {
   });
   main.appendChild(filterRow);
 
-  const list = JOBS.filter(j => j.id!=="unemployed" && j.id!==state.job
+  const list = JOBS.filter(j => j.id!=="unemployed" && j.id!==state.job && j.entry
     && (state.jobFilter==="All" || j.category===state.jobFilter));
 
   if (list.length === 0) {
