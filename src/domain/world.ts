@@ -40,6 +40,10 @@ export interface WorldState {
   priceLevel: number;
   /** Consecutive years of bubble-grade housing gains. */
   bubbleYears: number;
+  /** This year's equity index move, percent (drives investment returns). */
+  marketChangePct: number;
+  /** This year's housing index move, percent. */
+  housingChangePct: number;
   /** Income tax rate, percent. Moves with elections. */
   taxRate: number;
   yearsToElection: number;
@@ -80,6 +84,8 @@ export function createWorld(rng: Rng): WorldState {
     marketFundamental: INDEX_BASE,
     priceLevel: 1,
     bubbleYears: 0,
+    marketChangePct: 0,
+    housingChangePct: 0,
     taxRate: 28,
     yearsToElection: rng.int(1, POLITICS.cycleYears),
     lastShock: null,
@@ -124,6 +130,7 @@ function stepRates(world: WorldState): void {
 /** Housing tracks growth and inflation, fights rates, and can bubble. */
 function stepHousing(world: WorldState, rng: Rng): WorldMessage[] {
   const messages: WorldMessage[] = [];
+  const before = world.housingIndex;
   const change =
     HOUSING.growthPull * world.growth +
     HOUSING.inflationPull * world.inflation +
@@ -148,6 +155,7 @@ function stepHousing(world: WorldState, rng: Rng): WorldMessage[] {
     world.lastShock = 'housingBurst';
     messages.push({ text: `The housing bubble burst. Prices fell ${Math.abs(Math.round(burst))}% and took a lot of certainty with them.` });
   }
+  world.housingChangePct = round2(((world.housingIndex - before) / before) * 100);
   return messages;
 }
 
@@ -155,6 +163,7 @@ function stepHousing(world: WorldState, rng: Rng): WorldMessage[] {
 function stepMarket(world: WorldState, rng: Rng): WorldMessage[] {
   const messages: WorldMessage[] = [];
 
+  const before = world.marketIndex;
   world.marketFundamental = round2(world.marketFundamental * (1 + (world.growth + world.inflation) / 100));
 
   const change =
@@ -170,6 +179,7 @@ function stepMarket(world: WorldState, rng: Rng): WorldMessage[] {
     world.lastShock = 'marketCrash';
     messages.push({ text: `The market crashed ${Math.abs(Math.round(crash))}%. Fortunes evaporated in an afternoon.` });
   }
+  world.marketChangePct = round2(((world.marketIndex - before) / before) * 100);
   return messages;
 }
 

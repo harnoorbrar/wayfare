@@ -54,6 +54,19 @@ import {
   housingMultiplier,
   type WorldState,
 } from './domain/world';
+import {
+  financeYearTick as financeTickImpl,
+  taxIncome,
+  creditScore,
+  creditBand,
+  borrowingLimit,
+  quotePersonalLoan,
+  takePersonalLoan as takeLoanImpl,
+  totalDebt,
+  investmentValue,
+  ensureFinancials,
+  type Financials,
+} from './domain/finance';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -165,5 +178,26 @@ export const world = {
   },
 };
 
+/** One financial year: investments marked to market, loans serviced. */
+export function financeYearTick(state: GameState) {
+  return financeTickImpl(state, ensureWorld(state), rng);
+}
+
+export const finance = {
+  taxIncome: (state: GameState, gross: number) => taxIncome(ensureWorld(state), gross),
+  creditScore,
+  creditBand,
+  scoreBand: (state: GameState) => creditBand(creditScore(state)),
+  borrowingLimit,
+  totalDebt,
+  investmentValue,
+  ensure: ensureFinancials,
+  quoteLoan: (state: GameState, amount: number, termYears?: number) =>
+    quotePersonalLoan(state, ensureWorld(state), amount, termYears),
+  takeLoan: (state: GameState, amount: number, termYears?: number) =>
+    takeLoanImpl(state, ensureWorld(state), amount, termYears),
+  loans: (state: GameState) => ensureFinancials(state).loans,
+};
+
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
-export type { GameState };
+export type { GameState, Financials };
