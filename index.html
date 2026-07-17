@@ -1857,23 +1857,12 @@ function ageUp() {
   applyDelta("happiness", -rand(0,2));
   if (state.age > 65) applyDelta("health", -rand(1,3));
 
-  // relationships drift apart if neglected this year
-  state.relationships.forEach(r => {
-    const neglected = (r.lastInteractedAge === undefined) || (r.lastInteractedAge < state.age - 1);
-    if (neglected) {
-      const decay = r.type === "Spouse" || r.type === "Partner" ? rand(2,5) : rand(1,4);
-      r.closeness = clamp(r.closeness - decay);
-    }
-  });
-  // friends (not family/partner/kids) can drift away entirely if the bond goes cold
-  const before = state.relationships.length;
-  state.relationships = state.relationships.filter(r => {
-    if (r.type === "Friend" && r.closeness <= 5) {
-      log(`${state.name} and ${r.name} drifted apart. Haven't spoken in ages.`);
-      return false;
-    }
-    return true;
-  });
+  // relationships: trait-driven bonds evolve in the domain layer
+  // (neglect decay, trust/respect drift, NPC-initiated moments, friend churn)
+  try {
+    const relTick = WayfareCore.relationshipYearTick(state);
+    relTick.messages.forEach(m => log(m.text, m.deltas));
+  } catch(e) {}
 
   // pets: happiness, upkeep, aging, and eventually goodbyes
   if (state.pets && state.pets.length) {
@@ -2993,6 +2982,9 @@ function renderJob(main) {
 }
 
 function renderPeople(main) {
+  // backfill traits/trust/memories on bonds from older saves or code paths
+  try { WayfareCore.relationships.ensureAll(state); } catch(e) {}
+
   const title = document.createElement("div");
   title.className = "section-title";
   title.textContent = "Relationships";
@@ -3105,12 +3097,19 @@ function renderPeople(main) {
     const c = document.createElement("div");
     c.className = "panel-card rel-card";
     const ageLabel = r.type === "Child" ? `, age ${r.age}` : "";
+    const blurb = WayfareCore.relationships.blurbFor(r);
+    const isPartner = r.type === "Partner" || r.type === "Spouse";
+    const compat = isPartner ? WayfareCore.relationships.compatibilityWithPlayer(state, r) : null;
+    const lastMemory = (r.memories && r.memories.length) ? r.memories[r.memories.length-1] : null;
     c.innerHTML = `<div class="panel-row">
-        <div>
+        <div style="width:100%;">
           <div class="panel-title">${r.name}</div>
-          <div class="panel-sub">${r.type}${ageLabel}</div>
+          <div class="panel-sub">${r.type}${ageLabel}${blurb ? " · " + blurb : ""}</div>
           <div class="rel-closeness-track"><div class="rel-closeness-fill" style="width:${r.closeness}%"></div></div>
           <div class="rel-meta">Closeness ${r.closeness}</div>
+          <div class="rel-closeness-track" style="margin-top:4px;"><div class="rel-closeness-fill" style="width:${r.trust||0}%; background:var(--gold);"></div></div>
+          <div class="rel-meta">Trust ${r.trust||0}${compat !== null ? " · Compatibility " + compat + "%" : ""}</div>
+          ${lastMemory ? `<div class="rel-meta" style="font-style:italic; margin-top:4px;">Age ${lastMemory.age}: ${lastMemory.text}</div>` : ""}
         </div>
       </div>`;
 
@@ -3120,8 +3119,17 @@ function renderPeople(main) {
     actions.style.flexWrap='wrap';
     actions.style.gap='6px';
 
-    const interact = (amount, happyAmount, verb) => {
+    // trait-aware bonding through the domain layer (warmth amplifies,
+    // humor lifts mood, trust builds with contact, memories accumulate)
+    const interact = (kind) => {
+      const out = WayfareCore.relationships.applyInteraction(state, r, kind);
+      log(out.text);
+      saveGame(); render();
+    };
+    // legacy path for bespoke actions the domain doesn't model yet
+    const bond = (amount, happyAmount, verb) => {
       r.closeness = clamp(r.closeness + amount, 0, 100);
+      r.trust = clamp((r.trust||50) + rand(1,3), 0, 100);
       r.lastInteractedAge = state.age;
       if (happyAmount) state.happiness = clamp(state.happiness + happyAmount);
       log(`${state.name} ${verb} ${r.name}.`);
@@ -3131,13 +3139,13 @@ function renderPeople(main) {
     const call = document.createElement('button');
     call.className = 'panel-action secondary small';
     call.textContent = 'Call';
-    call.onclick = () => interact(rand(2,5), 1, "called");
+    call.onclick = () => interact('call');
     actions.appendChild(call);
 
     const spend = document.createElement('button');
     spend.className = 'panel-action secondary small';
     spend.textContent = 'Spend Time';
-    spend.onclick = () => interact(rand(6,10), 3, "spent time with");
+    spend.onclick = () => interact('spend');
     actions.appendChild(spend);
 
     const gift = document.createElement('button');
@@ -3146,7 +3154,7 @@ function renderPeople(main) {
     gift.onclick = () => {
       if (state.money < 50) { toast('Need $50'); return; }
       state.money -= 50;
-      interact(rand(10,14), 1, "bought a gift for");
+      interact('gift');
     };
     actions.appendChild(gift);
 
@@ -3157,7 +3165,7 @@ function renderPeople(main) {
       date.onclick = () => {
         if (state.money < 80) { toast('Need $80'); return; }
         state.money -= 80;
-        interact(rand(8,14), 4, "took on a date —");
+        bond(rand(8,14), 4, "took on a date —");
       };
       actions.appendChild(date);
     }

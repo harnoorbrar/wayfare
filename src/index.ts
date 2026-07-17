@@ -20,7 +20,14 @@ import {
   trackOf,
 } from './domain/careers';
 import { SKILLS, skillName } from './domain/skills';
-import type { GameState } from './domain/state';
+import {
+  applyInteraction,
+  blurbFor,
+  compatibilityWithPlayer,
+  ensureAllNpcs,
+  relationshipYearTick as relTickImpl,
+} from './domain/relationships';
+import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
 export const rng = new Rng();
@@ -57,6 +64,19 @@ export const careers = {
 };
 
 export const skills = { SKILLS, skillName };
+
+/** One year of every bond in the player's life, using the shared RNG. */
+export function relationshipYearTick(state: GameState) {
+  return relTickImpl(state, rng);
+}
+
+export const relationships = {
+  applyInteraction: (state: GameState, rel: Relationship, kind: 'call' | 'spend' | 'gift') =>
+    applyInteraction(state, rel, kind, rng),
+  ensureAll: (state: GameState) => ensureAllNpcs(state, rng),
+  blurbFor,
+  compatibilityWithPlayer,
+};
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
 export type { GameState };
