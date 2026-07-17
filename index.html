@@ -1860,10 +1860,16 @@ function ageUp() {
     worldTick.messages.forEach(m => log(m.text, m.deltas));
   } catch(e) {}
 
-  // passive decay
-  applyDelta("health", -rand(0,2));
+  // health is handled by the domain layer's health tick later this year
+  // (age-curve decline, conditions, treatment, mortality). Happiness still
+  // drifts down a touch each year here.
   applyDelta("happiness", -rand(0,2));
-  if (state.age > 65) applyDelta("health", -rand(1,3));
+  let _healthTick = null;
+  try { _healthTick = WayfareCore.healthYearTick(state); } catch(e) {}
+  if (_healthTick) {
+    _healthTick.messages.forEach(m => log(m.text, m.deltas));
+    if (_healthTick.cashDelta) applyDelta("money", _healthTick.cashDelta);
+  }
 
   // relationships: trait-driven bonds evolve in the domain layer
   // (neglect decay, trust/respect drift, NPC-initiated moments, friend churn)
@@ -1997,8 +2003,10 @@ function ageUp() {
     });
   } catch(e) {}
 
-  // death check
-  if (state.health <= 0 || state.age > 95) {
+  // death check: the health tick's mortality model decides, with health<=0
+  // as a floor and the hard age ceiling as a backstop
+  if ((_healthTick && _healthTick.died) || state.health <= 0 || state.age > 95) {
+    if (_healthTick && _healthTick.causeOfDeath) state.causeOfDeath = _healthTick.causeOfDeath;
     handleDeath();
     return;
   }
@@ -2144,7 +2152,9 @@ function handleDeath() {
   state.alive = false;
   haptic("heavy");
   setTimeout(showDeathInterstitial, 1500); // let the death screen land first
-  const cause = state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : "");
+  const cause = state.causeOfDeath
+    ? (state.causeOfDeath === "old age" ? "of old age, peacefully" : `— ${state.causeOfDeath}`)
+    : (state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : ""));
 
   pruneWill();
   let willText = "";
@@ -2488,6 +2498,47 @@ function renderStory(main) {
 }
 
 function renderHome(main) {
+  // ---- Health & Insurance ----
+  try {
+    const conditions = WayfareCore.health.activeConditions(state);
+    const plan = WayfareCore.health.plan(state);
+    const risk = WayfareCore.health.mortalityRisk(state);
+
+    const htitle = document.createElement("div");
+    htitle.className = "section-title";
+    htitle.textContent = "Health";
+    main.appendChild(htitle);
+
+    const hCard = document.createElement("div");
+    hCard.className = "panel-card";
+    const riskLabel = risk < 0.03 ? "Low" : risk < 0.1 ? "Moderate" : risk < 0.25 ? "Elevated" : "High";
+    const condLine = conditions.length
+      ? conditions.map(c => c.name).join(", ")
+      : "No diagnosed conditions";
+    hCard.innerHTML = `<div class="panel-row" style="margin-bottom:8px;">
+        <div><div class="panel-title">Health ${state.health}/100</div><div class="panel-sub">${condLine}</div></div>
+        <div style="text-align:right;font-size:12px;color:#6b5f4e;">Yearly risk<br><b style="color:var(--ink);">${riskLabel}</b></div>
+      </div>
+      <div class="panel-sub">Insurance: <b>${plan.name}</b>${plan.premium>0?` · ${fmtMoney(plan.premium)}/yr`:""}${plan.coverage>0?` · covers ${Math.round(plan.coverage*100)}%`:""}</div>`;
+    main.appendChild(hCard);
+
+    const planRow = document.createElement("div");
+    planRow.className = "filter-row";
+    WayfareCore.health.plans.forEach(p => {
+      const b = document.createElement("button");
+      b.className = "panel-action" + (p.id === plan.id ? "" : " secondary");
+      b.textContent = p.id === plan.id ? `✓ ${p.name}` : (p.premium>0 ? `${p.name} (${fmtMoney(p.premium)}/yr)` : p.name);
+      b.disabled = p.id === plan.id;
+      b.onclick = () => {
+        WayfareCore.health.setInsurance(state, p.id);
+        log(`${state.name} switched to ${p.name}.`);
+        saveGame(); render();
+      };
+      planRow.appendChild(b);
+    });
+    main.appendChild(planRow);
+  } catch(e) {}
+
   const title = document.createElement("div");
   title.className = "section-title";
   title.textContent = "Your Place";

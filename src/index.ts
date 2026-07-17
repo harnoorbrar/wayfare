@@ -78,6 +78,15 @@ import {
   hasDegree,
 } from './domain/education';
 import { PROGRAMS } from './data/education';
+import {
+  healthYearTick as healthTickImpl,
+  ensureHealth,
+  setInsurance,
+  insurancePlan,
+  conditionById,
+  mortalityRisk,
+} from './domain/health';
+import { CONDITIONS, INSURANCE_PLANS } from './data/health';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -228,6 +237,22 @@ export const education = {
   hasDegree,
   state: ensureEducation,
   current: (state: GameState) => ensureEducation(state).current,
+};
+
+/** One health year: decline, conditions, treatment, and mortality roll. */
+export function healthYearTick(state: GameState) {
+  return healthTickImpl(state, rng);
+}
+
+export const health = {
+  conditions: CONDITIONS,
+  plans: INSURANCE_PLANS,
+  state: ensureHealth,
+  setInsurance,
+  plan: (state: GameState) => insurancePlan(ensureHealth(state).insurance),
+  activeConditions: (state: GameState) =>
+    ensureHealth(state).conditions.map((id) => conditionById(id)).filter(Boolean),
+  mortalityRisk: (state: GameState) => mortalityRisk(state),
 };
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
