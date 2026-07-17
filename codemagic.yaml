@@ -25,6 +25,12 @@ workflows:
       - name: Install npm dependencies
         script: |
           npm ci
+      - name: Build web core bundle
+        script: |
+          npm run build
+      - name: Run unit tests
+        script: |
+          npm test
       - name: Sync Capacitor iOS project
         script: |
           npx cap sync ios

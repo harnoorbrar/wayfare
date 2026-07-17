@@ -15,7 +15,7 @@ const fs = require('fs');
 
 const URL = 'https://harnoorbrar.github.io/wayfare/';
 const OUT_DIR = path.join(__dirname, '..', 'screenshots');
-const SIZE = { width: 1290, height: 2796 }; // 6.7" @3x, App Store required size
+const SIZE = { width: 2048, height: 2732 };
 
 async function shot(page, name) {
   fs.mkdirSync(OUT_DIR, { recursive: true });

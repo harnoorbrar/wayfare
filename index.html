@@ -28,6 +28,7 @@
     --bad: #b3433a;
     --gold: #c99a3a;
     --line: #d8cdb8;
+    --ink-dim: #8a7d6b;
     --shadow: rgba(43,36,32,0.18);
     --font-display: 'Lora', Georgia, serif;
     --font-body: 'Inter', -apple-system, sans-serif;
@@ -326,6 +327,75 @@
     gap: 6px;
     margin-bottom: 10px;
   }
+
+  /* ---------- DOMAIN PANEL COMPONENTS ----------
+     Shared building blocks for the v1.2 system panels (economy, credit,
+     health, education, relationships). Keep new panels on these classes
+     instead of inline styles so theming stays in one place. */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px 12px;
+  }
+  .stat-cell .k {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--ink-dim);
+    margin-bottom: 2px;
+  }
+  .stat-cell .v {
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .meter { min-width: 0; }
+  .meter .k {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--ink-dim);
+    margin-bottom: 3px;
+  }
+  .meter .track {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--paper-dim);
+    overflow: hidden;
+  }
+  .meter .fill { height: 100%; border-radius: 2px; background: var(--accent); }
+  .meter-row { display: flex; gap: 14px; margin-top: 8px; }
+  .meter-row .meter { flex: 1; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--paper-dim);
+    color: var(--ink);
+  }
+  .chip.warn { background: rgba(179,67,58,0.12); color: var(--bad); }
+
+  /* Horizontally scrolling row of quick-amount actions; keeps tall button
+     stacks (deposit/withdraw/borrow) to one thumb-friendly line each. */
+  .amount-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .amount-row::-webkit-scrollbar { display: none; }
+  .amount-row .panel-action { flex-shrink: 0; }
+
+  /* A disabled button that represents the CURRENT selection (not an
+     unavailable action) keeps full contrast. */
+  .panel-action.current:disabled { background: var(--accent); opacity: 1; }
   .filter-chip {
     background: transparent;
     border: 1px solid var(--line);
@@ -677,6 +747,136 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  /* ---------- PREMIUM UI PASS ----------
+     A quiet, layered surface system keeps dense life-sim data easy to scan
+     without compromising the warm editorial character of the game. */
+  #app {
+    background:
+      radial-gradient(circle at 92% -4%, rgba(201,154,58,.13), transparent 29%),
+      linear-gradient(180deg, #fbf7ef 0%, var(--paper) 44%);
+  }
+  #header {
+    padding: 16px 16px 12px;
+    background: rgba(251,247,239,.92);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom-color: rgba(216,205,184,.82);
+  }
+  #header-top { margin-bottom: 11px; }
+  #char-name { font-size: 21px; letter-spacing: -.25px; }
+  #char-age { font-weight: 650; color: var(--ink-dim); }
+  #stats-row { gap: 8px; }
+  .stat-pill {
+    gap: 5px;
+    padding: 7px 7px 6px;
+    background: rgba(255,255,255,.56);
+    border: 1px solid rgba(216,205,184,.64);
+    border-radius: 9px;
+  }
+  .stat-label { font-size: 8.5px; letter-spacing: .62px; }
+  .stat-track { height: 5px; box-shadow: inset 0 1px 1px rgba(43,36,32,.05); }
+  #money-row {
+    margin-top: 10px;
+    padding-top: 9px;
+    border-top: 1px solid rgba(216,205,184,.62);
+  }
+  #money-amt { font-size: 17px; letter-spacing: -.2px; }
+  #main {
+    padding: 18px 16px 106px;
+    background: linear-gradient(180deg, rgba(255,255,255,.18), transparent 140px);
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 22px 2px 9px;
+    font-size: 10px;
+    letter-spacing: 1.1px;
+  }
+  .section-title::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, var(--line), transparent);
+  }
+  .panel-card, .event-card, .floorplan-tile, .furniture-item, .property-card {
+    border-color: rgba(216,205,184,.9);
+    box-shadow: 0 2px 3px rgba(43,36,32,.025), 0 8px 22px rgba(43,36,32,.035);
+  }
+  .panel-card, .event-card, .property-card { border-radius: 14px; }
+  .panel-card { padding: 15px; }
+  .event-card {
+    position: relative;
+    padding: 16px;
+    margin-bottom: 11px;
+    overflow: hidden;
+  }
+  .event-card::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 14px; bottom: 14px;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    background: var(--accent);
+    opacity: .72;
+  }
+  .event-age { font-size: 9.5px; letter-spacing: .85px; }
+  .event-text { font-size: 15px; line-height: 1.55; }
+  .choice-btn {
+    min-height: 46px;
+    padding: 12px 13px;
+    border-radius: 10px;
+    background: rgba(232,223,208,.72);
+    transition: transform .16s ease, background .16s ease, border-color .16s ease;
+  }
+  .choice-btn:active { transform: scale(.985); background: var(--accent-dim); }
+  .panel-action {
+    min-height: 36px;
+    border-radius: 9px;
+    box-shadow: 0 2px 5px rgba(194,84,47,.16);
+    transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+  }
+  .panel-action:active:not(:disabled) { transform: scale(.97); box-shadow: none; }
+  .panel-action.secondary { box-shadow: none; background: rgba(255,255,255,.5); }
+  .filter-chip { min-height: 32px; border-radius: 999px; }
+  #bottom-nav {
+    gap: 2px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255,253,249,.94);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 -8px 26px rgba(43,36,32,.07);
+  }
+  #bottom-nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    flex: 0 0 62px;
+    min-height: 49px;
+    padding: 5px 3px;
+    border-radius: 11px;
+    scroll-snap-align: center;
+    transition: color .16s ease, background .16s ease, transform .16s ease;
+  }
+  .nav-btn.active { color: var(--accent); background: rgba(194,84,47,.10); }
+  .nav-btn:active { transform: scale(.94); }
+  .nav-icon { font-size: 18px; line-height: 1.1; }
+  .nav-label { font-size: 9px; letter-spacing: .12px; }
+  #ageup-btn {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    min-height: 48px;
+    padding: 13px 19px;
+    border: 1px solid rgba(255,255,255,.28);
+    box-shadow: 0 10px 24px rgba(194,84,47,.30), 0 2px 5px rgba(43,36,32,.16);
+  }
+  #room-stage { border-radius: 16px; box-shadow: 0 10px 24px rgba(43,36,32,.08); }
+  .floorplan-tile { border-radius: 13px; transition: transform .16s ease, background .16s ease; }
+  .floorplan-tile:active, .furniture-item:active { transform: scale(.97); }
+  .furniture-item { border-radius: 12px; }
+  #modal-sheet { border-radius: 22px 22px 0 0; box-shadow: 0 -16px 42px rgba(43,36,32,.18); }
 </style>
 </head>
 <body>
@@ -739,6 +939,7 @@
 
 </div>
 
+<script src="js/core.js"></script>
 <script>
 /* =========================================================
    WAYFARE — a solo-buildable life sim
@@ -1107,46 +1308,10 @@ const DEGREES = [
 
 const JOB_CATEGORIES = ["Entry-Level","Trade","Business","Tech","Engineering","Healthcare","Law","Science","Arts & Media","Education","Public Service"];
 
-const JOBS = [
-  { id:"unemployed", title:"Unemployed", payWeek:0, minSmarts:0, requiredDegree:null, category:null },
-  // Entry-Level — no degree needed
-  { id:"retail", title:"Retail Associate", payWeek:480, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
-  { id:"barista", title:"Barista", payWeek:420, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
-  { id:"warehouse", title:"Warehouse Associate", payWeek:500, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
-  { id:"server", title:"Restaurant Server", payWeek:460, minSmarts:0, requiredDegree:null, category:"Entry-Level" },
-  // Trade — trade cert required
-  { id:"electrician", title:"Electrician", payWeek:980, minSmarts:20, requiredDegree:"trade_elec", category:"Trade" },
-  { id:"plumber", title:"Plumber", payWeek:940, minSmarts:18, requiredDegree:"trade_plumb", category:"Trade" },
-  { id:"hvac", title:"HVAC Technician", payWeek:900, minSmarts:18, requiredDegree:"trade_hvac", category:"Trade" },
-  { id:"chef", title:"Chef", payWeek:850, minSmarts:20, requiredDegree:"trade_culinary", category:"Trade" },
-  // Business
-  { id:"office", title:"Office Assistant", payWeek:650, minSmarts:25, requiredDegree:"hs", category:"Business" },
-  { id:"accountant", title:"Accountant", payWeek:1450, minSmarts:45, requiredDegree:"deg_finance", category:"Business" },
-  { id:"marketing", title:"Marketing Manager", payWeek:1550, minSmarts:45, requiredDegree:"deg_business", category:"Business" },
-  { id:"exec", title:"Company Executive", payWeek:4800, minSmarts:65, requiredDegree:"deg_business", category:"Business" },
-  // Tech
-  { id:"itsupport", title:"IT Support Specialist", payWeek:900, minSmarts:30, requiredDegree:"hs", category:"Tech" },
-  { id:"engineer", title:"Software Engineer", payWeek:1900, minSmarts:60, requiredDegree:"deg_cs", category:"Tech" },
-  { id:"datasci", title:"Data Scientist", payWeek:2400, minSmarts:70, requiredDegree:"deg_cs", category:"Tech" },
-  // Engineering
-  { id:"civileng", title:"Civil Engineer", payWeek:1850, minSmarts:55, requiredDegree:"deg_engineering", category:"Engineering" },
-  // Healthcare
-  { id:"nurse", title:"Nurse", payWeek:1350, minSmarts:55, requiredDegree:"deg_nursing", category:"Healthcare" },
-  { id:"doctor", title:"Physician", payWeek:3200, minSmarts:80, requiredDegree:"deg_medicine", category:"Healthcare" },
-  // Law
-  { id:"paralegal", title:"Paralegal", payWeek:1000, minSmarts:40, requiredDegree:"hs", category:"Law" },
-  { id:"lawyer", title:"Lawyer", payWeek:2800, minSmarts:70, requiredDegree:"deg_law", category:"Law" },
-  // Science
-  { id:"researcher", title:"Research Scientist", payWeek:2200, minSmarts:70, requiredDegree:"deg_science", category:"Science" },
-  // Arts & Media
-  { id:"designer", title:"Graphic Designer", payWeek:1100, minSmarts:35, requiredDegree:"deg_arts", category:"Arts & Media" },
-  { id:"journalist", title:"Journalist", payWeek:1150, minSmarts:40, requiredDegree:"deg_communications", category:"Arts & Media" },
-  // Education
-  { id:"teacher", title:"Teacher", payWeek:1050, minSmarts:40, requiredDegree:"deg_education", category:"Education" },
-  // Public Service
-  { id:"police", title:"Police Officer", payWeek:1100, minSmarts:30, requiredDegree:"hs", category:"Public Service" },
-  { id:"firefighter", title:"Firefighter", payWeek:1080, minSmarts:28, requiredDegree:"hs", category:"Public Service" },
-];
+// Careers now live in the typed domain layer (src/data/careers.ts) as
+// ladders with promotions, skills, stress, and prestige. This flat view
+// keeps the legacy shape for the job board and lookups.
+const JOBS = WayfareCore.careers.legacyJobList();
 
 function hasDegree(id) {
   return !!(state.degrees && state.degrees.includes(id));
@@ -1158,8 +1323,8 @@ function degreeMet(job) {
   return !job.requiredDegree || hasDegree(job.requiredDegree);
 }
 
-function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function pick(arr) { return arr[rand(0, arr.length - 1)]; }
+function rand(min, max) { return WayfareCore.rng.int(min, max); }
+function pick(arr) { return WayfareCore.rng.pick(arr); }
 function clamp(v, lo=0, hi=100) { return Math.max(lo, Math.min(hi, v)); }
 function fmtMoney(n) {
   const sign = n < 0 ? "-" : "";
@@ -1169,52 +1334,23 @@ function fmtMoney(n) {
 /* ---------------- STATE ---------------- */
 let state = null;
 
-const SAVE_KEY = "wayfare-save-v1";
-
+// Persistence lives in WayfareCore (src/domain/save.ts): versioned envelope,
+// legacy-save migration, default backfill, and RNG state for determinism.
 function saveGame() {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e) {}
+  try { WayfareCore.persistSave(state); } catch(e) {}
   try { checkAchievements(); } catch(e) {}
 }
 
-// Defaults for every field a save might be missing, keyed by what newGame() sets.
-// Used to backfill old saves so loadGame() never hands back a half-formed state object.
-const SAVE_DEFAULTS = {
-  money: 0, health: 100, happiness: 80, smarts: 30, looks: 50,
-  job: "unemployed", salary: 0, property: null, ownership: null,
-  mortgageBalance: 0, mortgageWeekly: 0, placedFurniture: {}, ownedFurniture: [],
-  activeRoomIndex: null, relationships: [], nextRelId: 1, partner: null,
-  children: [], feed: [], alive: true, degrees: [], studentLoans: 0,
-  vehicles: [], will: {}, peakMoney: 0, activeTab: "story", pendingChoice: null,
-  lastMetAge: -1, savings: 0, investments: { stocks: 0, bonds: 0, crypto: 0 },
-  investmentReturns: { stocks: 0, bonds: 0, crypto: 0 }, businesses: [],
-  lastDateAttemptAge: -1, generation: 1, pets: [],
-};
-
 function loadGame() {
   try {
-    const save = localStorage.getItem(SAVE_KEY);
-    if (save) {
-      state = JSON.parse(save);
-      if (!state.degrees) {
-        // migrate old single-tier educationLevel saves to the new degrees array
-        state.degrees = (state.educationLevel && state.educationLevel !== "None") ? ["hs"] : [];
-        delete state.educationLevel;
-      }
-      Object.keys(SAVE_DEFAULTS).forEach(key => {
-        if (state[key] === undefined) {
-          // clone arrays/objects so saves don't share references to the defaults
-          const d = SAVE_DEFAULTS[key];
-          state[key] = Array.isArray(d) ? [...d] : (typeof d === "object" && d !== null) ? {...d} : d;
-        }
-      });
-      return true;
-    }
+    const loaded = WayfareCore.restoreSave();
+    if (loaded) { state = loaded; return true; }
   } catch(e) {}
   return false;
 }
 
 function deleteSave() {
-  localStorage.removeItem(SAVE_KEY);
+  WayfareCore.clearSave();
 }
 
 /* ---------------- ACHIEVEMENTS (persist across every life) ---------------- */
@@ -1357,6 +1493,7 @@ function makeStartingFamily() {
 }
 
 function newGame() {
+  WayfareCore.reseed(); // fresh RNG seed per life; persisted with the save
   const startingFamily = makeStartingFamily();
   state = {
     name: pick(FIRST_NAMES) + " " + pick(LAST_NAMES),
@@ -1396,6 +1533,8 @@ function newGame() {
     businesses: [],
     generation: 1,
     pets: [],
+    skills: {},
+    yearsAtJob: 0,
   };
   log(`${state.name} was born today. A whole life, waiting to happen.`);
   render();
@@ -1464,7 +1603,7 @@ const EVENTS = [
       ]);
       return { text: `${s.name} ${r[0].charAt(0).toLowerCase()+r[0].slice(1)}`, deltas: r[1] };
   }},
-  { cond: s => s.age>=22 && s.age<=60 && Math.random()<0.5, weight: 1.5, build: s => ({
+  { cond: s => s.age>=22 && s.age<=60 && WayfareCore.rng.next()<0.5, weight: 1.5, build: s => ({
       text: `A promotion opportunity opened up at work. It means more hours.`,
       choices: [
         { label:"Go for it", deltas:[["happiness", rand(2,5)],["health", -3]], result:"Promoted! The pay bump shows up next paycheck.", flag:"promotion" },
@@ -1480,7 +1619,7 @@ const EVENTS = [
         { label:"Keep it platonic", deltas:[], result:"Decided to just be friends for now." },
       ]
   })},
-  { cond: s => s.partner && Math.random()<0.4, weight: 1.2, build: s => {
+  { cond: s => s.partner && WayfareCore.rng.next()<0.4, weight: 1.2, build: s => {
       const r = pick([
         [`${s.name} and ${s.partner} had a wonderful date night.`, [["happiness", rand(3,6)]]],
         [`${s.name} and ${s.partner} had a small argument over chores.`, [["happiness", rand(-4,-1)]]],
@@ -1488,14 +1627,14 @@ const EVENTS = [
       ]);
       return { text: r[0], deltas: r[1] };
   }},
-  { cond: s => s.partner && s.age>=20 && s.age<=50 && Math.random()<0.15, weight: 0.8, build: s => ({
+  { cond: s => s.partner && s.age>=20 && s.age<=50 && WayfareCore.rng.next()<0.15, weight: 0.8, build: s => ({
       text: `${s.partner} brought up marriage.`,
       choices: [
         { label:"Propose", deltas:[["happiness", rand(8,14)],["money", -3000]], result:`Married! ${s.name} and ${s.partner} are now a household.`, flag:"marry" },
         { label:"Not ready yet", deltas:[["happiness", -3]], result:"Decided to wait a little longer." },
       ]
   })},
-  { cond: s => s.partner && s.age>=22 && s.age<=45 && Math.random()<0.12, weight: 0.7, build: s => ({
+  { cond: s => s.partner && s.age>=22 && s.age<=45 && WayfareCore.rng.next()<0.12, weight: 0.7, build: s => ({
       text: `${s.name} and ${s.partner} have been talking about having a baby.`,
       choices: [
         { label:"Start trying", deltas:[["happiness", rand(4,8)],["money", -1500]], result:"A baby is on the way!", flag:"baby" },
@@ -1520,7 +1659,7 @@ const EVENTS = [
   }},
 
   // ---- siblings / extended family ----
-  { cond: s => s.relationships.some(r => r.type === "Sibling") && Math.random() < 0.5, weight: 1.2, build: s => {
+  { cond: s => s.relationships.some(r => r.type === "Sibling") && WayfareCore.rng.next() < 0.5, weight: 1.2, build: s => {
       const sib = pick(s.relationships.filter(r => r.type === "Sibling"));
       const r = pick([
         [`${sib.name} bragged about out-earning ${s.name} this year.`, [["happiness", rand(-5,-2)]], -6],
@@ -1533,19 +1672,19 @@ const EVENTS = [
       sib.lastInteractedAge = s.age;
       return { text: r[0], deltas: r[1] };
   }},
-  { cond: s => s.relationships.filter(r => r.type === "Sibling").length > 0 && s.age>=20 && s.age<=70 && Math.random() < 0.1, weight: 0.6, build: s => {
+  { cond: s => s.relationships.filter(r => r.type === "Sibling").length > 0 && s.age>=20 && s.age<=70 && WayfareCore.rng.next() < 0.1, weight: 0.6, build: s => {
       const sib = pick(s.relationships.filter(r => r.type === "Sibling"));
       const milestone = pick(["got married","had a baby","started a new job","bought a house","went traveling for a year"]);
       sib.closeness = clamp(sib.closeness + rand(2,5), 0, 100);
       return { text: `${sib.name} ${milestone}. ${s.name} couldn't help but feel a mix of pride and envy.`, deltas: [["happiness", rand(-1,4)]] };
   }},
-  { cond: s => s.relationships.filter(r => ["Parent","Sibling","Grandparent","Aunt/Uncle"].includes(r.type)).length >= 2 && Math.random() < 0.18, weight: 0.9, build: s => {
+  { cond: s => s.relationships.filter(r => ["Parent","Sibling","Grandparent","Aunt/Uncle"].includes(r.type)).length >= 2 && WayfareCore.rng.next() < 0.18, weight: 0.9, build: s => {
       const family = s.relationships.filter(r => ["Parent","Sibling","Grandparent","Aunt/Uncle"].includes(r.type));
       family.forEach(r => { r.closeness = clamp(r.closeness + rand(3,7), 0, 100); r.lastInteractedAge = s.age; });
       const names = family.map(r=>r.name).join(", ");
       return { text: `The whole family got together for a reunion -- ${names} all showed up. It was good to reconnect.`, deltas: [["happiness", rand(3,7)]] };
   }},
-  { cond: s => s.relationships.some(r => r.type === "Parent") && s.age >= 45 && Math.random() < 0.15, weight: 0.8, build: s => {
+  { cond: s => s.relationships.some(r => r.type === "Parent") && s.age >= 45 && WayfareCore.rng.next() < 0.15, weight: 0.8, build: s => {
       const parents = s.relationships.filter(r => r.type === "Parent");
       const parent = pick(parents);
       return {
@@ -1589,7 +1728,7 @@ const EVENTS = [
   }},
 
   // ---- accidents / injuries ----
-  { cond: s => s.age>=5 && Math.random()<0.06, weight: 0.5, build: s => {
+  { cond: s => s.age>=5 && WayfareCore.rng.next()<0.06, weight: 0.5, build: s => {
       const r = pick([
         ["tripped down a flight of stairs.", [["health", rand(-15,-8)]], 400],
         ["got into a minor fender-bender.", [["health", rand(-10,-4)]], 1200],
@@ -1606,7 +1745,7 @@ const EVENTS = [
         ]
       };
   }},
-  { cond: s => s.age>=18 && s.age<=70 && Math.random()<0.03, weight: 0.4, build: s => ({
+  { cond: s => s.age>=18 && s.age<=70 && WayfareCore.rng.next()<0.03, weight: 0.4, build: s => ({
       text: `${s.name} was in a serious car accident. It's going to take a while to recover.`,
       choices: [
         { label: "Spend big on the best care ($5,000)", deltas: [["money", -5000],["health", rand(0,5)]], result: "Recovered about as well as anyone could hope." },
@@ -1615,7 +1754,7 @@ const EVENTS = [
   })},
 
   // ---- lawsuits ----
-  { cond: s => s.age>=18 && (s.businesses||[]).length>0 && Math.random()<0.08, weight: 0.5, build: s => {
+  { cond: s => s.age>=18 && (s.businesses||[]).length>0 && WayfareCore.rng.next()<0.08, weight: 0.5, build: s => {
       const biz = pick(s.businesses);
       const def = businessTypeById(biz.typeId);
       const bizName = def ? def.name : "one of their businesses";
@@ -1627,7 +1766,7 @@ const EVENTS = [
         ]
       };
   }},
-  { cond: s => s.age>=25 && s.age<=70 && Math.random()<0.025, weight: 0.35, build: s => ({
+  { cond: s => s.age>=25 && s.age<=70 && WayfareCore.rng.next()<0.025, weight: 0.35, build: s => ({
       text: `${s.name} got served with a lawsuit over a dispute with a neighbor.`,
       choices: [
         { label: "Hire a lawyer ($3,500)", deltas: [["money", -3500],["happiness", -2]], result: "The lawyer got the case dismissed. Expensive, but it's over." },
@@ -1636,20 +1775,20 @@ const EVENTS = [
   })},
 
   // ---- lucky breaks ----
-  { cond: s => s.age>=18 && Math.random()<0.02, weight: 0.3, build: s => {
+  { cond: s => s.age>=18 && WayfareCore.rng.next()<0.02, weight: 0.3, build: s => {
       const windfall = pick([500, 1000, 5000, 25000]);
       return { text: `${s.name} received a surprise inheritance from a distant relative — ${fmtMoney(windfall)}.`, deltas: [["money", windfall],["happiness", rand(8,15)]] };
   }},
-  { cond: s => s.age>=16 && Math.random()<0.015, weight: 0.3, build: s => {
+  { cond: s => s.age>=16 && WayfareCore.rng.next()<0.015, weight: 0.3, build: s => {
       const followers = pick(["a goofy dance", "a pet doing something hilarious", "a heartfelt rant", "an oddly satisfying cleaning video"]);
       const earnings = rand(200,3000);
       return { text: `${s.name} posted ${followers} online and it went viral overnight. Brand deals rolled in (${fmtMoney(earnings)}).`, deltas: [["money", earnings],["happiness", rand(4,9)],["looks", rand(0,3)]] };
   }},
-  { cond: s => s.age>=20 && Math.random()<0.012, weight: 0.25, build: s => {
+  { cond: s => s.age>=20 && WayfareCore.rng.next()<0.012, weight: 0.25, build: s => {
       const amount = rand(3000, 40000);
       return { text: `A distant relative ${s.name} barely knew passed away and left them ${fmtMoney(amount)} in their will.`, deltas: [["money", amount],["happiness", rand(-2,3)]] };
   }},
-  { cond: s => s.age>=18 && s.age<=60 && Math.random()<0.02, weight: 0.3, build: s => ({
+  { cond: s => s.age>=18 && s.age<=60 && WayfareCore.rng.next()<0.02, weight: 0.3, build: s => ({
       text: `${s.name} found an old item in storage that turned out to be valuable.`,
       choices: [
         { label: "Sell it", deltas: [["money", rand(500,8000)]], result: "Sold it to a collector for a tidy sum." },
@@ -1658,7 +1797,7 @@ const EVENTS = [
   })},
 
   // ---- scandals / embarrassments ----
-  { cond: s => s.age>=14 && Math.random()<0.025, weight: 0.35, build: s => {
+  { cond: s => s.age>=14 && WayfareCore.rng.next()<0.025, weight: 0.35, build: s => {
       const r = pick([
         "an old embarrassing photo of them resurfaced online",
         "a group chat screenshot of theirs leaked",
@@ -1667,14 +1806,14 @@ const EVENTS = [
       ]);
       return { text: `${r.charAt(0).toUpperCase()+r.slice(1)}. ${s.name} is mortified.`, deltas: [["happiness", rand(-10,-4)],["looks", rand(-3,0)]] };
   }},
-  { cond: s => s.age>=18 && s.job!=="unemployed" && Math.random()<0.015, weight: 0.3, build: s => ({
+  { cond: s => s.age>=18 && s.job!=="unemployed" && WayfareCore.rng.next()<0.015, weight: 0.3, build: s => ({
       text: `${s.name} accidentally sent a complaint about their boss... to their boss.`,
       choices: [
         { label: "Own up to it", deltas: [["happiness", -5]], result: "Awkward conversation, but it blew over." },
         { label: "Pretend it didn't happen", deltas: [["happiness", -8],["money", state.salary?-state.salary*2:0]], result: "It did not blow over. Things got tense, and it cost them." },
       ]
   })},
-  { cond: s => s.age>=20 && s.partner && Math.random()<0.01, weight: 0.25, build: s => ({
+  { cond: s => s.age>=20 && s.partner && WayfareCore.rng.next()<0.01, weight: 0.25, build: s => ({
       text: `${s.name} got caught in a small lie by ${s.partner}.`,
       choices: [
         { label: "Come clean immediately", deltas: [["happiness", rand(-3,0)]], result: "Honesty smoothed things over faster than expected." },
@@ -1683,26 +1822,26 @@ const EVENTS = [
   })},
 
   // ---- new: childhood chaos ----
-  { cond: s => s.age>=3 && s.age<=7 && Math.random()<0.3, weight: 1.5, build: s => ({
+  { cond: s => s.age>=3 && s.age<=7 && WayfareCore.rng.next()<0.3, weight: 1.5, build: s => ({
       text:`${s.name} put a bean up their nose to see if it would fit. It did. Getting it out was a whole thing.`,
       deltas:[["health", rand(-2,0)],["smarts", 1]]
   })},
-  { cond: s => s.age>=4 && s.age<=9 && Math.random()<0.3, weight: 1.5, build: s => ({
+  { cond: s => s.age>=4 && s.age<=9 && WayfareCore.rng.next()<0.3, weight: 1.5, build: s => ({
       text:`${s.name}'s imaginary friend ${pick(["Gerald","Mr. Whiskers","Big Dave","Toast"])} was blamed for the broken lamp. The alibi did not hold.`,
       deltas:[["happiness", rand(1,4)],["smarts", rand(0,2)]]
   })},
-  { cond: s => s.age>=7 && s.age<=12 && Math.random()<0.35, weight: 1.5, build: s => {
+  { cond: s => s.age>=7 && s.age<=12 && WayfareCore.rng.next()<0.35, weight: 1.5, build: s => {
       const made = rand(8,45);
       return { text:`${s.name} ran a lemonade stand all summer. Undercut the kid across the street. Ruthless.`, deltas:[["money", made],["happiness", rand(2,5)],["smarts", rand(1,3)]] };
   }},
 
   // ---- new: teen years ----
-  { cond: s => s.age>=11 && s.age<=17 && Math.random()<0.12, weight: 1, build: s => ({
+  { cond: s => s.age>=11 && s.age<=17 && WayfareCore.rng.next()<0.12, weight: 1, build: s => ({
       text:`${s.name} did a dumb dance for a video and it went VIRAL. Three days of fame, one very embarrassed family.`,
       deltas:[["happiness", rand(6,12)],["looks", rand(1,3)]],
       ach:"main_character"
   })},
-  { cond: s => s.age>=15 && s.age<=25 && Math.random()<0.25, weight: 1.2, build: s => ({
+  { cond: s => s.age>=15 && s.age<=25 && WayfareCore.rng.next()<0.25, weight: 1.2, build: s => ({
       text:`${s.name} asked for "just a trim." The barber heard something else entirely.`,
       choices: [
         { label:"Own the new look", deltas:[["happiness", rand(2,6)],["looks", rand(-2,3)]], result:"Confidence is a hairstyle. Sort of." },
@@ -1711,50 +1850,50 @@ const EVENTS = [
   })},
 
   // ---- new: adult absurdity ----
-  { cond: s => s.age>=18 && Math.random()<0.2, weight: 1, build: s => ({
+  { cond: s => s.age>=18 && WayfareCore.rng.next()<0.2, weight: 1, build: s => ({
       text:`Gas station sushi, ${rand(40,70)}% off. ${s.name} stares at it. It stares back.`,
       choices: [
         { label:"Eat it", deltas:[["health", rand(-8,-2)],["happiness", rand(3,7)]], result:"A rollercoaster of a night. Zero regrets, several regrets." },
         { label:"Walk away", deltas:[["smarts", 1]], result:"Survival instincts: intact." },
       ]
   })},
-  { cond: s => s.age>=20 && s.age<=55 && Math.random()<0.12, weight: 0.9, build: s => ({
+  { cond: s => s.age>=20 && s.age<=55 && WayfareCore.rng.next()<0.12, weight: 0.9, build: s => ({
       text:`An old classmate slid into ${s.name}'s DMs: "hey!! quick question, do you like MONEY? 💸" It's a pyramid. It's always a pyramid.`,
       choices: [
         { label:"Buy the starter kit", deltas:[["money", -rand(400,1500)],["happiness", rand(-6,-2)],["smarts", rand(2,4)]], result:"The garage is now full of essential oils. An expensive lesson." },
         { label:"Leave them on read", deltas:[["happiness", 2],["smarts", 2]], result:"Blocked, reported, moved on with their life." },
       ]
   })},
-  { cond: s => s.age>=21 && Math.random()<0.2, weight: 1, build: s => ({
+  { cond: s => s.age>=21 && WayfareCore.rng.next()<0.2, weight: 1, build: s => ({
       text:`Karaoke night. The mic is warm. The crowd is waiting. ${s.name}'s song just came on.`,
       choices: [
         { label:"Absolutely destroy it", deltas:[["happiness", rand(5,10)],["looks", rand(0,2)]], result:"Standing ovation from three strangers and one bartender. Legendary." },
         { label:"Film from the booth", deltas:[["happiness", rand(1,3)]], result:"Someone else butchered it instead. Beautiful." },
       ]
   })},
-  { cond: s => s.age>=25 && s.property && Math.random()<0.15, weight: 0.9, build: s => ({
+  { cond: s => s.age>=25 && s.property && WayfareCore.rng.next()<0.15, weight: 0.9, build: s => ({
       text:`The neighbor's hedge has crossed the property line. This is war. Or is it?`,
       choices: [
         { label:"Escalate. Measure it. Print evidence.", deltas:[["happiness", rand(-5,-1)],["smarts", rand(1,3)]], result:"Three months of passive-aggressive lawn signage. Nobody won." },
         { label:"Bring over cookies instead", deltas:[["happiness", rand(4,8)]], result:"Turns out the neighbor is great. The hedge stays. Who cares." },
       ]
   })},
-  { cond: s => s.age>=25 && s.age<=50 && Math.random()<0.15, weight: 0.9, build: s => ({
+  { cond: s => s.age>=25 && s.age<=50 && WayfareCore.rng.next()<0.15, weight: 0.9, build: s => ({
       text:`${s.name} watched one documentary and now wants to run a marathon.`,
       choices: [
         { label:"Actually train for it", deltas:[["health", rand(6,12)],["happiness", rand(2,6)],["money", -200]], result:"Finished in the back third. Cried at the finish line. Worth every blister." },
         { label:"Buy the shoes, skip the running", deltas:[["money", -180],["happiness", rand(1,3)]], result:"The shoes are very comfortable for walking to the fridge." },
       ]
   })},
-  { cond: s => s.age>=28 && s.age<=60 && s.job!=="unemployed" && Math.random()<0.12, weight: 0.8, build: s => ({
+  { cond: s => s.age>=28 && s.age<=60 && s.job!=="unemployed" && WayfareCore.rng.next()<0.12, weight: 0.8, build: s => ({
       text:`${s.name} wrote a LinkedIn post that started with "I don't usually post here, but..." It was about synergy.`,
       deltas:[["happiness", rand(-3,3)],["smarts", rand(-1,1)]]
   })},
-  { cond: s => s.age>=30 && Math.random()<0.12, weight: 0.8, build: s => {
+  { cond: s => s.age>=30 && WayfareCore.rng.next()<0.12, weight: 0.8, build: s => {
       const hobby = pick(["beekeeping","mushroom foraging","fermenting everything in the kitchen","restoring a canoe","competitive birdwatching","making sourdough with a named starter"]);
       return { text:`${s.name} got extremely into ${hobby}. Nobody asked. Everyone heard about it.`, deltas:[["happiness", rand(4,9)],["money", -rand(100,600)],["smarts", rand(1,3)]] };
   }},
-  { cond: s => s.age>=40 && s.age<=60 && Math.random()<0.12, weight: 0.8, build: s => ({
+  { cond: s => s.age>=40 && s.age<=60 && WayfareCore.rng.next()<0.12, weight: 0.8, build: s => ({
       text:`Something is stirring in ${s.name}. The years are moving fast. A decision must be made.`,
       choices: [
         { label:"Questionable ponytail era", deltas:[["happiness", rand(3,8)],["looks", rand(-4,1)]], result:"The ponytail said what words could not." },
@@ -1763,37 +1902,37 @@ const EVENTS = [
   })},
 
   // ---- new: rare & weird ----
-  { cond: s => s.age>=16 && Math.random()<0.03, weight: 0.5, build: s => ({
+  { cond: s => s.age>=16 && WayfareCore.rng.next()<0.03, weight: 0.5, build: s => ({
       text:`Driving home at 2am, ${s.name} saw lights in the sky move in a way lights should not move. No one believes them. They know what they saw.`,
       deltas:[["happiness", rand(-2,5)],["smarts", rand(1,3)]],
       ach:"out_there"
   })},
-  { cond: s => s.age>=18 && Math.random()<0.02, weight: 0.4, build: s => ({
+  { cond: s => s.age>=18 && WayfareCore.rng.next()<0.02, weight: 0.4, build: s => ({
       text:`A piano being hoisted into a third-floor window snapped its rope and missed ${s.name} by inches. INCHES.`,
       deltas:[["health", rand(-4,-1)],["happiness", rand(5,10)]],
       ach:"nine_lives"
   })},
-  { cond: s => s.age>=18 && Math.random()<0.08, weight: 0.6, build: s => ({
+  { cond: s => s.age>=18 && WayfareCore.rng.next()<0.08, weight: 0.6, build: s => ({
       text:`Jury duty. ${s.name} spent four days deciding the fate of a man who stole 340 traffic cones. Justice is complicated.`,
       deltas:[["smarts", rand(2,5)],["happiness", rand(-3,1)],["money", 120]]
   })},
 
   // ---- new: pet chaos ----
-  { cond: s => (s.pets||[]).some(isDog) && Math.random()<0.3, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(isDog) && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
       const dog = pick(s.pets.filter(isDog));
       const r = pick(["ate an entire birthday cake off the counter","buried the TV remote in the yard","barked at the vacuum for a full hour","made best friends with the mail carrier they used to hate"]);
       return { text:`${dog.name} ${r}. 🐕`, deltas:[["happiness", rand(1,5)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="cat") && Math.random()<0.3, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="cat") && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
       const cat = s.pets.find(p=>p.typeId==="cat");
       const r = pick(["brought home a 'gift.' It was not alive","knocked a glass off the table while maintaining eye contact","sat on the keyboard during the most important moment possible","disappeared for two days, returned smelling like someone else's cologne"]);
       return { text:`${cat.name} ${r}. 🐈`, deltas:[["happiness", rand(0,4)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="parrot") && Math.random()<0.35, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="parrot") && WayfareCore.rng.next()<0.35, weight: 1, build: s => {
       const bird = s.pets.find(p=>p.typeId==="parrot");
       return { text:`${bird.name} learned a new word. Where did ${bird.name} learn that word. Company was over. 🦜`, deltas:[["happiness", rand(1,4)],["looks", rand(-1,0)]] };
   }},
-  { cond: s => (s.pets||[]).length>0 && Math.random()<0.1, weight: 0.8, build: s => {
+  { cond: s => (s.pets||[]).length>0 && WayfareCore.rng.next()<0.1, weight: 0.8, build: s => {
       const pet = pick(s.pets);
       const t = petTypeById(pet.typeId) || PET_TYPES[0];
       const bill = rand(300, 1800);
@@ -1806,38 +1945,38 @@ const EVENTS = [
       };
   }},
 
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_husky") && Math.random()<0.35, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_husky") && WayfareCore.rng.next()<0.35, weight: 1, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_husky");
       return { text:`${dog.name} was told "no" and delivered a four-minute rebuttal speech. The neighbors have opinions. 🐺`, deltas:[["happiness", rand(1,4)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_corgi") && Math.random()<0.15, weight: 0.8, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_corgi") && WayfareCore.rng.next()<0.15, weight: 0.8, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_corgi");
       return { text:`A video of ${dog.name} failing to climb one (1) stair got two million views. ${dog.name} remains humble. 🐕‍🦺`, deltas:[["happiness", rand(3,7)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_greatdane") && Math.random()<0.3, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_greatdane") && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_greatdane");
       return { text:`${dog.name} sat on ${s.partner ? s.partner : "a guest"}. There was no warning. There never is. 🐎`, deltas:[["happiness", rand(2,5)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_doberman") && Math.random()<0.3, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_doberman") && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_doberman");
       const r = pick(["scared off a door-to-door salesman by simply existing, then demanded belly rubs","refused to sleep anywhere except pressed against " + s.name + "'s back, all 90 pounds","stood guard at the window for six hours. The threat was a squirrel","trembled through the entire thunderstorm in " + s.name + "'s lap"]);
       return { text:`${dog.name} ${r}. 🖤`, deltas:[["happiness", rand(2,5)]] };
   }},
-  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_chihuahua") && Math.random()<0.3, weight: 1, build: s => {
+  { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_chihuahua") && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_chihuahua");
       return { text:`${dog.name} declared war on a Great Dane at the park. The Great Dane apologized. 🐶`, deltas:[["happiness", rand(2,5)]] };
   }},
 
   // ---- new: golden years ----
-  { cond: s => s.age>=55 && Math.random()<0.2, weight: 1, build: s => ({
+  { cond: s => s.age>=55 && WayfareCore.rng.next()<0.2, weight: 1, build: s => ({
       text:`${s.name} is now the family's entire IT department. "It says error." What says error? "The thing."`,
       deltas:[["smarts", rand(1,3)],["happiness", rand(-4,-1)]]
   })},
-  { cond: s => s.age>=62 && Math.random()<0.2, weight: 1, build: s => ({
+  { cond: s => s.age>=62 && WayfareCore.rng.next()<0.2, weight: 1, build: s => ({
       text:`${s.name} joined the 6am mall walkers. They have matching jackets now. The jackets have a logo. There is a hierarchy.`,
       deltas:[["health", rand(3,7)],["happiness", rand(3,7)]]
   })},
-  { cond: s => s.age>=68 && Math.random()<0.25, weight: 1, build: s => ({
+  { cond: s => s.age>=68 && WayfareCore.rng.next()<0.25, weight: 1, build: s => ({
       text:`${s.name} told the story about the piano again. Everyone's heard it. ${s.name} does not care. It gets better every time.`,
       deltas:[["happiness", rand(3,6)]]
   })},
@@ -1847,7 +1986,7 @@ function weightedEvent() {
   const pool = EVENTS.filter(e => e.cond(state));
   if (pool.length === 0) return null;
   const total = pool.reduce((a,e)=>a+e.weight,0);
-  let r = Math.random()*total;
+  let r = WayfareCore.rng.next()*total;
   for (const e of pool) { r -= e.weight; if (r<=0) return e; }
   return pool[pool.length-1];
 }
@@ -1913,28 +2052,31 @@ function ageUp() {
   state.age++;
   haptic("medium");
 
-  // passive decay
-  applyDelta("health", -rand(0,2));
-  applyDelta("happiness", -rand(0,2));
-  if (state.age > 65) applyDelta("health", -rand(1,3));
+  // world economy advances first: this year's growth, inflation, rates,
+  // housing, markets, shocks and elections are set before any player-facing
+  // system reads them (domain layer)
+  try {
+    const worldTick = WayfareCore.worldYearTick(state);
+    worldTick.messages.forEach(m => log(m.text, m.deltas));
+  } catch(e) {}
 
-  // relationships drift apart if neglected this year
-  state.relationships.forEach(r => {
-    const neglected = (r.lastInteractedAge === undefined) || (r.lastInteractedAge < state.age - 1);
-    if (neglected) {
-      const decay = r.type === "Spouse" || r.type === "Partner" ? rand(2,5) : rand(1,4);
-      r.closeness = clamp(r.closeness - decay);
-    }
-  });
-  // friends (not family/partner/kids) can drift away entirely if the bond goes cold
-  const before = state.relationships.length;
-  state.relationships = state.relationships.filter(r => {
-    if (r.type === "Friend" && r.closeness <= 5) {
-      log(`${state.name} and ${r.name} drifted apart. Haven't spoken in ages.`);
-      return false;
-    }
-    return true;
-  });
+  // health is handled by the domain layer's health tick later this year
+  // (age-curve decline, conditions, treatment, mortality). Happiness still
+  // drifts down a touch each year here.
+  applyDelta("happiness", -rand(0,2));
+  let _healthTick = null;
+  try { _healthTick = WayfareCore.healthYearTick(state); } catch(e) {}
+  if (_healthTick) {
+    _healthTick.messages.forEach(m => log(m.text, m.deltas));
+    if (_healthTick.cashDelta) applyDelta("money", _healthTick.cashDelta);
+  }
+
+  // relationships: trait-driven bonds evolve in the domain layer
+  // (neglect decay, trust/respect drift, NPC-initiated moments, friend churn)
+  try {
+    const relTick = WayfareCore.relationshipYearTick(state);
+    relTick.messages.forEach(m => log(m.text, m.deltas));
+  } catch(e) {}
 
   // pets: happiness, upkeep, aging, and eventually goodbyes
   if (state.pets && state.pets.length) {
@@ -1971,8 +2113,32 @@ function ageUp() {
     });
   }
 
-  // income & housing costs (weekly * 52, simplified to once per year)
-  if (state.salary) applyDelta("money", state.salary * 52);
+  // income & housing costs (weekly * 52, simplified to once per year).
+  // Wages ride cumulative inflation; income tax is withheld at the elected
+  // rate before the money lands.
+  if (state.salary) {
+    let wageMult = 1;
+    try { wageMult = WayfareCore.world.wageMultiplier(state); } catch(e) {}
+    const gross = Math.round(state.salary * 52 * wageMult);
+    let net = gross;
+    try { net = WayfareCore.finance.taxIncome(state, gross).net; } catch(e) {}
+    applyDelta("money", net);
+  }
+
+  // education: advance any enrolled program a year (grades, skills, tuition,
+  // graduation awarding the degree the career ladders gate on) — domain layer
+  try {
+    const edu = WayfareCore.educationYearTick(state);
+    edu.messages.forEach(m => log(m.text, m.deltas));
+    if (edu.graduated) haptic("medium");
+  } catch(e) {}
+
+  // careers: skill growth, raises, promotions, terminations (domain layer)
+  try {
+    const career = WayfareCore.careerYearTick(state);
+    career.messages.forEach(m => log(m.text, m.deltas));
+    if (career.promoted) haptic("medium");
+  } catch(e) {}
   if (state.property && !PROPERTIES.find(p=>p.id===state.property)) {
     // stale/unknown property id from an old save -- fall back to "no property"
     // instead of crashing every year on a lookup that can never succeed.
@@ -2008,50 +2174,39 @@ function ageUp() {
   }
 
   // businesses: weekly profit (or loss) compounded yearly, plus an occasional swing year
+  // businesses: reputation, staffing, marketing, competition, bankruptcy
+  // (domain layer; owner skills feed the numbers)
   if (state.businesses.length) {
-    // drop any business whose catalog entry no longer exists instead of
-    // crashing every year forever -- keeps an old save playable even if the
-    // BUSINESS_TYPES catalog changes in a future update.
-    state.businesses = state.businesses.filter(biz => businessTypeById(biz.typeId));
-    state.businesses.forEach(biz => {
-      const def = businessTypeById(biz.typeId);
-      const rev = businessRevenue(biz), exp = businessExpense(biz);
-      let net = (rev - exp) * 52;
-      if (rand(1,100) <= 20) {
-        const swingPct = rand(-40,60);
-        const swing = Math.round(net * swingPct / 100);
-        net += swing;
-        if (Math.abs(swingPct) >= 25) {
-          log(`${def.name} had a ${swingPct>=0?"banner":"rough"} year — ${swingPct>=0?"+":""}${fmtMoney(swing)} ${swingPct>=0?"extra":"less"} than usual.`);
-        }
-      }
-      applyDelta("money", net);
-    });
+    try {
+      const bizTick = WayfareCore.businessYearTick(state);
+      bizTick.messages.forEach(m => log(m.text, m.deltas));
+      if (bizTick.netTotal) applyDelta("money", bizTick.netTotal);
+    } catch(e) {}
   }
 
-  // bank: savings interest + investment returns
+  // bank: savings interest tracks the central-bank rate + investment returns
   if (state.savings > 0) {
-    const interest = Math.round(state.savings * SAVINGS_APY);
+    let apy = SAVINGS_APY;
+    try { apy = WayfareCore.world.savingsRate(state) / 100; } catch(e) {}
+    const interest = Math.round(state.savings * apy);
     state.savings += interest;
   }
-  Object.keys(INVESTMENT_TYPES).forEach(key => {
-    const bal = state.investments[key];
-    const cfg = INVESTMENT_TYPES[key];
-    if (bal > 0) {
-      const pct = rand(cfg.minReturn, cfg.maxReturn);
-      const change = Math.round(bal * pct / 100);
-      state.investments[key] = Math.max(0, bal + change);
-      state.investmentReturns[key] = pct;
-      if (Math.abs(pct) >= 15) {
-        log(`${state.name}'s ${cfg.name.toLowerCase()} ${change >= 0 ? "jumped" : "dropped"} ${Math.abs(pct)}% this year (${change >= 0 ? "+" : ""}${fmtMoney(change)}).`);
-      }
-    } else {
-      state.investmentReturns[key] = 0;
-    }
-  });
+  // investments marked to the real market move + loan servicing (domain layer).
+  // A market crash now hits every portfolio at once instead of rolling
+  // independent dice per asset.
+  try {
+    const fin = WayfareCore.financeYearTick(state);
+    fin.messages.forEach(m => log(m.text, m.deltas));
+    if (fin.cashDelta) applyDelta("money", fin.cashDelta);
+    Object.keys(INVESTMENT_TYPES).forEach(key => {
+      state.investmentReturns[key] = fin.returns[key] || 0;
+    });
+  } catch(e) {}
 
-  // death check
-  if (state.health <= 0 || state.age > 95) {
+  // death check: the health tick's mortality model decides, with health<=0
+  // as a floor and the hard age ceiling as a backstop
+  if ((_healthTick && _healthTick.died) || state.health <= 0 || state.age > 95) {
+    if (_healthTick && _healthTick.causeOfDeath) state.causeOfDeath = _healthTick.causeOfDeath;
     handleDeath();
     return;
   }
@@ -2060,16 +2215,37 @@ function ageUp() {
     applyDelta("happiness", -8);
   }
 
-  const ev = pickNonRepeatingEvent();
-  if (ev) {
-    const built = ev.build(state);
-    if (built.choices) {
-      state.pendingChoice = built;
-      log(built.text);
-    } else {
-      (built.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
-      log(built.text, built.deltas);
-      if (built.ach) unlockAchievement(built.ach);
+  // Domain chain events (scheduled follow-ups + multi-year narratives) take
+  // priority; they're what make choices echo years later. Fall back to the
+  // legacy one-shot event pool when no chain event fires this year.
+  let domainEvent = null;
+  try { domainEvent = WayfareCore.events.draw(state); } catch(e) {}
+  if (domainEvent) {
+    // Normalize the domain choice shape to what resolveChoice expects, and
+    // tag it so resolveChoice knows to queue any scheduled follow-up.
+    state.pendingChoice = {
+      _chain: true,
+      text: domainEvent.text,
+      choices: domainEvent.choices.map(c => ({
+        label: c.label,
+        deltas: (c.effects||[]).map(e => [e.stat, e.amount]),
+        result: c.result,
+        _schedule: c.schedule || null,
+      })),
+    };
+    log(domainEvent.text);
+  } else {
+    const ev = pickNonRepeatingEvent();
+    if (ev) {
+      const built = ev.build(state);
+      if (built.choices) {
+        state.pendingChoice = built;
+        log(built.text);
+      } else {
+        (built.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
+        log(built.text, built.deltas);
+        if (built.ach) unlockAchievement(built.ach);
+      }
     }
   }
 
@@ -2082,6 +2258,12 @@ function resolveChoice(choiceIndex) {
   (c.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
   log(c.result, c.deltas);
   if (c.ach) unlockAchievement(c.ach);
+
+  // Chain events: queue any follow-up beat this choice scheduled (the
+  // consequence that surfaces years from now).
+  if (c._schedule) {
+    try { WayfareCore.events.resolveSchedule(state, { schedule: c._schedule }); } catch(e) {}
+  }
 
   if (c.flag === "college") state.collegeFlag = true;
   if (c.flag === "promotion") {
@@ -2144,7 +2326,7 @@ function buildLegacy(){
   const age=state.age;
   let cause;
   if(age>95) cause="Died peacefully of old age, mid-nap, mid-dream.";
-  else if(state.health<=0){const f=["Health finally filed its resignation.","The body called it a day.","Ran out of hit points the old-fashioned way."];cause=f[Math.floor(Math.random()*f.length)];}
+  else if(state.health<=0){const f=["Health finally filed its resignation.","The body called it a day.","Ran out of hit points the old-fashioned way."];cause=f[Math.floor(WayfareCore.rng.next()*f.length)];}
   else cause="Cause unknown. The universe shrugged.";
   let epitaph;
   if(state.happiness>70) epitaph="Lived gladly, loved loudly, left light.";
@@ -2175,6 +2357,7 @@ function buildLegacy(){
       <div class="tally-item"><span class="tally-k">Achievements</span><span class="tally-v">${Object.keys(unlockedAch).length}/${ACHIEVEMENTS.length}</span></div>
       <div class="tally-item"><span class="tally-k">Estate</span><span class="tally-v">${fmtMoney(computeNetWorth(state))}</span></div>
       <div class="tally-item"><span class="tally-k">Known by</span><span class="tally-v">${state.relationships.length} people</span></div>
+      ${(()=>{ try { const life=WayfareCore.legacy.lifeScore(state); const dyn=(state.legacyTotal||0)+life.total; return `<div class="tally-item"><span class="tally-k">Life score</span><span class="tally-v">${life.total}</span></div><div class="tally-item"><span class="tally-k">Dynasty</span><span class="tally-v">${Math.round(dyn)} · ${WayfareCore.legacy.rank(dyn)}</span></div>`; } catch(e){ return ""; } })()}
     </div></div>
     ${state.children.length ? `
     <div class="legacy-panel">
@@ -2197,7 +2380,9 @@ function handleDeath() {
   state.alive = false;
   haptic("heavy");
   setTimeout(showDeathInterstitial, 1500); // let the death screen land first
-  const cause = state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : "");
+  const cause = state.causeOfDeath
+    ? (state.causeOfDeath === "old age" ? "of old age, peacefully" : `— ${state.causeOfDeath}`)
+    : (state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : ""));
 
   pruneWill();
   let willText = "";
@@ -2290,6 +2475,14 @@ function continueAsChild(childIndex) {
 
   const oldName = state.name;
   const nextGeneration = (state.generation || 1) + 1;
+  // Heir inherits traits from the parent (nature, regressing to the mean with
+  // variance) rather than rolling from scratch, and carries the dynasty score.
+  let heirTraits = { smarts: rand(25,35), looks: rand(40,70) };
+  let dynastyTotal = state.legacyTotal || 0;
+  try {
+    heirTraits = WayfareCore.legacy.inheritTraits(state);
+    dynastyTotal = WayfareCore.legacy.accumulate(state.legacyTotal || 0, state);
+  } catch(e) {}
   const inheritedProperty = state.property;
   const inheritedOwnership = state.ownership;
   const inheritedMortgageBalance = state.mortgageBalance;
@@ -2321,8 +2514,8 @@ function continueAsChild(childIndex) {
     money: inheritance,
     health: 100,
     happiness: 80,
-    smarts: clamp(rand(25,35)),
-    looks: rand(40,70),
+    smarts: heirTraits.smarts,
+    looks: heirTraits.looks,
     job: "unemployed",
     salary: 0,
     property: inheritedProperty,
@@ -2353,9 +2546,13 @@ function continueAsChild(childIndex) {
     businesses: inheritedBusinesses,
     generation: nextGeneration,
     pets: inheritedPets,
+    skills: {},
+    yearsAtJob: 0,
+    legacyTotal: dynastyTotal,
   };
 
   log(`${state.name} inherited ${oldName}'s home and ${fmtMoney(inheritance)}, and is ready to start their own chapter.`);
+  try { log(`The ${state.name.split(' ').slice(-1)[0]} legacy stands at ${Math.round(dynastyTotal)} — ${WayfareCore.legacy.rank(dynastyTotal)}.`); } catch(e) {}
   document.getElementById("gameover").classList.remove("show");
   saveGame();
   render();
@@ -2432,10 +2629,12 @@ function buyFurniture(fid) {
 
 function applyForJob(jobId) {
   const job = JOBS.find(j=>j.id===jobId);
+  if (!job.entry) { toast("That role is earned by promotion, not application."); return; }
   if (state.smarts < job.minSmarts) { toast(`Needs ${job.minSmarts} smarts.`); return; }
   if (!degreeMet(job)) { toast(`Needs ${degreeById(job.requiredDegree).name}.`); return; }
   state.job = jobId;
   state.salary = job.payWeek;
+  state.yearsAtJob = 0;
   log(`${state.name} got hired as a ${job.title}.`);
   toast(`Hired as ${job.title}!`);
   saveGame();
@@ -2537,6 +2736,47 @@ function renderStory(main) {
 }
 
 function renderHome(main) {
+  // ---- Health & Insurance ----
+  try {
+    const conditions = WayfareCore.health.activeConditions(state);
+    const plan = WayfareCore.health.plan(state);
+    const risk = WayfareCore.health.mortalityRisk(state);
+
+    const htitle = document.createElement("div");
+    htitle.className = "section-title";
+    htitle.textContent = "Health";
+    main.appendChild(htitle);
+
+    const hCard = document.createElement("div");
+    hCard.className = "panel-card";
+    const riskLabel = risk < 0.03 ? "Low" : risk < 0.1 ? "Moderate" : risk < 0.25 ? "Elevated" : "High";
+    const condLine = conditions.length
+      ? conditions.map(c => c.name).join(", ")
+      : "No diagnosed conditions";
+    hCard.innerHTML = `<div class="panel-row" style="margin-bottom:8px;">
+        <div><div class="panel-title">Health ${state.health}/100</div><div class="panel-sub">${condLine}</div></div>
+        <div style="text-align:right;font-size:12px;color:#6b5f4e;">Yearly risk<br><b style="color:var(--ink);">${riskLabel}</b></div>
+      </div>
+      <div class="panel-sub">Insurance: <b>${plan.name}</b>${plan.premium>0?` · ${fmtMoney(plan.premium)}/yr`:""}${plan.coverage>0?` · covers ${Math.round(plan.coverage*100)}%`:""}</div>`;
+    main.appendChild(hCard);
+
+    const planRow = document.createElement("div");
+    planRow.className = "filter-row";
+    WayfareCore.health.plans.forEach(p => {
+      const b = document.createElement("button");
+      b.className = "panel-action" + (p.id === plan.id ? "" : " secondary");
+      b.textContent = p.id === plan.id ? `✓ ${p.name}` : (p.premium>0 ? `${p.name} (${fmtMoney(p.premium)}/yr)` : p.name);
+      b.disabled = p.id === plan.id;
+      b.onclick = () => {
+        WayfareCore.health.setInsurance(state, p.id);
+        log(`${state.name} switched to ${p.name}.`);
+        saveGame(); render();
+      };
+      planRow.appendChild(b);
+    });
+    main.appendChild(planRow);
+  } catch(e) {}
+
   const title = document.createElement("div");
   title.className = "section-title";
   title.textContent = "Your Place";
@@ -2940,13 +3180,55 @@ function renderJob(main) {
   main.appendChild(title);
 
   const cur = JOBS.find(j=>j.id===state.job) || JOBS.find(j=>j.id==="unemployed");
+  const track = WayfareCore.careers.trackOf(state.job);
+  const years = state.yearsAtJob || 0;
   const card = document.createElement("div");
   card.className = "panel-card";
   card.innerHTML = `<div class="panel-row">
-      <div><div class="panel-title">${cur.title}</div><div class="panel-sub">Current position</div></div>
+      <div><div class="panel-title">${cur.title}</div><div class="panel-sub">${track ? track.name + " · " + (years === 1 ? "1 year in" : years + " years in") : "Current position"}</div></div>
       <div style="font-weight:700; color:var(--good);">${fmtMoney(state.salary||cur.payWeek)}/wk</div>
     </div>`;
   main.appendChild(card);
+
+  // Career path: what's next on the ladder, and what's still missing
+  const next = WayfareCore.careers.nextLevel(state.job);
+  if (next) {
+    const gap = WayfareCore.careers.eligibilityGap(state, next, years);
+    const needs = [];
+    if (gap.missingDegree) needs.push(`${(degreeById(gap.missingDegree)||{name:gap.missingDegree}).name}`);
+    if (gap.missingSmarts > 0) needs.push(`${gap.missingSmarts} more smarts`);
+    if (gap.missingYears > 0) needs.push(`${gap.missingYears} more year${gap.missingYears===1?"":"s"} here`);
+    gap.missingSkills.forEach(ms => needs.push(`${WayfareCore.skills.skillName(ms.id)} ${ms.have}/${ms.need}`));
+    const pathCard = document.createElement("div");
+    pathCard.className = "panel-card";
+    pathCard.innerHTML = `<div class="panel-row">
+        <div><div class="panel-title">Next: ${next.title}</div>
+        <div class="panel-sub">${gap.ok ? "Qualified — promotion is a matter of time." : "Needs: " + needs.join(" · ")}</div></div>
+        <div style="font-weight:700; color:var(--gold);">${fmtMoney(next.payWeek)}/wk</div>
+      </div>`;
+    main.appendChild(pathCard);
+  }
+
+  // Skills earned through work
+  const skillIds = Object.keys(state.skills || {}).filter(id => (state.skills[id]||0) > 0);
+  if (skillIds.length) {
+    const stitle = document.createElement("div");
+    stitle.className = "section-title";
+    stitle.textContent = "Skills";
+    main.appendChild(stitle);
+    const sCard = document.createElement("div");
+    sCard.className = "panel-card";
+    sCard.innerHTML = skillIds
+      .sort((a,b) => (state.skills[b]||0) - (state.skills[a]||0))
+      .map(id => {
+        const v = Math.round(state.skills[id]||0);
+        return `<div style="margin:6px 0;">
+          <div class="stat-label"><span>${WayfareCore.skills.skillName(id)}</span><span>${v}</span></div>
+          <div class="stat-track"><div class="stat-fill" style="width:${v}%; background:var(--gold);"></div></div>
+        </div>`;
+      }).join("");
+    main.appendChild(sCard);
+  }
 
   const jtitle = document.createElement("div");
   jtitle.className = "section-title";
@@ -2966,7 +3248,7 @@ function renderJob(main) {
   });
   main.appendChild(filterRow);
 
-  const list = JOBS.filter(j => j.id!=="unemployed" && j.id!==state.job
+  const list = JOBS.filter(j => j.id!=="unemployed" && j.id!==state.job && j.entry
     && (state.jobFilter==="All" || j.category===state.jobFilter));
 
   if (list.length === 0) {
@@ -3001,6 +3283,9 @@ function renderJob(main) {
 }
 
 function renderPeople(main) {
+  // backfill traits/trust/memories on bonds from older saves or code paths
+  try { WayfareCore.relationships.ensureAll(state); } catch(e) {}
+
   const title = document.createElement("div");
   title.className = "section-title";
   title.textContent = "Relationships";
@@ -3113,12 +3398,19 @@ function renderPeople(main) {
     const c = document.createElement("div");
     c.className = "panel-card rel-card";
     const ageLabel = r.type === "Child" ? `, age ${r.age}` : "";
+    const blurb = WayfareCore.relationships.blurbFor(r);
+    const isPartner = r.type === "Partner" || r.type === "Spouse";
+    const compat = isPartner ? WayfareCore.relationships.compatibilityWithPlayer(state, r) : null;
+    const lastMemory = (r.memories && r.memories.length) ? r.memories[r.memories.length-1] : null;
     c.innerHTML = `<div class="panel-row">
-        <div>
+        <div style="width:100%;">
           <div class="panel-title">${r.name}</div>
-          <div class="panel-sub">${r.type}${ageLabel}</div>
+          <div class="panel-sub">${r.type}${ageLabel}${blurb ? " · " + blurb : ""}</div>
           <div class="rel-closeness-track"><div class="rel-closeness-fill" style="width:${r.closeness}%"></div></div>
           <div class="rel-meta">Closeness ${r.closeness}</div>
+          <div class="rel-closeness-track" style="margin-top:4px;"><div class="rel-closeness-fill" style="width:${r.trust||0}%; background:var(--gold);"></div></div>
+          <div class="rel-meta">Trust ${r.trust||0}${compat !== null ? " · Compatibility " + compat + "%" : ""}</div>
+          ${lastMemory ? `<div class="rel-meta" style="font-style:italic; margin-top:4px;">Age ${lastMemory.age}: ${lastMemory.text}</div>` : ""}
         </div>
       </div>`;
 
@@ -3128,8 +3420,17 @@ function renderPeople(main) {
     actions.style.flexWrap='wrap';
     actions.style.gap='6px';
 
-    const interact = (amount, happyAmount, verb) => {
+    // trait-aware bonding through the domain layer (warmth amplifies,
+    // humor lifts mood, trust builds with contact, memories accumulate)
+    const interact = (kind) => {
+      const out = WayfareCore.relationships.applyInteraction(state, r, kind);
+      log(out.text);
+      saveGame(); render();
+    };
+    // legacy path for bespoke actions the domain doesn't model yet
+    const bond = (amount, happyAmount, verb) => {
       r.closeness = clamp(r.closeness + amount, 0, 100);
+      r.trust = clamp((r.trust||50) + rand(1,3), 0, 100);
       r.lastInteractedAge = state.age;
       if (happyAmount) state.happiness = clamp(state.happiness + happyAmount);
       log(`${state.name} ${verb} ${r.name}.`);
@@ -3139,13 +3440,13 @@ function renderPeople(main) {
     const call = document.createElement('button');
     call.className = 'panel-action secondary small';
     call.textContent = 'Call';
-    call.onclick = () => interact(rand(2,5), 1, "called");
+    call.onclick = () => interact('call');
     actions.appendChild(call);
 
     const spend = document.createElement('button');
     spend.className = 'panel-action secondary small';
     spend.textContent = 'Spend Time';
-    spend.onclick = () => interact(rand(6,10), 3, "spent time with");
+    spend.onclick = () => interact('spend');
     actions.appendChild(spend);
 
     const gift = document.createElement('button');
@@ -3154,7 +3455,7 @@ function renderPeople(main) {
     gift.onclick = () => {
       if (state.money < 50) { toast('Need $50'); return; }
       state.money -= 50;
-      interact(rand(10,14), 1, "bought a gift for");
+      interact('gift');
     };
     actions.appendChild(gift);
 
@@ -3165,7 +3466,7 @@ function renderPeople(main) {
       date.onclick = () => {
         if (state.money < 80) { toast('Need $80'); return; }
         state.money -= 80;
-        interact(rand(8,14), 4, "took on a date —");
+        bond(rand(8,14), 4, "took on a date —");
       };
       actions.appendChild(date);
     }
@@ -3214,21 +3515,13 @@ function renderPeople(main) {
 
 
 
-const BUSINESS_TYPES = [
- { id:"lemonade", name:"Lemonade Stand", icon:"\ud83c\udf4b", cost:500, weeklyRevenue:60, weeklyExpense:20, minSmarts:0, category:"Food" },
- { id:"foodtruck", name:"Food Truck", icon:"\ud83c\udf2e", cost:8000, weeklyRevenue:600, weeklyExpense:380, minSmarts:15, category:"Food" },
- { id:"onlinestore", name:"Online Store", icon:"\ud83d\uded2", cost:5000, weeklyRevenue:450, weeklyExpense:250, minSmarts:25, category:"Retail" },
- { id:"coffeeshop", name:"Coffee Shop", icon:"\u2615", cost:25000, weeklyRevenue:1800, weeklyExpense:1200, minSmarts:30, category:"Food" },
- { id:"consulting", name:"Consulting Firm", icon:"\ud83d\udcca", cost:15000, weeklyRevenue:1400, weeklyExpense:700, minSmarts:60, category:"Services" },
- { id:"realestate", name:"Rental Properties", icon:"\ud83c\udfd7\ufe0f", cost:100000, weeklyRevenue:2200, weeklyExpense:900, minSmarts:40, category:"Real Estate" },
- { id:"techstartup", name:"Tech Startup", icon:"\ud83d\ude80", cost:60000, weeklyRevenue:4000, weeklyExpense:3200, minSmarts:75, category:"Tech" },
-];
+// Business economics live in the domain layer (src/domain/businesses.ts):
+// staffing, marketing, reputation, competition, bankruptcy, skill bonuses.
+const BUSINESS_TYPES = WayfareCore.businesses.catalog();
 const BUSINESS_MAX_LEVEL = 5;
 
-function businessTypeById(id) { return BUSINESS_TYPES.find(b=>b.id===id); }
+function businessTypeById(id) { return WayfareCore.businesses.typeById(id); }
 function ownedBusiness(id) { return state.businesses.find(b=>b.typeId===id); }
-function businessRevenue(biz) { const def = businessTypeById(biz.typeId); if (!def) return 0; return Math.round(def.weeklyRevenue * Math.pow(1.18, biz.level-1)); }
-function businessExpense(biz) { const def = businessTypeById(biz.typeId); if (!def) return 0; return Math.round(def.weeklyExpense * Math.pow(1.08, biz.level-1)); }
 function businessUpgradeCost(biz) { const def = businessTypeById(biz.typeId); if (!def) return Infinity; return Math.round(def.cost * 0.6 * biz.level); }
 function businessResaleValue(biz) { return Math.round(biz.totalInvested * 0.55); }
 
@@ -3353,11 +3646,38 @@ function renderBank(main) {
   title.textContent = "Bank & Investments";
   main.appendChild(title);
 
+  // ---- The Economy ----
+  // Live world conditions. Rates below and returns elsewhere derive from here.
+  let econ = null, savingsRate = SAVINGS_APY * 100;
+  try {
+    econ = WayfareCore.world.snapshot(state);
+    savingsRate = WayfareCore.world.savingsRate(state);
+  } catch(e) {}
+  if (econ) {
+    const trend = econ.growth >= 2 ? "📈" : econ.growth < 0 ? "📉" : "➖";
+    const ecoCard = document.createElement("div");
+    ecoCard.className = "panel-card";
+    const stat = (k, v) => `<div class="stat-cell"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+    ecoCard.innerHTML = `<div class="panel-row" style="margin-bottom:10px;">
+        <div><div class="panel-title">The Economy ${trend}</div><div class="panel-sub">${econ.phase}</div></div>
+      </div>
+      <div class="stat-grid">
+        ${stat("Growth", econ.growth.toFixed(1)+"%")}
+        ${stat("Inflation", econ.inflation.toFixed(1)+"%")}
+        ${stat("Interest", econ.interestRate.toFixed(1)+"%")}
+        ${stat("Jobless", econ.unemployment.toFixed(1)+"%")}
+        ${stat("Housing", Math.round(econ.housingIndex))}
+        ${stat("Market", Math.round(econ.marketIndex))}
+        ${stat("Income tax", Math.round(econ.taxRate)+"%")}
+      </div>`;
+    main.appendChild(ecoCard);
+  }
+
   // ---- Savings ----
   const savCard = document.createElement("div");
   savCard.className = "panel-card";
   savCard.innerHTML = `<div class="panel-row">
-      <div><div class="panel-title">Savings Account</div><div class="panel-sub">${(SAVINGS_APY*100).toFixed(1)}% interest, paid yearly, no risk</div></div>
+      <div><div class="panel-title">Savings Account</div><div class="panel-sub">${savingsRate.toFixed(1)}% interest, paid yearly, no risk</div></div>
       <div style="font-weight:700;">${fmtMoney(state.savings)}</div>
     </div>`;
   main.appendChild(savCard);
@@ -3368,7 +3688,7 @@ function renderBank(main) {
   // (that dead-end state read as a bug in App Review -- Guideline 2.1a).
   if (state.money > 0) {
     const savRow = document.createElement("div");
-    savRow.className = "filter-row";
+    savRow.className = "amount-row";
     QUICK_AMOUNTS.filter(amt => amt <= state.money).forEach(amt => {
       const b = document.createElement("button");
       b.className = "panel-action secondary";
@@ -3391,7 +3711,7 @@ function renderBank(main) {
 
   if (state.savings > 0) {
     const wdRow = document.createElement("div");
-    wdRow.className = "filter-row";
+    wdRow.className = "amount-row";
     QUICK_AMOUNTS.filter(amt => amt <= state.savings).forEach(amt => {
       const b = document.createElement("button");
       b.className = "panel-action secondary";
@@ -3406,6 +3726,64 @@ function renderBank(main) {
     wdRow.appendChild(wdAllBtn);
     main.appendChild(wdRow);
   }
+
+  // ---- Credit & Loans ----
+  try {
+    const score = WayfareCore.finance.creditScore(state);
+    const band = WayfareCore.finance.creditBand(score);
+    const debt = WayfareCore.finance.totalDebt(state);
+    const limit = WayfareCore.finance.borrowingLimit(state);
+    const loans = WayfareCore.finance.loans(state);
+
+    const ctitle = document.createElement("div");
+    ctitle.className = "section-title";
+    ctitle.textContent = "Credit & Loans";
+    main.appendChild(ctitle);
+
+    const scorePct = Math.round(((score - 300) / (850 - 300)) * 100);
+    const scoreColor = score >= 740 ? "var(--good)" : score >= 580 ? "var(--gold)" : "var(--bad)";
+    const creditCard = document.createElement("div");
+    creditCard.className = "panel-card";
+    creditCard.innerHTML = `<div class="panel-row" style="margin-bottom:8px;">
+        <div><div class="panel-title">Credit Score</div><div class="panel-sub">${band}${debt>0?` · ${fmtMoney(debt)} owed`:""}</div></div>
+        <div style="font-weight:700;color:${scoreColor};">${score}</div>
+      </div>
+      <div class="meter"><div class="track"><div class="fill" style="width:${scorePct}%;background:${scoreColor};"></div></div></div>`;
+    main.appendChild(creditCard);
+
+    loans.forEach(loan => {
+      const lc = document.createElement("div");
+      lc.className = "panel-card";
+      lc.innerHTML = `<div class="panel-row">
+          <div><div class="panel-title">${loan.kind.charAt(0).toUpperCase()+loan.kind.slice(1)} Loan</div>
+          <div class="panel-sub">${loan.rate}% · ${fmtMoney(loan.yearlyPayment)}/yr</div></div>
+          <div style="font-weight:700;color:var(--bad);">${fmtMoney(loan.balance)}</div>
+        </div>`;
+      main.appendChild(lc);
+    });
+
+    if (limit > 0) {
+      const borrowRow = document.createElement("div");
+      borrowRow.className = "amount-row";
+      [5000, 20000, 50000].filter(a => a <= limit).forEach(amt => {
+        const b = document.createElement("button");
+        b.className = "panel-action secondary";
+        b.textContent = `Borrow ${fmtMoney(amt)}`;
+        b.onclick = () => {
+          const q = WayfareCore.finance.takeLoan(state, amt);
+          if (q.approved) { log(`${state.name} took a ${fmtMoney(amt)} personal loan at ${q.rate}%.`); saveGame(); render(); }
+          else toast(q.reason || "Loan denied.");
+        };
+        borrowRow.appendChild(b);
+      });
+      if (borrowRow.children.length) main.appendChild(borrowRow);
+    } else {
+      const hint = document.createElement("div");
+      hint.className = "panel-empty";
+      hint.textContent = score < 580 ? "Your credit is too low to borrow right now. Pay down debt and build a history." : "No borrowing room right now.";
+      main.appendChild(hint);
+    }
+  } catch(e) {}
 
   // ---- Investments ----
   const ititle = document.createElement("div");
@@ -3483,13 +3861,18 @@ function renderBusiness(main) {
     main.appendChild(owned);
 
     state.businesses.forEach(biz => {
+      WayfareCore.businesses.ensure(biz);
       const def = businessTypeById(biz.typeId);
-      const rev = businessRevenue(biz), exp = businessExpense(biz);
-      const weeklyNet = rev - exp;
+      const weeklyNet = WayfareCore.businesses.weeklyNet(state, biz);
       const card = document.createElement("div");
       card.className = "panel-card";
       card.innerHTML = `<div class="panel-row">
-          <div><div class="panel-title">${def.icon} ${def.name}</div><div class="panel-sub">Level ${biz.level}/${BUSINESS_MAX_LEVEL} · ${weeklyNet>=0?"+":""}${fmtMoney(weeklyNet)}/wk net</div></div>
+          <div style="width:100%;">
+            <div class="panel-title">${def.icon} ${def.name}</div>
+            <div class="panel-sub">Level ${biz.level}/${BUSINESS_MAX_LEVEL} · Staff ${biz.staff}/${def.maxStaff} · ${weeklyNet>=0?"+":""}${fmtMoney(weeklyNet)}/wk net${biz.marketingYears>0 ? " · 📣 campaign live" : ""}${biz.lossYears>0 ? ` · ⚠️ ${biz.lossYears} losing yr${biz.lossYears===1?"":"s"}` : ""}</div>
+            <div class="rel-closeness-track" style="margin-top:6px;"><div class="rel-closeness-fill" style="width:${biz.reputation}%; background:var(--gold);"></div></div>
+            <div class="rel-meta">Reputation ${biz.reputation}</div>
+          </div>
         </div>`;
       main.appendChild(card);
 
@@ -3503,13 +3886,43 @@ function renderBusiness(main) {
         upBtn.disabled = state.money < upCost;
         upBtn.onclick = () => upgradeBusiness(biz.typeId);
         row.appendChild(upBtn);
-      } else {
-        const maxed = document.createElement("button");
-        maxed.className = "panel-action secondary";
-        maxed.textContent = "Fully Upgraded";
-        maxed.disabled = true;
-        row.appendChild(maxed);
       }
+      if (biz.staff < def.maxStaff) {
+        const hireBtn = document.createElement("button");
+        hireBtn.className = "panel-action secondary";
+        hireBtn.textContent = `Hire (${fmtMoney(def.staffSalaryWeek)}/wk)`;
+        hireBtn.onclick = () => {
+          const out = WayfareCore.businesses.hireStaff(biz);
+          if (!out.ok) { toast(out.reason); return; }
+          log(`${state.name} hired someone at ${def.name}.`);
+          saveGame(); render();
+        };
+        row.appendChild(hireBtn);
+      }
+      if (biz.staff > 0) {
+        const fireBtn = document.createElement("button");
+        fireBtn.className = "panel-action secondary";
+        fireBtn.textContent = "Let One Go";
+        fireBtn.onclick = () => {
+          const out = WayfareCore.businesses.letStaffGo(biz);
+          if (!out.ok) { toast(out.reason); return; }
+          log(`${state.name} let someone go at ${def.name}. Word gets around.`);
+          saveGame(); render();
+        };
+        row.appendChild(fireBtn);
+      }
+      const mktCost = WayfareCore.businesses.marketingCost(biz);
+      const mktBtn = document.createElement("button");
+      mktBtn.className = "panel-action secondary";
+      mktBtn.textContent = biz.marketingYears > 0 ? "Campaign Running" : `Marketing (${fmtMoney(mktCost)})`;
+      mktBtn.disabled = biz.marketingYears > 0 || state.money < mktCost;
+      mktBtn.onclick = () => {
+        const out = WayfareCore.businesses.runMarketing(state, biz);
+        if (!out.ok) { toast(out.reason); return; }
+        log(`${state.name} launched a marketing push for ${def.name}. 📣`);
+        saveGame(); render();
+      };
+      row.appendChild(mktBtn);
       const sellBtn = document.createElement("button");
       sellBtn.className = "panel-action secondary";
       sellBtn.textContent = `Sell (${fmtMoney(businessResaleValue(biz))})`;
@@ -3562,6 +3975,24 @@ function renderEducation(main) {
     : `<div class="panel-title">No degrees yet</div><div class="panel-sub">A high school diploma unlocks trade school and university</div>`;
   main.appendChild(card);
 
+  // Currently enrolled? Show progress instead of the catalog's Enroll button.
+  let enrollment = null;
+  try { enrollment = WayfareCore.education.current(state); } catch(e) {}
+  if (enrollment) {
+    const prog = DEGREES.find(d => d.id === enrollment.programId);
+    const pct = Math.round((enrollment.yearsDone / enrollment.totalYears) * 100);
+    let gpa = null; try { gpa = WayfareCore.education.currentGpa(state); } catch(e) {}
+    const ec = document.createElement("div");
+    ec.className = "panel-card";
+    ec.innerHTML = `<div class="panel-row" style="margin-bottom:8px;">
+        <div><div class="panel-title">📚 Enrolled: ${prog ? prog.name : enrollment.programId}</div>
+        <div class="panel-sub">Year ${enrollment.yearsDone} of ${enrollment.totalYears}${gpa!=null?` · GPA ${gpa.toFixed(2)}`:""}${enrollment.scholarship>0?` · ${Math.round(enrollment.scholarship*100)}% scholarship`:""}</div></div>
+      </div>
+      <div class="rel-closeness-track"><div class="rel-closeness-fill" style="width:${pct}%;background:var(--good);"></div></div>
+      <div class="rel-meta" style="margin-top:6px;">Age up to keep studying. Tuition ${fmtMoney(enrollment.yearlyTuition)}/yr becomes student debt.</div>`;
+    main.appendChild(ec);
+  }
+
   ["High School","Trade School","University"].forEach(tier => {
     const tdiv = document.createElement("div");
     tdiv.className = "section-title";
@@ -3570,28 +4001,27 @@ function renderEducation(main) {
 
     DEGREES.filter(d => d.tier === tier).forEach(d => {
       const already = hasDegree(d.id);
-      const prereqMet = !d.prereq || hasDegree(d.prereq);
+      let check = { ok: false, reason: "" };
+      try { check = WayfareCore.education.canEnroll(state, d.id); } catch(e) {}
+      const prog = WayfareCore.education.programById ? WayfareCore.education.programById(d.id) : null;
+      const years = prog ? prog.years : 1;
       const c = document.createElement("div");
       c.className = "panel-card";
       const sub = already
         ? "Completed"
-        : !prereqMet
-          ? `Needs ${degreeById(d.prereq).name} first`
-          : (d.cost===0 ? "Free" : "Tuition "+fmtMoney(d.cost)) + (d.field ? ` · ${d.field}` : "");
+        : !check.ok
+          ? (check.reason || "Locked")
+          : `${years} yr${years===1?"":"s"} · Tuition ${d.cost===0?"Free":fmtMoney(d.cost)}${check.scholarship>0?` · ${Math.round(check.scholarship*100)}% scholarship`:""}${d.field?` · ${d.field}`:""}`;
       c.innerHTML = `<div class="panel-row"><div><div class="panel-title">${d.name}</div><div class="panel-sub">${sub}</div></div></div>`;
       const b=document.createElement("button");
-      b.className="panel-action" + (already || !prereqMet ? "" : "");
+      b.className="panel-action";
       b.textContent = already ? "Owned" : "Enroll";
-      b.disabled = already || !prereqMet || state.age<18;
+      b.disabled = already || !check.ok || !!enrollment;
       b.style.marginTop = "8px";
       b.onclick=()=>{
-        if(state.age<18){toast("Must be 18+");return;}
-        if(!prereqMet){toast(`Needs ${degreeById(d.prereq).name} first`);return;}
-        if(d.cost>0){state.studentLoans+=d.cost;}
-        state.degrees = state.degrees || [];
-        state.degrees.push(d.id);
-        state.smarts=clamp(state.smarts+d.smarts);
-        log(`${state.name} completed ${d.name}.`);
+        const res = WayfareCore.education.enroll(state, d.id);
+        if (!res.ok) { toast(res.reason || "Can't enroll."); return; }
+        log(`${state.name} enrolled in ${d.name}${res.scholarship>0?` on a ${Math.round(res.scholarship*100)}% scholarship`:""}.`);
         saveGame();
         render();
       };
