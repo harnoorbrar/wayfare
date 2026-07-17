@@ -33,8 +33,11 @@ workflows:
           xcode-project use-profiles
       - name: Increment build number
         script: |
+          # Offset by 6: builds 1-6 were uploaded to App Store Connect before
+          # this Codemagic pipeline existed, and its BUILD_NUMBER counter
+          # starts at 1. Upload fails unless the build number exceeds 6.
           cd $CM_BUILD_DIR/ios/App
-          agvtool new-version -all $(($BUILD_NUMBER + 1))
+          agvtool new-version -all $(($BUILD_NUMBER + 6))
       - name: Build ipa for App Store distribution
         script: |
           xcode-project build-ipa \
