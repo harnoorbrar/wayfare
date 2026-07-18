@@ -37,6 +37,28 @@ describe('event data integrity', () => {
   });
 });
 
+describe('repeat cooldowns', () => {
+  it('never draws the same repeatable event twice within its cooldown', () => {
+    const s = life({ age: 20 });
+    const rng = new Rng(3);
+    const firedAt: Record<string, number[]> = {};
+    for (let year = 0; year < 40; year++) {
+      s.age++;
+      const inst = drawEvent(s, rng);
+      if (!inst) continue;
+      (firedAt[inst.id] ??= []).push(s.age);
+    }
+    for (const [id, ages] of Object.entries(firedAt)) {
+      const def = EVENTS.find((e) => e.id === id)!;
+      if (def.scheduledOnly) continue;
+      const cooldown = def.cooldownYears ?? 4;
+      for (let i = 1; i < ages.length; i++) {
+        expect(ages[i] - ages[i - 1], `${id} refired too soon`).toBeGreaterThanOrEqual(cooldown);
+      }
+    }
+  });
+});
+
 describe('drawEvent', () => {
   it('respects requirements (no startup pitch when broke)', () => {
     const broke = life({ money: 0 });

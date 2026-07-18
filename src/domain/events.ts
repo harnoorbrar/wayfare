@@ -8,7 +8,7 @@
  * "instance" ({ id, text, choices }) that the monolith shows as a pending
  * choice, then calls resolveChoiceSchedule when the player picks.
  */
-import { EVENTS, type EventChoice, type EventDef } from '../data/events';
+import { DEFAULT_COOLDOWN_YEARS, EVENTS, type EventChoice, type EventDef } from '../data/events';
 import { Rng } from './rng';
 import type { GameState } from './state';
 
@@ -26,6 +26,8 @@ export interface EventsState {
   scheduled: ScheduledEvent[];
   /** Ids of once-only events already seen. */
   fired: string[];
+  /** Age each event last fired at, for repeat cooldowns. */
+  lastFiredAge: Record<string, number>;
 }
 
 export interface EventInstance {
@@ -36,9 +38,10 @@ export interface EventInstance {
 
 export function ensureEvents(state: GameState): EventsState {
   const s = state as unknown as { events?: EventsState };
-  if (!s.events) s.events = { scheduled: [], fired: [] };
+  if (!s.events) s.events = { scheduled: [], fired: [], lastFiredAge: {} };
   if (!Array.isArray(s.events.scheduled)) s.events.scheduled = [];
   if (!Array.isArray(s.events.fired)) s.events.fired = [];
+  if (typeof s.events.lastFiredAge !== 'object' || s.events.lastFiredAge === null) s.events.lastFiredAge = {};
   return s.events;
 }
 
@@ -80,22 +83,35 @@ export function drawEvent(state: GameState, rng: Rng): EventInstance | null {
     }
     const def = eventById(targetId);
     if (!def) return null;
-    markFired(es, def);
+    markFired(es, def, state.age);
     return toInstance(def);
   }
 
-  // 2. Otherwise draw a spontaneous, eligible event.
+  // 2. Otherwise draw a spontaneous, eligible event. Repeatable events sit
+  // out their cooldown so the same beat can't dominate consecutive years.
   const pool = EVENTS.filter(
-    (e) => !e.scheduledOnly && e.weight > 0 && (!e.once || !es.fired.includes(e.id)) && meetsRequirements(state, e),
+    (e) =>
+      !e.scheduledOnly &&
+      e.weight > 0 &&
+      (!e.once || !es.fired.includes(e.id)) &&
+      offCooldown(es, e, state.age) &&
+      meetsRequirements(state, e),
   );
   if (pool.length === 0) return null;
   const def = rng.weighted(pool.map((e) => [e, e.weight] as const));
-  markFired(es, def);
+  markFired(es, def, state.age);
   return toInstance(def);
 }
 
-function markFired(es: EventsState, def: EventDef): void {
+function offCooldown(es: EventsState, def: EventDef, age: number): boolean {
+  const last = es.lastFiredAge[def.id];
+  if (last === undefined) return true;
+  return age - last >= (def.cooldownYears ?? DEFAULT_COOLDOWN_YEARS);
+}
+
+function markFired(es: EventsState, def: EventDef, age: number): void {
   if (def.once && !es.fired.includes(def.id)) es.fired.push(def.id);
+  es.lastFiredAge[def.id] = age;
 }
 
 /**

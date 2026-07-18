@@ -841,17 +841,44 @@
   .panel-action.secondary { box-shadow: none; background: rgba(255,255,255,.5); }
   .filter-chip { min-height: 32px; border-radius: 999px; }
   #bottom-nav {
-    gap: 2px;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    padding: 7px 8px calc(7px + env(safe-area-inset-bottom, 0px));
+    display: block;
+    padding: 0;
     background: rgba(255,253,249,.94);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     box-shadow: 0 -8px 26px rgba(43,36,32,.07);
   }
-  #bottom-nav::-webkit-scrollbar { display: none; }
+  #nav-scroll {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom, 0px));
+  }
+  #nav-scroll::-webkit-scrollbar { display: none; }
+  /* Edge fades hinting that more tabs sit off-screen; toggled from JS. */
+  #bottom-nav::before, #bottom-nav::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 34px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .18s ease;
+    z-index: 2;
+  }
+  #bottom-nav::before {
+    left: 0;
+    background: linear-gradient(90deg, rgba(255,253,249,.96), rgba(255,253,249,0));
+  }
+  #bottom-nav::after {
+    right: 0;
+    background: linear-gradient(270deg, rgba(255,253,249,.96), rgba(255,253,249,0));
+  }
+  #bottom-nav.fade-left::before { opacity: 1; }
+  #bottom-nav.fade-right::after { opacity: 1; }
   .nav-btn {
     flex: 0 0 62px;
     min-height: 49px;
@@ -919,10 +946,12 @@
   <button id="ageup-btn" style="display: flex;">⏵ Age Up</button>
 
   <div id="bottom-nav">
+    <div id="nav-scroll">
     <button class="nav-btn active" data-tab="story"><span class="nav-icon">📜</span><span class="nav-label">Story</span></button>
     <button class="nav-btn" data-tab="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
     <button class="nav-btn" data-tab="job"><span class="nav-icon">💼</span><span class="nav-label">Career</span></button>
     <button class="nav-btn" data-tab="people"><span class="nav-icon">👥</span><span class="nav-label">People</span></button><button class="nav-btn" data-tab="education"><span class="nav-icon">🎓</span><span class="nav-label">Education</span></button><button class="nav-btn" data-tab="vehicles"><span class="nav-icon">🚗</span><span class="nav-label">Vehicles</span></button><button class="nav-btn" data-tab="bank"><span class="nav-icon">🏦</span><span class="nav-label">Bank</span></button><button class="nav-btn" data-tab="business"><span class="nav-icon">🏢</span><span class="nav-label">Business</span></button>
+    </div>
   </div>
 
   <div id="modal-overlay">
@@ -2680,7 +2709,9 @@ function render() {
 
   document.querySelectorAll(".nav-btn").forEach(b=>{
     b.classList.toggle("active", b.dataset.tab === state.activeTab);
+    if (b.dataset.tab === state.activeTab) b.scrollIntoView({ block: "nearest", inline: "center" });
   });
+  updateNavFades();
 
   const main = document.getElementById("main");
   main.innerHTML = "";
@@ -4317,6 +4348,17 @@ document.addEventListener("click", e => {
 document.querySelectorAll(".nav-btn").forEach(b=>{
   b.addEventListener("click", ()=>{ state.activeTab = b.dataset.tab; render(); });
 });
+// Edge fades on the tab bar: show whichever side has tabs hidden off-screen.
+function updateNavFades() {
+  const nav = document.getElementById("bottom-nav");
+  const sc = document.getElementById("nav-scroll");
+  if (!nav || !sc) return;
+  nav.classList.toggle("fade-left", sc.scrollLeft > 4);
+  nav.classList.toggle("fade-right", sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 4);
+}
+document.getElementById("nav-scroll").addEventListener("scroll", updateNavFades, { passive: true });
+window.addEventListener("resize", updateNavFades);
+updateNavFades();
 document.getElementById("ageup-btn").addEventListener("click", () => {
   try { ageUp(); } catch(e) { console.error(e); openErrorModal(e); }
 });
