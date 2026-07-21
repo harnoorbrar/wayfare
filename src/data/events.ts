@@ -57,9 +57,17 @@ export interface EventDef {
   readonly scheduledOnly?: boolean;
   /** Only draw/fire once per life. */
   readonly once?: boolean;
+  /**
+   * Years before this event can be drawn spontaneously again
+   * (default DEFAULT_COOLDOWN_YEARS). Scheduled fires ignore cooldowns.
+   */
+  readonly cooldownYears?: number;
   readonly requires?: EventRequirements;
   readonly choices: readonly EventChoice[];
 }
+
+/** Repeatable events wait this many years between draws unless overridden. */
+export const DEFAULT_COOLDOWN_YEARS = 4;
 
 export const EVENTS: readonly EventDef[] = [
   // --- Startup investment chain -------------------------------------------
@@ -160,7 +168,9 @@ export const EVENTS: readonly EventDef[] = [
   {
     id: 'found_wallet',
     text: 'You find a wallet stuffed with cash on the sidewalk.',
-    weight: 0.8,
+    // Filler beat: kept rare so it never becomes the texture of a life.
+    weight: 0.3,
+    cooldownYears: 12,
     requires: { minAge: 12 },
     choices: [
       { label: 'Return it', effects: [{ stat: 'happiness', amount: 8 }], result: 'The owner was overjoyed. You feel good about yourself.' },

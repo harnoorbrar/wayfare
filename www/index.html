@@ -7,6 +7,16 @@
 <!-- PWA: installability -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#c2542f">
+<meta name="color-scheme" content="light dark">
+<script>
+  (() => {
+    const key = "wayfare-theme";
+    let preference = "system";
+    try { preference = localStorage.getItem(key) || "system"; } catch (e) {}
+    const dark = preference === "dark" || (preference === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+  })();
+</script>
 
 <!-- iOS: Safari ignores manifest.json almost entirely, needs its own tags -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -694,14 +704,21 @@
   .tally-v{color:var(--paper);font-weight:600;text-align:right;}
   #gameover{justify-content:flex-start!important;overflow-y:auto;}
 
-  #header-right { display:flex; align-items:baseline; gap:10px; }
+  #header-right { display:flex; align-items:center; gap:7px; }
+  #plus-btn, #settings-btn {
+    width: 32px; height: 32px; display:grid; place-items:center;
+    font: inherit; font-size: 14px; font-weight: 700; line-height: 1;
+    border-radius: 11px; cursor: pointer;
+    transition: transform .16s ease, background .16s ease, border-color .16s ease;
+  }
   #plus-btn {
-    font: inherit; font-size: 13px; font-weight: 700; line-height: 1;
     color: #a8925f; background: rgba(168,146,95,0.10);
-    border: 1px solid rgba(168,146,95,0.35); border-radius: 999px;
-    padding: 3px 9px; cursor: pointer;
+    border: 1px solid rgba(168,146,95,0.35);
   }
   #plus-btn.owned { color: #6d5a2e; background: rgba(168,146,95,0.22); }
+  #settings-btn { color:var(--ink-dim); background:rgba(255,255,255,.46); border:1px solid var(--line); }
+  #plus-btn:active, #settings-btn:active { transform:scale(.92); }
+  #char-age { margin-left:2px; padding:5px 8px; border-radius:999px; background:rgba(255,255,255,.42); }
   .paywall-sub { font-size: 13px; color: #6a6258; margin: 4px 0 12px; line-height: 1.45; }
   .paywall-perks { display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
   .pw-perk { font-size: 13.5px; font-weight: 600; }
@@ -739,6 +756,24 @@
     font-size: 12px; font-weight: 700; padding: 2px 9px;
     background: rgba(0,0,0,0.08); border-radius: 999px;
   }
+  .story-hero {
+    margin: 0 0 14px;
+    padding: 16px;
+    border: 1px solid rgba(194,84,47,.20);
+    border-radius: 16px;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(201,154,58,.18), transparent 36%),
+      linear-gradient(135deg, #fffaf1, #f4ead9);
+    box-shadow: 0 9px 24px rgba(73,52,26,.07);
+  }
+  .story-hero-kicker { color: var(--accent); font-size: 9.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+  .story-hero-title { margin-top: 4px; font-family: var(--font-display); font-size: 22px; font-weight: 650; letter-spacing: -.25px; }
+  .story-hero-copy { margin-top: 4px; color: var(--ink-dim); font-size: 12.5px; line-height: 1.45; }
+  .story-timeline-label { display:flex; align-items:center; gap:8px; margin: 1px 2px 9px; color:var(--ink-dim); font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+  .story-timeline-label::after { content:""; flex:1; height:1px; background:linear-gradient(90deg, var(--line), transparent); }
+  .story-screen .event-card { margin-left: 12px; }
+  .story-screen .event-card::after { content:""; position:absolute; left:-18px; top:20px; width:8px; height:8px; border:2px solid var(--paper); border-radius:50%; background:var(--accent); box-shadow:0 0 0 1px rgba(194,84,47,.38); }
+  .story-screen .event-card.latest-event { background:linear-gradient(135deg, #fff, #fffaf5); border-color:rgba(194,84,47,.28); }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -786,6 +821,8 @@
     padding: 18px 16px 106px;
     background: linear-gradient(180deg, rgba(255,255,255,.18), transparent 140px);
   }
+  .panel-title { letter-spacing: -.1px; }
+  .panel-sub { line-height: 1.45; }
   .section-title {
     display: flex;
     align-items: center;
@@ -823,6 +860,7 @@
   }
   .event-age { font-size: 9.5px; letter-spacing: .85px; }
   .event-text { font-size: 15px; line-height: 1.55; }
+  .event-delta { border-radius: 999px; padding: 3px 7px; font-size: 10px; }
   .choice-btn {
     min-height: 46px;
     padding: 12px 13px;
@@ -841,17 +879,44 @@
   .panel-action.secondary { box-shadow: none; background: rgba(255,255,255,.5); }
   .filter-chip { min-height: 32px; border-radius: 999px; }
   #bottom-nav {
-    gap: 2px;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    padding: 7px 8px calc(7px + env(safe-area-inset-bottom, 0px));
+    display: block;
+    padding: 0;
     background: rgba(255,253,249,.94);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     box-shadow: 0 -8px 26px rgba(43,36,32,.07);
   }
-  #bottom-nav::-webkit-scrollbar { display: none; }
+  #nav-scroll {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom, 0px));
+  }
+  #nav-scroll::-webkit-scrollbar { display: none; }
+  /* Edge fades hinting that more tabs sit off-screen; toggled from JS. */
+  #bottom-nav::before, #bottom-nav::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 34px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .18s ease;
+    z-index: 2;
+  }
+  #bottom-nav::before {
+    left: 0;
+    background: linear-gradient(90deg, rgba(255,253,249,.96), rgba(255,253,249,0));
+  }
+  #bottom-nav::after {
+    right: 0;
+    background: linear-gradient(270deg, rgba(255,253,249,.96), rgba(255,253,249,0));
+  }
+  #bottom-nav.fade-left::before { opacity: 1; }
+  #bottom-nav.fade-right::after { opacity: 1; }
   .nav-btn {
     flex: 0 0 62px;
     min-height: 49px;
@@ -877,6 +942,51 @@
   .floorplan-tile:active, .furniture-item:active { transform: scale(.97); }
   .furniture-item { border-radius: 12px; }
   #modal-sheet { border-radius: 22px 22px 0 0; box-shadow: 0 -16px 42px rgba(43,36,32,.18); }
+
+  /* ---------- APPEARANCE & DARK MODE ---------- */
+  .settings-head { display:flex; align-items:center; gap:11px; margin-bottom:18px; }
+  .settings-icon { width:40px; height:40px; display:grid; place-items:center; border-radius:13px; color:var(--accent); background:rgba(194,84,47,.11); font-size:19px; }
+  .settings-title { font-family:var(--font-display); font-size:20px; font-weight:650; }
+  .settings-sub { margin-top:2px; color:var(--ink-dim); font-size:12px; }
+  .settings-label { margin:0 2px 8px; color:var(--ink-dim); font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+  .appearance-options { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:10px; }
+  .theme-option { min-height:76px; padding:10px 6px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:var(--ink); background:rgba(255,255,255,.52); border:1px solid var(--line); border-radius:13px; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+  .theme-option .theme-glyph { font-size:21px; line-height:1; }
+  .theme-option.active { color:var(--accent); border-color:var(--accent); background:rgba(194,84,47,.10); box-shadow:inset 0 0 0 1px var(--accent); }
+  .settings-note { margin:0 2px 17px; color:var(--ink-dim); font-size:11.5px; line-height:1.45; }
+  .settings-close { width:100%; min-height:46px; }
+
+  html[data-theme="dark"] {
+    --ink:#f3ede4; --paper:#171512; --paper-dim:#27231e; --accent:#e47750;
+    --accent-dim:#844833; --good:#78bc89; --bad:#e2746b; --gold:#dfb45e;
+    --line:#3d372f; --ink-dim:#b0a28f; --shadow:rgba(0,0,0,.58);
+    color-scheme:dark;
+  }
+  html[data-theme="dark"] body,
+  html[data-theme="dark"] #app { background:#11100e; }
+  html[data-theme="dark"] #app {
+    background:radial-gradient(circle at 92% -4%, rgba(223,180,94,.10), transparent 30%), linear-gradient(180deg,#1d1a16 0%,var(--paper) 45%);
+  }
+  html[data-theme="dark"] #header { background:rgba(29,26,22,.93); border-bottom-color:rgba(255,255,255,.08); }
+  html[data-theme="dark"] #main { background:linear-gradient(180deg,rgba(255,255,255,.018),transparent 140px); }
+  html[data-theme="dark"] :is(.event-card,.panel-card,.floorplan-tile,.furniture-item,.property-card,.will-row) { background:#211e1a; border-color:var(--line); box-shadow:0 10px 24px rgba(0,0,0,.16); }
+  html[data-theme="dark"] :is(.stat-pill,#settings-btn,#char-age,.theme-option) { background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.09); }
+  html[data-theme="dark"] :is(.choice-btn,.price-opt,.will-total-bar,.chip) { background:var(--paper-dim); }
+  html[data-theme="dark"] :is(.panel-action.secondary,.filter-chip) { background:rgba(255,255,255,.035); }
+  html[data-theme="dark"] .story-hero { border-color:rgba(228,119,80,.25); background:radial-gradient(circle at 100% 0%,rgba(223,180,94,.12),transparent 36%),linear-gradient(135deg,#25211c,#1d1a16); box-shadow:0 10px 26px rgba(0,0,0,.2); }
+  html[data-theme="dark"] .story-screen .event-card.latest-event { background:linear-gradient(135deg,#27221d,#211d19); border-color:rgba(228,119,80,.34); }
+  html[data-theme="dark"] #bottom-nav { background:rgba(25,23,20,.95); border-top-color:rgba(255,255,255,.08); box-shadow:0 -10px 30px rgba(0,0,0,.25); }
+  html[data-theme="dark"] #bottom-nav::before { background:linear-gradient(90deg,rgba(25,23,20,.98),rgba(25,23,20,0)); }
+  html[data-theme="dark"] #bottom-nav::after { background:linear-gradient(270deg,rgba(25,23,20,.98),rgba(25,23,20,0)); }
+  html[data-theme="dark"] .nav-btn { color:#786f64; }
+  html[data-theme="dark"] .nav-btn.active { color:var(--accent); background:rgba(228,119,80,.13); }
+  html[data-theme="dark"] #modal-overlay { background:rgba(0,0,0,.66); }
+  html[data-theme="dark"] #modal-sheet { background:#1d1a17; box-shadow:0 -18px 46px rgba(0,0,0,.48); }
+  html[data-theme="dark"] :is(.pw-buy,.pw-close,.ach-bar) { color:var(--ink); background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.12); }
+  html[data-theme="dark"] :is(.paywall-sub,.paywall-loading,.pw-restore,.pw-legal) { color:var(--ink-dim); }
+  html[data-theme="dark"] :is(input,select,textarea) { color:var(--ink); background:#26221e; border-color:var(--line); }
+  html[data-theme="dark"] [style*="color:#8a7d6b"] { color:var(--ink-dim) !important; }
+  html[data-theme="dark"] .theme-option.active { color:var(--accent); border-color:var(--accent); background:rgba(228,119,80,.12); }
 </style>
 </head>
 <body>
@@ -886,7 +996,8 @@
     <div id="header-top">
       <div id="char-name">Sage Delgado</div>
       <div id="header-right">
-        <button id="plus-btn" title="Wayfare Plus">✦</button>
+        <button id="plus-btn" title="Wayfare Plus" aria-label="Wayfare Plus">✦</button>
+        <button id="settings-btn" title="Settings" aria-label="Open settings">⚙</button>
         <div id="char-age">Age 3</div>
       </div>
     </div>
@@ -919,10 +1030,12 @@
   <button id="ageup-btn" style="display: flex;">⏵ Age Up</button>
 
   <div id="bottom-nav">
+    <div id="nav-scroll">
     <button class="nav-btn active" data-tab="story"><span class="nav-icon">📜</span><span class="nav-label">Story</span></button>
     <button class="nav-btn" data-tab="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
     <button class="nav-btn" data-tab="job"><span class="nav-icon">💼</span><span class="nav-label">Career</span></button>
     <button class="nav-btn" data-tab="people"><span class="nav-icon">👥</span><span class="nav-label">People</span></button><button class="nav-btn" data-tab="education"><span class="nav-icon">🎓</span><span class="nav-label">Education</span></button><button class="nav-btn" data-tab="vehicles"><span class="nav-icon">🚗</span><span class="nav-label">Vehicles</span></button><button class="nav-btn" data-tab="bank"><span class="nav-icon">🏦</span><span class="nav-label">Bank</span></button><button class="nav-btn" data-tab="business"><span class="nav-icon">🏢</span><span class="nav-label">Business</span></button>
+    </div>
   </div>
 
   <div id="modal-overlay">
@@ -968,11 +1081,64 @@ const PLUS = {
   entitlement: "plus",
 };
 const PLUS_KEY = "wayfare-plus";
+const THEME_KEY = "wayfare-theme";
 function hasPlus() { try { return localStorage.getItem(PLUS_KEY) === "1"; } catch(e) { return false; } }
 function setPlus(v) {
   try { localStorage.setItem(PLUS_KEY, v ? "1" : "0"); } catch(e) {}
   const b = document.getElementById("plus-btn");
   if (b) b.classList.toggle("owned", !!v);
+}
+function getThemePreference() {
+  try { return localStorage.getItem(THEME_KEY) || "system"; } catch(e) { return "system"; }
+}
+function applyTheme(preference = getThemePreference()) {
+  const systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const dark = preference === "dark" || (preference === "system" && systemDark);
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = dark ? "#171512" : "#c2542f";
+}
+function setThemePreference(preference) {
+  try { localStorage.setItem(THEME_KEY, preference); } catch(e) {}
+  applyTheme(preference);
+  document.querySelectorAll(".theme-option").forEach(button => {
+    const active = button.dataset.themeOption === preference;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+function openSettings() {
+  haptic("light");
+  const preference = getThemePreference();
+  const sheet = document.getElementById("modal-sheet");
+  sheet.innerHTML = `
+    <div class="settings-head">
+      <div class="settings-icon" aria-hidden="true">⚙</div>
+      <div><div class="settings-title">Settings</div><div class="settings-sub">Make Wayfare feel at home on your device.</div></div>
+    </div>
+    <div class="settings-label">Appearance</div>
+    <div class="appearance-options" role="group" aria-label="Appearance">
+      <button class="theme-option" data-theme-option="system" aria-pressed="false"><span class="theme-glyph">◐</span><span>System</span></button>
+      <button class="theme-option" data-theme-option="light" aria-pressed="false"><span class="theme-glyph">☀</span><span>Light</span></button>
+      <button class="theme-option" data-theme-option="dark" aria-pressed="false"><span class="theme-glyph">☾</span><span>Dark</span></button>
+    </div>
+    <div class="settings-note">System follows your iPhone or iPad appearance automatically.</div>
+    <button class="panel-action settings-close" id="settings-close">Done</button>`;
+  sheet.querySelectorAll(".theme-option").forEach(button => {
+    const active = button.dataset.themeOption === preference;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+    button.onclick = () => setThemePreference(button.dataset.themeOption);
+  });
+  document.getElementById("settings-close").onclick = closeModal;
+  document.getElementById("modal-overlay").classList.add("show");
+}
+applyTheme();
+if (window.matchMedia) {
+  const appearanceQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  const syncSystemTheme = () => { if (getThemePreference() === "system") applyTheme("system"); };
+  if (appearanceQuery.addEventListener) appearanceQuery.addEventListener("change", syncSystemTheme);
+  else if (appearanceQuery.addListener) appearanceQuery.addListener(syncSystemTheme);
 }
 function purchasesPlugin() {
   const P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Purchases;
@@ -2680,7 +2846,9 @@ function render() {
 
   document.querySelectorAll(".nav-btn").forEach(b=>{
     b.classList.toggle("active", b.dataset.tab === state.activeTab);
+    if (b.dataset.tab === state.activeTab) b.scrollIntoView({ block: "nearest", inline: "center" });
   });
+  updateNavFades();
 
   const main = document.getElementById("main");
   main.innerHTML = "";
@@ -2697,11 +2865,25 @@ function render() {
 }
 
 function renderStory(main) {
+  main.classList.add("story-screen");
   const achBar = document.createElement("button");
   achBar.className = "ach-bar";
   achBar.innerHTML = `🏆 Achievements <span class="ach-count">${Object.keys(unlockedAch).length}/${ACHIEVEMENTS.length}</span>`;
   achBar.onclick = openAchievementsModal;
   main.appendChild(achBar);
+
+  const currentJob = JOBS.find(job => job.id === state.job);
+  const chapter = document.createElement("section");
+  chapter.className = "story-hero";
+  const lifeStage = state.age < 13 ? "the early years" : state.age < 18 ? "growing up" : state.age < 30 ? "finding a direction" : state.age < 50 ? "building a life" : state.age < 65 ? "a seasoned chapter" : "a life well lived";
+  const role = currentJob && currentJob.id !== "unemployed" ? currentJob.title : "Writing their own next chapter";
+  chapter.innerHTML = `<div class="story-hero-kicker">Age ${state.age} · ${lifeStage}</div><div class="story-hero-title">${role}</div><div class="story-hero-copy">Every choice leaves a mark. Your newest moments appear first in the timeline below.</div>`;
+  main.appendChild(chapter);
+
+  const timelineLabel = document.createElement("div");
+  timelineLabel.className = "story-timeline-label";
+  timelineLabel.textContent = "Life timeline";
+  main.appendChild(timelineLabel);
 
   if (state.pendingChoice) {
     const card = document.createElement("div");
@@ -2720,9 +2902,9 @@ function renderStory(main) {
     main.appendChild(card);
   }
 
-  state.feed.forEach(item=>{
+  state.feed.forEach((item, index)=>{
     const card = document.createElement("div");
-    card.className = "event-card";
+    card.className = "event-card" + (index === 0 ? " latest-event" : "");
     let deltaHtml = "";
     (item.deltas||[]).forEach(([f,v])=>{
       if (f==="money") return;
@@ -4291,6 +4473,7 @@ function openErrorModal(err) {
 initAds();
 initPlus();
 document.getElementById("plus-btn").addEventListener("click", openPaywall);
+document.getElementById("settings-btn").addEventListener("click", openSettings);
 window.addEventListener("error", (e) => {
   console.error(e.error || e.message);
   openErrorModal(e.error || e.message);
@@ -4317,6 +4500,17 @@ document.addEventListener("click", e => {
 document.querySelectorAll(".nav-btn").forEach(b=>{
   b.addEventListener("click", ()=>{ state.activeTab = b.dataset.tab; render(); });
 });
+// Edge fades on the tab bar: show whichever side has tabs hidden off-screen.
+function updateNavFades() {
+  const nav = document.getElementById("bottom-nav");
+  const sc = document.getElementById("nav-scroll");
+  if (!nav || !sc) return;
+  nav.classList.toggle("fade-left", sc.scrollLeft > 4);
+  nav.classList.toggle("fade-right", sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 4);
+}
+document.getElementById("nav-scroll").addEventListener("scroll", updateNavFades, { passive: true });
+window.addEventListener("resize", updateNavFades);
+updateNavFades();
 document.getElementById("ageup-btn").addEventListener("click", () => {
   try { ageUp(); } catch(e) { console.error(e); openErrorModal(e); }
 });
