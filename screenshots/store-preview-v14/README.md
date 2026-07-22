@@ -1,7 +1,7 @@
 # Wayfare App Store previews
 
 Upload these five images to the iPhone 6.7-inch screenshot slot in filename order.
-Every final is `1290x2796`, uses current in-game UI, and stays below Apple's
+Every final is `1284x2778`, uses current in-game UI, and stays below Apple's
 per-image upload limit.
 
 1. `01-live-your-story.png` — core life-story promise

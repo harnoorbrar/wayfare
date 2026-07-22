@@ -1,4 +1,5 @@
-// Creates polished App Store previews at Apple's 6.7-inch size (1290x2796).
+// Creates polished App Store previews at Apple's accepted 6.5/6.7-inch
+// portrait size (1284x2778).
 // Each preview uses a real, deterministic Wayfare screen inside a branded
 // editorial frame. Run with: node scripts/capture-screenshots.js
 
@@ -15,7 +16,7 @@ const BACKGROUND = path.join(OUT_DIR, 'wayfare-journey-background.png');
 const PORT = process.env.PORT || '8086';
 const APP_URL = process.env.SCREENSHOT_URL || `http://localhost:${PORT}/`;
 const APP_SIZE = { width: 430, height: 932 };
-const STORE_SIZE = { width: 1290, height: 2796 };
+const STORE_SIZE = { width: 1284, height: 2778 };
 const BROWSER_PATH = process.env.BROWSER_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 
 const scenes = [
@@ -150,7 +151,7 @@ async function composePreview(page, scene, rawFile, backgroundData) {
   const rawData = asDataUrl(rawFile);
   await page.setViewportSize(STORE_SIZE);
   await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>
-    *{box-sizing:border-box}html,body{width:1290px;height:2796px;margin:0;overflow:hidden}
+    *{box-sizing:border-box}html,body{width:1284px;height:2778px;margin:0;overflow:hidden}
     body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff;background:#17120f}
     .bg{position:fixed;inset:0;background-image:linear-gradient(180deg,rgba(22,13,9,.36) 0%,rgba(22,13,9,.08) 31%,rgba(22,13,9,.38) 100%),url('${backgroundData}');background-size:cover;background-position:center}
     .wash{position:fixed;inset:0;background:radial-gradient(circle at 50% 25%,rgba(194,84,47,.18),transparent 38%)}
