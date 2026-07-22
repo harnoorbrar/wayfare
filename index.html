@@ -1158,16 +1158,14 @@
    Single state object drives every screen. Read top to bottom.
    ========================================================= */
 
-/* ---------------- ADS (OFF by default — flip ADS.enabled when AdMob account is live) ----------------
-   Uses Google's official TEST ad unit IDs. Before enabling for real:
-   1. Create an AdMob account, register the app, create banner + interstitial units
-   2. Replace the three IDs below AND GADApplicationIdentifier in ios/App/App/Info.plist
-   3. Set enabled: true
-   Wayfare Plus (future IAP) suppresses all ads via localStorage flag. */
+/* ---------------- ADS ----------------
+   Free players see a restrained interstitial at natural breaks. Wayfare Plus
+   suppresses every ad; RevenueCat remains the source of truth for entitlement. */
 const ADS = {
-  enabled: false,
-  bannerId: "ca-app-pub-3940256099942544/2934735716",       // Google TEST banner (iOS)
-  interstitialId: "ca-app-pub-3940256099942544/4411468910", // Google TEST interstitial (iOS)
+  enabled: true,
+  interstitialId: "ca-app-pub-9399690306106752/9301575831",
+  minimumAge: 8,
+  ageUpsPerAd: 5,
 };
 /* ---------------- WAYFARE PLUS (RevenueCat IAP) ----------------
    Products (create in App Store Connect, attach in RevenueCat dashboard):
@@ -1396,6 +1394,13 @@ function openSettings() {
         <button class="panel-action secondary" id="restore-backup">Restore</button>
       </div>
     </div>
+    ${admobPlugin() ? `<div class="settings-label">Privacy</div>
+    <div class="settings-list">
+      <button class="settings-row" id="ad-privacy-options">
+        <div class="settings-row-copy"><div class="settings-row-title">Ad privacy choices</div><div class="settings-row-sub">Review the privacy choices used for ads.</div></div>
+        <span aria-hidden="true">›</span>
+      </button>
+    </div>` : ""}
     <button class="panel-action settings-close" id="settings-close">Done</button>`;
   sheet.querySelectorAll(".theme-option").forEach(button => {
     const active = button.dataset.themeOption === preference;
@@ -1428,6 +1433,8 @@ function openSettings() {
   };
   document.getElementById("copy-backup").onclick = event => copySaveBackup(event.currentTarget);
   document.getElementById("restore-backup").onclick = openRestoreBackup;
+  const adPrivacyButton = document.getElementById("ad-privacy-options");
+  if (adPrivacyButton) adPrivacyButton.onclick = showAdPrivacyOptions;
   document.getElementById("settings-close").onclick = closeModal;
   document.getElementById("modal-overlay").classList.add("show");
 }
@@ -1460,8 +1467,8 @@ async function initPlus() {
   } catch(e) { /* IAP must never break the game */ }
 }
 function removeAdsNow() {
-  const AdMob = window.Capacitor?.Plugins?.AdMob;
-  if (AdMob) { try { AdMob.removeBanner(); } catch(e) {} }
+  _interstitialReady = false;
+  _adDue = false;
 }
 function plusPriceLabel(pkg) {
   try { return pkg.product.priceString; } catch(e) { return ""; }
@@ -1555,27 +1562,53 @@ async function restorePlus() {
     }
   } catch(e) { toast("Restore failed. Try again later."); }
 }
-function adsActive() { return ADS.enabled && !hasPlus() && !!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob); }
+function admobPlugin() {
+  return window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob || null;
+}
+function adsActive() { return ADS.enabled && !hasPlus() && !!admobPlugin(); }
 
 let _interstitialReady = false;
+let _ageUpsSinceAd = 0;
+let _adDue = false;
+async function prepareInterstitial() {
+  if (!adsActive()) return;
+  try {
+    await admobPlugin().prepareInterstitial({ adId: ADS.interstitialId });
+    _interstitialReady = true;
+  } catch(e) { _interstitialReady = false; }
+}
 async function initAds() {
   if (!adsActive()) return;
-  const AdMob = window.Capacitor.Plugins.AdMob;
+  const AdMob = admobPlugin();
   try {
     await AdMob.initialize({});
-    await AdMob.showBanner({ adId: ADS.bannerId, adSize: "ADAPTIVE_BANNER", position: "TOP_CENTER" });
-    await AdMob.prepareInterstitial({ adId: ADS.interstitialId });
-    _interstitialReady = true;
+    let consent = await AdMob.requestConsentInfo({ tagForUnderAgeOfConsent: false });
+    if (!consent.canRequestAds && consent.isConsentFormAvailable) consent = await AdMob.showConsentForm();
+    if (!consent.canRequestAds) return;
+    await prepareInterstitial();
   } catch(e) { /* ads must never break the game */ }
 }
-async function showDeathInterstitial() {
-  if (!adsActive() || !_interstitialReady) return;
-  const AdMob = window.Capacitor.Plugins.AdMob;
+function noteCompletedAgeUpForAds() {
+  if (!state || state.age < ADS.minimumAge) return;
+  _ageUpsSinceAd++;
+  if (_ageUpsSinceAd >= ADS.ageUpsPerAd) _adDue = true;
+}
+async function maybeShowAgeUpInterstitial() {
+  if (!_adDue || !adsActive() || !_interstitialReady || !state || !state.alive || state.pendingChoice) return;
+  const AdMob = admobPlugin();
   try {
+    _adDue = false;
+    _ageUpsSinceAd = 0;
     _interstitialReady = false;
     await AdMob.showInterstitial();
-    AdMob.prepareInterstitial({ adId: ADS.interstitialId }).then(()=>{ _interstitialReady = true; }).catch(()=>{});
-  } catch(e) {}
+    prepareInterstitial();
+  } catch(e) { prepareInterstitial(); }
+}
+async function showAdPrivacyOptions() {
+  const AdMob = admobPlugin();
+  if (!AdMob) return;
+  try { await AdMob.showPrivacyOptionsForm(); }
+  catch(e) { toast("Ad privacy choices are not required in your region."); }
 }
 
 /* Haptics: native taps in the iOS app; Safari fallback via the
@@ -2757,6 +2790,8 @@ function ageUp() {
 
   saveGame();
   render();
+  noteCompletedAgeUpForAds();
+  maybeShowAgeUpInterstitial();
 }
 
 function resolveChoice(choiceIndex) {
@@ -2765,6 +2800,7 @@ function resolveChoice(choiceIndex) {
     saveGame();
     render();
     toast("That moment was repaired. You can keep aging.");
+    maybeShowAgeUpInterstitial();
     return;
   }
   const c = state.pendingChoice.choices[choiceIndex];
@@ -2818,6 +2854,7 @@ function resolveChoice(choiceIndex) {
   state.pendingChoice = null;
   saveGame();
   render();
+  maybeShowAgeUpInterstitial();
 }
 
 function computeNetWorth(s) {
@@ -2899,7 +2936,6 @@ function showSavedDeathScreen(allowTimeMachine = false) {
 function handleDeath() {
   state.alive = false;
   haptic("heavy");
-  setTimeout(showDeathInterstitial, 1500); // let the death screen land first
   const cause = state.causeOfDeath
     ? (state.causeOfDeath === "old age" ? "of old age, peacefully" : `— ${state.causeOfDeath}`)
     : (state.age >= 100 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : ""));
@@ -5051,8 +5087,11 @@ function openErrorModal(err) {
   document.getElementById("modal-overlay").classList.add("show");
 }
 
-initAds();
-initPlus();
+async function initMonetization() {
+  await initPlus();
+  await initAds();
+}
+initMonetization();
 document.getElementById("plus-btn").addEventListener("click", openPaywall);
 document.getElementById("settings-btn").addEventListener("click", openSettings);
 window.addEventListener("error", (e) => {
