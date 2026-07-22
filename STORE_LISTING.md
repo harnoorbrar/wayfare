@@ -50,11 +50,14 @@ pets, including a tiny dragon who is technically a very committed iguana.
 ## Keywords (100 char max, comma-separated, no spaces after commas)
 life sim,bitlife,simulator,life game,rpg,career,family,pets,dynasty,choices,text adventure
 
-## What's New (Version 1.1)
-Introducing Wayfare Plus: undo your own death with the Time Machine (once
-per life), adopt three exclusive new pets — an owl, a fennec fox, and a
-tiny dragon — and play forever ad-free. Available monthly or as a one-time
-lifetime unlock.
+## What's New (Version 1.4)
+Your life has more purpose — and more choice.
+
+• Choose a lasting Life Ambition and pursue meaningful milestones
+• Spend two focused Activities each year to shape your stats and skills
+• Explore a cleaner, more polished dashboard and dark-mode experience
+• Continue growing beyond age 100 and complete a truly legendary life
+• Enjoy stability fixes for aging, death, and continuing as your child
 
 ## App Store Category
 Primary: Games
