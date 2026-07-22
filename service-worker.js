@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wayfare-pwa-v34';
+const CACHE_NAME = 'wayfare-pwa-v35';
 const ASSETS = [
   './',
   './index.html',

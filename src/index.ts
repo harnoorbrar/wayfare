@@ -110,6 +110,14 @@ import {
   definitionById as ambitionById,
   type AmbitionId,
 } from './domain/ambitions';
+import {
+  ACTIVITIES,
+  activityById,
+  availability as activityAvailability,
+  ensureActivityState,
+  focusRemaining,
+  performActivity,
+} from './domain/activities';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -305,6 +313,15 @@ export const ambitions = {
   choose: (state: GameState, id: AmbitionId) => chooseAmbition(state, id),
   snapshot: ambitionSnapshot,
   claimRewards: claimAmbitionRewards,
+};
+
+export const activities = {
+  definitions: ACTIVITIES,
+  byId: activityById,
+  availability: activityAvailability,
+  ensure: ensureActivityState,
+  focusRemaining,
+  perform: performActivity,
 };
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
