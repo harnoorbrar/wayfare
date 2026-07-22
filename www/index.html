@@ -785,6 +785,25 @@
   .life-goal-track { display:block; height:4px; margin-top:7px; overflow:hidden; border-radius:999px; background:var(--paper-dim); }
   .life-goal-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,var(--accent),var(--gold)); }
   .life-goal-arrow { color:var(--ink-dim); font-size:18px; text-align:center; }
+  .ambition-card { position:relative; margin:0 0 18px; padding:15px; overflow:hidden; border:1px solid rgba(201,154,58,.34); border-radius:16px; background:radial-gradient(circle at 100% 0%,rgba(201,154,58,.16),transparent 43%),rgba(255,255,255,.58); box-shadow:0 8px 22px rgba(43,36,32,.05); }
+  .ambition-card::before { content:""; position:absolute; left:0; top:15px; bottom:15px; width:3px; border-radius:0 4px 4px 0; background:var(--gold); }
+  .ambition-kicker { color:var(--ink-dim); font-size:9.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+  .ambition-head { display:flex; align-items:flex-start; gap:11px; margin-top:8px; }
+  .ambition-icon { width:39px; height:39px; flex:0 0 39px; display:grid; place-items:center; border-radius:13px; color:#74591f; background:rgba(201,154,58,.16); font-size:20px; font-weight:800; }
+  .ambition-copy { min-width:0; flex:1; }
+  .ambition-title { font-family:var(--font-display); font-size:17px; font-weight:700; line-height:1.15; }
+  .ambition-detail { margin-top:3px; color:var(--ink-dim); font-size:10.5px; line-height:1.4; }
+  .ambition-progress { height:5px; margin-top:12px; overflow:hidden; border-radius:999px; background:var(--paper-dim); }
+  .ambition-progress-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,var(--gold),var(--accent)); }
+  .ambition-meta { display:flex; justify-content:space-between; gap:12px; margin-top:7px; color:var(--ink-dim); font-size:9.5px; }
+  .ambition-action { width:100%; min-height:42px; margin-top:12px; border:0; border-radius:11px; color:#fff; background:linear-gradient(135deg,#b9842f,#c2542f); font:inherit; font-size:12px; font-weight:780; cursor:pointer; box-shadow:0 6px 16px rgba(194,84,47,.2); }
+  .ambition-options { display:flex; flex-direction:column; gap:9px; }
+  .ambition-option { width:100%; min-height:78px; display:grid; grid-template-columns:42px minmax(0,1fr) 18px; align-items:center; gap:11px; padding:11px; color:var(--ink); background:rgba(255,255,255,.5); border:1px solid var(--line); border-radius:14px; font:inherit; text-align:left; cursor:pointer; }
+  .ambition-option:active { transform:scale(.985); background:var(--paper-dim); }
+  .ambition-option-icon { width:42px; height:42px; display:grid; place-items:center; border-radius:13px; color:#74591f; background:rgba(201,154,58,.14); font-size:20px; font-weight:800; }
+  .ambition-option-name { display:block; font-size:13px; font-weight:800; }
+  .ambition-option-detail { display:block; margin-top:3px; color:var(--ink-dim); font-size:10px; line-height:1.35; }
+  .ambition-option-arrow { color:var(--ink-dim); font-size:18px; }
   .story-timeline-label { display:flex; align-items:center; gap:8px; margin: 1px 2px 9px; color:var(--ink-dim); font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
   .story-timeline-label::after { content:""; flex:1; height:1px; background:linear-gradient(90deg, var(--line), transparent); }
   .story-screen .event-card { margin-left: 12px; }
@@ -1022,6 +1041,9 @@
   html[data-theme="dark"] :is(.panel-action.secondary,.filter-chip) { background:rgba(255,255,255,.035); }
   html[data-theme="dark"] .story-hero { border-color:rgba(228,119,80,.25); background:radial-gradient(circle at 100% 0%,rgba(223,180,94,.12),transparent 36%),linear-gradient(135deg,#25211c,#1d1a16); box-shadow:0 10px 26px rgba(0,0,0,.2); }
   html[data-theme="dark"] .life-goal { background:#211e1a; border-color:var(--line); box-shadow:0 8px 20px rgba(0,0,0,.16); }
+  html[data-theme="dark"] .ambition-card { background:radial-gradient(circle at 100% 0%,rgba(223,180,94,.12),transparent 43%),#211e1a; border-color:rgba(223,180,94,.24); }
+  html[data-theme="dark"] .ambition-icon, html[data-theme="dark"] .ambition-option-icon { color:var(--gold); background:rgba(223,180,94,.12); }
+  html[data-theme="dark"] .ambition-option { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.09); }
   html[data-theme="dark"] .story-screen .event-card.latest-event { background:linear-gradient(135deg,#27221d,#211d19); border-color:rgba(228,119,80,.34); }
   html[data-theme="dark"] #bottom-nav { background:rgba(25,23,20,.95); border-top-color:rgba(255,255,255,.08); box-shadow:0 -10px 30px rgba(0,0,0,.25); }
   html[data-theme="dark"] .nav-btn { color:#786f64; }
@@ -1811,6 +1833,7 @@ const ACHIEVEMENTS = [
   { id:"homeowner",     icon:"🏠", name:"No Landlords Ever",    desc:"Fully own a home.",                     check:s=>s.ownership==="owned" },
   { id:"car_collector", icon:"🚗", name:"Garage Goals",         desc:"Own 3 vehicles at once.",               check:s=>(s.vehicles||[]).length>=3 },
   { id:"scholar",       icon:"🎓", name:"Professional Student", desc:"Earn 3 degrees.",                       check:s=>(s.degrees||[]).length>=3 },
+  { id:"purpose",       icon:"🧭", name:"Purpose Fulfilled",    desc:"Complete every life-ambition milestone.", check:s=>s.ambition&&Array.isArray(s.ambition.claimed)&&s.ambition.claimed.length>=3 },
   { id:"mogul",         icon:"🏢", name:"Mogul",                desc:"Run 2 businesses at once.",             check:s=>(s.businesses||[]).length>=2 },
   { id:"millionaire",   icon:"💰", name:"Seven Figures",        desc:"Reach $1,000,000 net worth.",           check:s=>computeNetWorth(s)>=1000000 },
   { id:"in_the_red",    icon:"🕳️", name:"Financially Creative", desc:"Sink $25,000 into debt.",               check:s=>s.money<=-25000 },
@@ -1976,6 +1999,7 @@ function newGame() {
     pets: [],
     skills: {},
     yearsAtJob: 0,
+    ambition: null,
   };
   log(`${state.name} was born today. A whole life, waiting to happen.`);
   render();
@@ -2649,7 +2673,15 @@ function ageUp() {
 
   // death check: the health tick's mortality model decides, with health<=0
   // as a floor and the hard age ceiling as a backstop
-  if ((_healthTick && _healthTick.died) || state.health <= 0 || state.age > 95) {
+  try {
+    const ambitionRewards = WayfareCore.ambitions.claimRewards(state);
+    ambitionRewards.forEach(reward => {
+      log(`Life ambition achieved: ${reward.label}.`, [["happiness", reward.happiness]]);
+    });
+    if (ambitionRewards.length) haptic("heavy");
+  } catch(e) {}
+
+  if ((_healthTick && _healthTick.died) || state.health <= 0 || state.age >= 110) {
     if (_healthTick && _healthTick.causeOfDeath) state.causeOfDeath = _healthTick.causeOfDeath;
     handleDeath();
     return;
@@ -2748,7 +2780,7 @@ function resolveChoice(choiceIndex) {
     state.partner = null;
   }
 
-  if (state.health <= 0 || state.age > 95) {
+  if (state.health <= 0 || state.age >= 110) {
     handleDeath();
     return;
   }
@@ -2840,7 +2872,7 @@ function handleDeath() {
   setTimeout(showDeathInterstitial, 1500); // let the death screen land first
   const cause = state.causeOfDeath
     ? (state.causeOfDeath === "old age" ? "of old age, peacefully" : `— ${state.causeOfDeath}`)
-    : (state.age > 95 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : ""));
+    : (state.age >= 100 ? "of old age, peacefully" : (state.health<=0 ? "— health finally gave out" : ""));
 
   pruneWill();
   let willText = "";
@@ -3003,6 +3035,7 @@ function continueAsChild(childIndex) {
     pets: inheritedPets,
     skills: {},
     yearsAtJob: 0,
+    ambition: null,
     legacyTotal: dynastyTotal,
   };
 
@@ -3172,6 +3205,8 @@ function renderStory(main) {
   chapter.innerHTML = `<div class="story-hero-kicker">Age ${state.age} · ${lifeStage}</div><div class="story-hero-title">${role}</div><div class="story-hero-copy">Every choice leaves a mark. Your newest moments appear first in the timeline below.</div>`;
   main.appendChild(chapter);
 
+  renderAmbitionSummary(main);
+
   const goals = buildLifeGoals();
   const goalsSection = document.createElement("section");
   goalsSection.className = "life-goals";
@@ -3248,6 +3283,103 @@ function renderStory(main) {
     card.innerHTML = `<div class="event-age">Age ${item.age}</div><div class="event-text">${item.text}</div>${deltaHtml?`<div>${deltaHtml}</div>`:""}`;
     main.appendChild(card);
   });
+}
+
+function formatAmbitionMetric(snapshot) {
+  if (!snapshot || !snapshot.next) return "All milestones complete";
+  const { current, target } = snapshot.next;
+  if (snapshot.definition.id === "fortune") return `${fmtMoney(current)} of ${fmtMoney(target)}`;
+  return `${Math.min(target, Math.round(current))} of ${target}`;
+}
+
+function renderAmbitionSummary(main) {
+  if (state.age < 18) return;
+  let snapshot = null;
+  try { snapshot = WayfareCore.ambitions.snapshot(state); } catch(e) {}
+
+  const card = document.createElement("section");
+  card.className = "ambition-card";
+  const kicker = document.createElement("div");
+  kicker.className = "ambition-kicker";
+  kicker.textContent = "Life ambition";
+  card.appendChild(kicker);
+
+  if (!snapshot) {
+    const head = document.createElement("div");
+    head.className = "ambition-head";
+    head.innerHTML = `<div class="ambition-icon" aria-hidden="true">◇</div><div class="ambition-copy"><div class="ambition-title">What will this life stand for?</div><div class="ambition-detail">Choose one lasting purpose. Your milestones will follow every chapter of this life.</div></div>`;
+    card.appendChild(head);
+    const action = document.createElement("button");
+    action.className = "ambition-action";
+    action.textContent = "Choose a life ambition";
+    action.onclick = openAmbitionPicker;
+    card.appendChild(action);
+    main.appendChild(card);
+    return;
+  }
+
+  const head = document.createElement("div");
+  head.className = "ambition-head";
+  const icon = document.createElement("div");
+  icon.className = "ambition-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.textContent = snapshot.definition.icon;
+  const copy = document.createElement("div");
+  copy.className = "ambition-copy";
+  const title = document.createElement("div");
+  title.className = "ambition-title";
+  title.textContent = snapshot.definition.name;
+  const detail = document.createElement("div");
+  detail.className = "ambition-detail";
+  detail.textContent = snapshot.next ? snapshot.next.label : "A defining purpose, fulfilled.";
+  copy.append(title, detail);
+  head.append(icon, copy);
+  card.appendChild(head);
+
+  const progress = document.createElement("div");
+  progress.className = "ambition-progress";
+  const fill = document.createElement("div");
+  fill.className = "ambition-progress-fill";
+  fill.style.width = `${snapshot.percent}%`;
+  progress.appendChild(fill);
+  card.appendChild(progress);
+  const meta = document.createElement("div");
+  meta.className = "ambition-meta";
+  meta.innerHTML = `<span>${snapshot.completed}/${snapshot.total} milestones</span><span>${formatAmbitionMetric(snapshot)}</span>`;
+  card.appendChild(meta);
+  if (snapshot.next) {
+    const action = document.createElement("button");
+    action.className = "ambition-action";
+    action.textContent = "Keep building toward it";
+    action.onclick = () => { state.activeTab = snapshot.definition.tab; render(); };
+    card.appendChild(action);
+  }
+  main.appendChild(card);
+}
+
+function openAmbitionPicker() {
+  if (state.age < 18) { toast("Life ambitions unlock at 18."); return; }
+  const sheet = document.getElementById("modal-sheet");
+  sheet.innerHTML = `<div class="settings-head"><div class="settings-icon">◇</div><div><div class="settings-title">Choose your ambition</div><div class="settings-sub">One purpose for this life</div></div></div><div class="more-hub-intro">This choice is permanent for the current life. Future generations will choose their own path.</div><div class="ambition-options"></div>`;
+  const options = sheet.querySelector(".ambition-options");
+  WayfareCore.ambitions.definitions.forEach(definition => {
+    const button = document.createElement("button");
+    button.className = "ambition-option";
+    button.innerHTML = `<span class="ambition-option-icon" aria-hidden="true">${definition.icon}</span><span><span class="ambition-option-name">${definition.name}</span><span class="ambition-option-detail">${definition.description}</span></span><span class="ambition-option-arrow" aria-hidden="true">›</span>`;
+    button.onclick = () => {
+      if (!WayfareCore.ambitions.choose(state, definition.id)) return;
+      log(`${state.name} chose a life ambition: ${definition.name}.`);
+      const rewards = WayfareCore.ambitions.claimRewards(state);
+      rewards.forEach(reward => log(`Life ambition achieved: ${reward.label}.`, [["happiness", reward.happiness]]));
+      saveGame();
+      closeModal();
+      render();
+      haptic("heavy");
+      toast(`${definition.name} begins now.`);
+    };
+    options.appendChild(button);
+  });
+  document.getElementById("modal-overlay").classList.add("show");
 }
 
 function buildLifeGoals() {

@@ -101,6 +101,15 @@ import {
   accumulateLegacy,
   legacyRank,
 } from './domain/legacy';
+import {
+  AMBITIONS,
+  ambitionSnapshot,
+  chooseAmbition,
+  claimAmbitionRewards,
+  ensureAmbition,
+  definitionById as ambitionById,
+  type AmbitionId,
+} from './domain/ambitions';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -287,6 +296,15 @@ export const legacy = {
   inheritTraits: (parent: GameState) => inheritTraitsImpl(parent, rng),
   accumulate: accumulateLegacy,
   rank: legacyRank,
+};
+
+export const ambitions = {
+  definitions: AMBITIONS,
+  byId: ambitionById,
+  ensure: ensureAmbition,
+  choose: (state: GameState, id: AmbitionId) => chooseAmbition(state, id),
+  snapshot: ambitionSnapshot,
+  claimRewards: claimAmbitionRewards,
 };
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };

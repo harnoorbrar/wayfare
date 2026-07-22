@@ -63,6 +63,8 @@ export interface GameState {
   skills: Record<string, number>;
   /** Years at the current career level; resets on hire/promotion. */
   yearsAtJob: number;
+  /** Player-chosen adult purpose and the milestones already rewarded. */
+  ambition: { id: string; claimed: string[] } | null;
   /**
    * The living economy. Loosely typed here to avoid a circular import with
    * the world domain module; the world engine owns the real WorldState shape.
@@ -116,6 +118,7 @@ export function saveDefaults(): Partial<GameState> {
     pets: [],
     skills: {},
     yearsAtJob: 0,
+    ambition: null,
   };
 }
 
