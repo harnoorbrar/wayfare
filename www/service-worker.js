@@ -1,8 +1,9 @@
-const CACHE_NAME = 'wayfare-pwa-v36';
+const CACHE_NAME = 'wayfare-pwa-v37';
 const ASSETS = [
   './',
   './index.html',
   './js/core.js',
+  './js/drive3d.js',
   './manifest.json',
   './privacy.html',
   './terms.html',

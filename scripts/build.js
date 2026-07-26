@@ -13,6 +13,12 @@ if (!fs.existsSync(src)) {
 }
 fs.mkdirSync(destDir, { recursive: true });
 fs.copyFileSync(src, path.join(destDir, 'core.js'));
+const driveSrc = path.join(root, 'js', 'drive3d.js');
+if (!fs.existsSync(driveSrc)) {
+  console.error('js/drive3d.js not found — did the WebGL build fail?');
+  process.exit(1);
+}
+fs.copyFileSync(driveSrc, path.join(destDir, 'drive3d.js'));
 
 // The Capacitor shell ships from www/, so keep its document shell and cache
 // manifest in lockstep with the source files too. This prevents a polished UI
@@ -21,4 +27,4 @@ for (const file of ['index.html', 'service-worker.js']) {
   fs.copyFileSync(path.join(root, file), path.join(root, 'www', file));
 }
 
-console.log('Synced core bundle, index.html, and service worker -> www/');
+console.log('Synced core bundle, WebGL driving bundle, app shell, and service worker -> www/');

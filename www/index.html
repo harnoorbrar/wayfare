@@ -230,8 +230,170 @@
     position: relative;
     width: 100%;
     aspect-ratio: 4 / 3;
+    overflow: hidden;
+    touch-action: none;
+    perspective: 900px;
+    background:
+      radial-gradient(circle at 50% 18%, rgba(255,255,255,.72), transparent 34%),
+      linear-gradient(180deg, #c9d9df 0%, #e9dfcc 72%, #d7c4a1 100%);
   }
-  #room-canvas-wrap svg { width: 100%; height: 100%; display: block; }
+  #room-canvas-wrap::before {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    background:
+      linear-gradient(115deg, rgba(255,255,255,.14), transparent 35%),
+      radial-gradient(ellipse at center, transparent 56%, rgba(38,29,21,.13) 100%);
+    pointer-events: none;
+  }
+  #room-canvas-wrap svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    transform: perspective(800px) rotateX(var(--room-tilt-x, 0deg)) rotateY(var(--room-tilt-y, 0deg)) scale(var(--room-zoom, 1));
+    transform-origin: 50% 58%;
+    transform-style: preserve-3d;
+    transition: transform .28s cubic-bezier(.2,.8,.2,1);
+    will-change: transform;
+    filter: drop-shadow(0 18px 18px rgba(45,35,24,.14));
+  }
+  #room-canvas-wrap.dragging svg { transition: none; }
+  #room-canvas-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+  .room-3d-toolbar {
+    position: absolute;
+    z-index: 3;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 7px;
+  }
+  .room-3d-button {
+    min-width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    padding: 0 10px;
+    color: #3c3228;
+    background: rgba(255,255,255,.88);
+    border: 1px solid rgba(72,56,42,.16);
+    border-radius: 11px;
+    box-shadow: 0 5px 14px rgba(45,35,24,.12);
+    backdrop-filter: blur(8px);
+    font: 800 9.5px/1 var(--font-body);
+    letter-spacing: .2px;
+    cursor: pointer;
+  }
+  .room-decorate {
+    color: #fff;
+    background: rgba(54,47,40,.86);
+    border-color: rgba(255,255,255,.2);
+  }
+  .room-3d-button:active { transform: scale(.94); }
+  .room-move-pad {
+    position: absolute;
+    z-index: 4;
+    left: 10px;
+    bottom: 9px;
+    width: 92px;
+    height: 92px;
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    padding: 5px;
+    border: 1px solid rgba(72,56,42,.14);
+    border-radius: 50%;
+    background: rgba(255,255,255,.68);
+    box-shadow: 0 7px 20px rgba(45,35,24,.14);
+    backdrop-filter: blur(9px);
+  }
+  .room-move-button {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    color: #493b2f;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    font: 900 16px/1 var(--font-body);
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  .room-move-button:active { color: #fff; background: var(--accent); transform: scale(.9); }
+  .room-move-up { grid-area: 1 / 2; }
+  .room-move-left { grid-area: 2 / 1; }
+  .room-move-center {
+    grid-area: 2 / 2;
+    width: 18px;
+    height: 18px;
+    place-self: center;
+    border-radius: 50%;
+    background: rgba(194,84,47,.22);
+    box-shadow: inset 0 0 0 5px rgba(255,255,255,.52);
+  }
+  .room-move-right { grid-area: 2 / 3; }
+  .room-move-down { grid-area: 3 / 2; }
+  .room-3d-hint {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    bottom: 13px;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    color: rgba(44,37,30,.72);
+    background: rgba(255,255,255,.72);
+    border: 1px solid rgba(72,56,42,.12);
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(45,35,24,.08);
+    backdrop-filter: blur(8px);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .35px;
+    text-transform: uppercase;
+    pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  #room-canvas-wrap.dragging .room-3d-hint { opacity: 0; }
+  #room-canvas-wrap.interacted .room-3d-hint { opacity: 0; }
+  #room-player {
+    transition: transform .2s cubic-bezier(.2,.85,.2,1);
+    will-change: transform;
+  }
+  #room-player.walking > g { animation: roomWalkBob .16s ease-in-out infinite alternate; }
+  .room-walk-marker {
+    position: absolute;
+    z-index: 3;
+    width: 22px;
+    height: 22px;
+    margin: -11px 0 0 -11px;
+    border: 2px solid rgba(255,255,255,.88);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(54,47,40,.18);
+    pointer-events: none;
+    animation: roomWalkMarker .55s ease-out forwards;
+  }
+  .room-3d-object {
+    cursor: pointer;
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    transition: filter .18s ease, transform .18s ease;
+  }
+  .room-3d-object:hover { filter: brightness(1.06); transform: translateY(-3px); }
+  .room-3d-object:active { transform: translateY(-1px) scale(.97); }
+  .room-float {
+    animation: roomFloat 3.2s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .room-sunbeam { animation: roomGlow 4.6s ease-in-out infinite alternate; }
+  @keyframes roomFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-3px); } }
+  @keyframes roomGlow { from { opacity:.14; } to { opacity:.34; } }
+  @keyframes roomWalkBob { from { transform:translateY(0) rotate(-1deg); } to { transform:translateY(-3px) rotate(1deg); } }
+  @keyframes roomWalkMarker { from { opacity:.9; transform:scale(.45); } to { opacity:0; transform:scale(1.8); } }
+  @media (prefers-reduced-motion: reduce) {
+    #room-canvas-wrap svg { transition: none; }
+    .room-float, .room-sunbeam { animation: none; }
+  }
   .room-hotspot {
     cursor: pointer;
   }
@@ -242,13 +404,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 14px;
-    background: rgba(255,255,255,0.5);
+    padding: 11px 14px;
+    background: rgba(255,255,255,.72);
     border-top: 1px solid var(--line);
+    backdrop-filter: blur(10px);
   }
   #room-name {
     font-family: var(--font-display);
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 600;
   }
   #room-tier {
@@ -281,6 +444,121 @@
   .floorplan-icon { font-size: 26px; }
   .floorplan-name { font-size: 11.5px; font-weight: 700; }
   .floorplan-sub { font-size: 9.5px; color: #8a7d6b; }
+
+  /* ---------- FREE DRIVE ---------- */
+  .drive-launch {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 16px;
+    padding: 17px;
+    border: 1px solid rgba(66,105,116,.28);
+    border-radius: 18px;
+    background:
+      radial-gradient(circle at 88% 12%, rgba(99,184,207,.25), transparent 34%),
+      linear-gradient(145deg,#17262d,#263a42);
+    box-shadow: 0 14px 30px rgba(28,45,51,.18);
+    color: #f6f3eb;
+  }
+  .drive-launch::after { content:""; position:absolute; right:-24px; bottom:-42px; width:130px; height:90px; border:18px solid rgba(255,255,255,.055); border-radius:50%; transform:rotate(-15deg); }
+  .drive-launch-kicker { color:#9fd6e3; font-size:9px; font-weight:850; letter-spacing:1.2px; text-transform:uppercase; }
+  .drive-launch-title { margin-top:5px; font-family:var(--font-display); font-size:22px; font-weight:700; }
+  .drive-launch-copy { max-width:280px; margin-top:5px; color:rgba(255,255,255,.68); font-size:11px; line-height:1.45; }
+  .drive-launch-button { position:relative; z-index:1; min-height:42px; margin-top:13px; padding:0 16px; color:#17262d; background:#f5e5b5; border:0; border-radius:12px; font:800 11px/1 var(--font-body); cursor:pointer; }
+  .drive-launch-button:disabled { opacity:.46; cursor:default; }
+  #drive-game {
+    position:fixed;
+    z-index:1000;
+    inset:0;
+    overflow:hidden;
+    color:#fff;
+    background:#0b151b;
+    user-select:none;
+    touch-action:none;
+  }
+  #drive-canvas { width:100%; height:100%; display:block; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
+  #drive-game.camera-dragging #drive-canvas { cursor:grabbing; }
+  #drive-game.boosting #drive-canvas { filter:saturate(1.12) contrast(1.04); }
+  .drive-topbar {
+    position:absolute;
+    top:max(12px,env(safe-area-inset-top));
+    left:12px;
+    right:12px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+    pointer-events:none;
+  }
+  .drive-car-card, .drive-close, .drive-camera {
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(10,18,23,.7);
+    box-shadow:0 8px 24px rgba(0,0,0,.24);
+    backdrop-filter:blur(10px);
+  }
+  .drive-car-card { min-width:150px; padding:9px 11px; border-radius:13px; }
+  .drive-car-name { font-size:11px; font-weight:850; }
+  .drive-car-spec { margin-top:2px; color:rgba(255,255,255,.58); font-size:8.5px; letter-spacing:.5px; text-transform:uppercase; }
+  .drive-top-actions { display:flex; gap:7px; pointer-events:auto; }
+  .drive-close, .drive-camera { height:40px; display:grid; place-items:center; border-radius:13px; color:#fff; pointer-events:auto; cursor:pointer; }
+  .drive-close { width:40px; font:700 18px/1 var(--font-body); }
+  .drive-camera { min-width:58px; padding:0 10px; font:800 9px/1 var(--font-body); }
+  .drive-camera-hint { position:absolute; top:max(68px,calc(env(safe-area-inset-top) + 58px)); left:50%; transform:translateX(-50%); padding:7px 11px; border:1px solid rgba(255,255,255,.12); border-radius:999px; color:rgba(255,255,255,.76); background:rgba(9,16,20,.58); backdrop-filter:blur(8px); font-size:8.5px; font-weight:800; letter-spacing:.4px; white-space:nowrap; pointer-events:none; transition:opacity .3s ease; }
+  #drive-game.camera-used .drive-camera-hint { opacity:0; }
+  .drive-cluster {
+    position:absolute;
+    left:50%;
+    bottom:max(18px,calc(env(safe-area-inset-bottom) + 8px));
+    width:154px;
+    height:88px;
+    transform:translateX(-50%);
+    padding:10px 12px;
+    text-align:center;
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:18px 18px 12px 12px;
+    background:linear-gradient(180deg,rgba(9,15,19,.76),rgba(4,8,10,.9));
+    box-shadow:0 10px 30px rgba(0,0,0,.32);
+    backdrop-filter:blur(10px);
+    pointer-events:none;
+  }
+  .drive-speed-row { display:flex; align-items:baseline; justify-content:center; gap:4px; }
+  .drive-speed { font:700 32px/.9 var(--font-display); letter-spacing:-1px; }
+  .drive-speed-unit { color:rgba(255,255,255,.55); font-size:8px; font-weight:800; letter-spacing:.8px; }
+  .drive-gear { position:absolute; top:10px; right:12px; color:#f4d783; font-size:15px; font-weight:900; }
+  .drive-rpm-label { margin-top:7px; color:rgba(255,255,255,.52); font-size:7.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+  .drive-rpm-track { height:5px; margin-top:4px; overflow:hidden; border-radius:999px; background:rgba(255,255,255,.12); }
+  .drive-rpm-fill { width:0; height:100%; border-radius:inherit; background:linear-gradient(90deg,#5cc7a2 0%,#e9ce62 68%,#e35e4d 100%); transition:width .06s linear; }
+  .drive-nitro { display:flex; align-items:center; gap:6px; margin-top:5px; }
+  .drive-nitro-label { color:#75dff0; font-size:6.5px; font-weight:900; letter-spacing:.8px; }
+  .drive-nitro-track { flex:1; height:3px; overflow:hidden; border-radius:999px; background:rgba(255,255,255,.11); }
+  .drive-nitro-fill { width:100%; height:100%; border-radius:inherit; background:linear-gradient(90deg,#3ba8dc,#79eff2); box-shadow:0 0 8px rgba(80,218,241,.5); }
+  .drive-controls { position:absolute; inset:auto 0 max(20px,calc(env(safe-area-inset-bottom) + 10px)); display:flex; align-items:flex-end; justify-content:space-between; padding:0 17px; pointer-events:none; }
+  .drive-steer, .drive-pedals { display:flex; gap:10px; pointer-events:auto; }
+  .drive-control {
+    width:58px;
+    height:58px;
+    display:grid;
+    place-items:center;
+    color:#fff;
+    background:rgba(12,20,25,.55);
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:50%;
+    box-shadow:0 8px 22px rgba(0,0,0,.22);
+    backdrop-filter:blur(8px);
+    font:900 20px/1 var(--font-body);
+    touch-action:none;
+  }
+  .drive-control.active { color:#172126; background:#f4d783; transform:scale(.94); }
+  .drive-pedal { width:61px; height:76px; border-radius:19px; font-size:10px; letter-spacing:.5px; }
+  .drive-pedal.brake { background:rgba(91,31,28,.58); }
+  .drive-pedal.boost { position:absolute; right:27px; bottom:88px; width:52px; height:52px; border-radius:50%; color:#8feaf3; border-color:rgba(102,221,237,.34); background:rgba(20,78,94,.55); }
+  .drive-pedal.boost.active { color:#10252b; background:#77e7f0; box-shadow:0 0 24px rgba(87,222,239,.42); }
+  .drive-toast { position:absolute; top:22%; left:50%; transform:translateX(-50%); padding:8px 12px; border-radius:999px; color:#1d2427; background:#f4d783; box-shadow:0 8px 24px rgba(0,0,0,.24); font-size:10px; font-weight:900; opacity:0; transition:opacity .2s ease; pointer-events:none; }
+  .drive-toast.show { opacity:1; }
+  @media (min-width:700px) {
+    .drive-controls { padding:0 34px; }
+    .drive-control { width:66px; height:66px; }
+    .drive-pedal { height:84px; }
+  }
 
   .section-title {
     font-family: var(--font-display);
@@ -1083,6 +1361,9 @@
   html[data-theme="dark"] .nav-btn.active .nav-icon { background:rgba(228,119,80,.14); }
   html[data-theme="dark"] #ageup-btn { border-color:#171512; }
   html[data-theme="dark"] .more-hub-item { background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.09); }
+  html[data-theme="dark"] #room-label-bar { background:rgba(30,27,23,.86); border-top-color:rgba(255,255,255,.08); }
+  html[data-theme="dark"] #room-tier { color:var(--ink-dim); }
+  html[data-theme="dark"] .room-3d-button:not(.room-decorate) { color:var(--ink); background:rgba(28,25,22,.82); border-color:rgba(255,255,255,.12); }
   html[data-theme="dark"] #modal-overlay { background:rgba(0,0,0,.66); }
   html[data-theme="dark"] #modal-sheet { background:#1d1a17; box-shadow:0 -18px 46px rgba(0,0,0,.48); }
   html[data-theme="dark"] :is(.pw-buy,.pw-close,.ach-bar) { color:var(--ink); background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.12); }
@@ -1155,6 +1436,7 @@
 </div>
 
 <script src="js/core.js"></script>
+<script src="js/drive3d.js"></script>
 <script>
 /* =========================================================
    WAYFARE — a solo-buildable life sim
@@ -3668,6 +3950,7 @@ function renderFloorPlan(main, prop, layout) {
 function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
   const roomType = layout[roomIndex];
   const roomDef = ROOM_TYPES[roomType];
+  const materialLabel = property3DMaterialLabel(prop);
 
   if (showBack) {
     const back = document.createElement("button");
@@ -3680,11 +3963,19 @@ function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
 
   const stage = document.createElement("div");
   stage.id = "room-stage";
-  stage.innerHTML = `<div id="room-canvas-wrap">${renderRoomSVG(prop, roomType, roomIndex)}</div>
+  stage.innerHTML = `<div id="room-canvas-wrap" tabindex="0" aria-label="Interactive view of ${roomType==="studio"?prop.name:roomDef.name}. Tap the floor to walk and drag to look around.">
+      ${renderRoom3DSVG(prop, roomType, roomIndex)}
+      <div class="room-3d-toolbar">
+        <button class="room-3d-button room-decorate" type="button" aria-label="Open decoration options">Decorate</button>
+        <button class="room-3d-button room-reset" type="button" aria-label="Reset 3D camera">Reset</button>
+      </div>
+      <div class="room-3d-hint">Tap to walk · drag to look</div>
+    </div>
     <div id="room-label-bar">
-      <div><div id="room-name">${roomDef.icon} ${roomType==="studio"?prop.name:roomDef.name}</div><div id="room-tier">Tier ${prop.tier} · ${ownershipLabel()}</div></div>
+      <div><div id="room-name">${roomType==="studio"?prop.name:roomDef.name}</div><div id="room-tier">${materialLabel} · ${ownershipLabel()}</div></div>
     </div>`;
   main.appendChild(stage);
+  setupRoom3DControls(stage);
 
   if (!showBack) financeStatusCard(main, prop);
 
@@ -3701,7 +3992,7 @@ function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
 
   // furniture for this room's slots only
   const ftitle = document.createElement("div");
-  ftitle.className = "section-title";
+  ftitle.className = "section-title room-decorate-title";
   ftitle.textContent = `Decorate · ${roomType==="studio"?"Studio":roomDef.name}`;
   main.appendChild(ftitle);
 
@@ -3870,6 +4161,494 @@ const ROOM_SCENERY = {
   garden:   { window: "#9fd9a8", sill: true },
   default:  { window: "#7ec8e3" },
 };
+
+function room3DShade(hex, amount) {
+  const num = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, Math.max(0, ((num >> 16) & 255) + amount));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 255) + amount));
+  const b = Math.min(255, Math.max(0, (num & 255) + amount));
+  return `rgb(${r},${g},${b})`;
+}
+
+function room3DBlock(x, y, width, height, depth, colors) {
+  const half = width / 2, topY = y - height;
+  return `<polygon points="${x-half},${topY} ${x},${topY-depth} ${x+half},${topY} ${x},${topY+depth}" fill="${colors.top}"/>
+    <polygon points="${x-half},${topY} ${x},${topY+depth} ${x},${y+depth} ${x-half},${y}" fill="${colors.left}"/>
+    <polygon points="${x},${topY+depth} ${x+half},${topY} ${x+half},${y} ${x},${y+depth}" fill="${colors.right}"/>
+    <polyline points="${x-half},${topY} ${x},${topY-depth} ${x+half},${topY}" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="1.2"/>`;
+}
+
+function room3DFurnitureModel(x, y, width, height, depth, colors, slot) {
+  const pale = { top:"#f7f3e9", left:"#d6cec0", right:"#e8e1d5" };
+  const dark = { top:"#424a50", left:"#20262b", right:"#30383e" };
+  const metal = { top:"#dce1e2", left:"#879196", right:"#aab2b5" };
+  const green = { top:"#73a96f", left:"#3d7046", right:"#51895a" };
+  const smallBlock = (dx,dy,w,h,d,c=colors) => room3DBlock(x+dx,y+dy,w,h,d,c);
+  const models = {
+    bed: () => `${smallBlock(0,0,width,18,depth,colors)}${smallBlock(0,-17,width-8,9,depth-3,pale)}
+      ${smallBlock(-width*.23,-26,width*.34,5,depth*.45,{top:"#fffdf8",left:"#ddd8ce",right:"#eee9df"})}`,
+    sofa: () => `${smallBlock(0,0,width,25,depth,colors)}${smallBlock(0,-25,width-8,24,depth*.55,colors)}
+      ${smallBlock(-width*.43,-7,10,28,depth*.8,colors)}${smallBlock(width*.43,-7,10,28,depth*.8,colors)}
+      <path d="M${x} ${y-24}V${y+depth-3}" stroke="${colors.left}" stroke-width="2" opacity=".75"/>`,
+    tv: () => `${smallBlock(0,0,width*.8,9,depth*.65,dark)}
+      <polygon points="${x-width*.42},${y-height+6} ${x},${y-height-depth*.42} ${x+width*.42},${y-height+6} ${x},${y-height+depth*.42}" fill="#151a1e" stroke="#68747a" stroke-width="2"/>
+      <polygon points="${x-width*.34},${y-height+7} ${x},${y-height-depth*.30} ${x+width*.34},${y-height+7} ${x},${y-height+depth*.30}" fill="#76bdd0"/>`,
+    plant: () => `${smallBlock(0,0,width*.45,17,depth*.62,{top:"#b9825d",left:"#75472e",right:"#976143"})}
+      <g fill="${green.right}"><ellipse cx="${x-10}" cy="${y-31}" rx="13" ry="22" transform="rotate(-28 ${x-10} ${y-31})"/><ellipse cx="${x+11}" cy="${y-35}" rx="13" ry="23" transform="rotate(25 ${x+11} ${y-35})"/><ellipse cx="${x}" cy="${y-43}" rx="12" ry="25"/></g>`,
+    art: () => `<polygon points="${x-width*.38},${y-height} ${x},${y-height-depth*.42} ${x+width*.38},${y-height} ${x},${y-height+depth*.42}" fill="${colors.left}" stroke="${colors.top}" stroke-width="4"/>
+      <path d="M${x-width*.24} ${y-height}L${x} ${y-height-depth*.25}L${x+width*.22} ${y-height}" fill="none" stroke="${colors.top}" stroke-width="5"/>`,
+    big: () => `${smallBlock(0,0,width,height*.72,depth,colors)}${smallBlock(0,-height*.7,width*.9,5,depth*.8,pale)}`,
+    stove: () => `${smallBlock(0,0,width,height*.62,depth,metal)}
+      <g fill="#303438"><ellipse cx="${x-12}" cy="${y-height*.62-depth*.2}" rx="8" ry="4"/><ellipse cx="${x+12}" cy="${y-height*.62+depth*.2}" rx="8" ry="4"/></g>`,
+    fridge: () => `${smallBlock(0,0,width*.72,height,depth,metal)}
+      <path d="M${x-width*.36} ${y-height*.47}L${x} ${y-height*.47+depth}L${x+width*.36} ${y-height*.47}" fill="none" stroke="#747e82" stroke-width="2"/>
+      <path d="M${x+width*.22} ${y-height*.78}v13" stroke="#5d666a" stroke-width="3"/>`,
+    counter: () => `${smallBlock(0,0,width,height*.56,depth,colors)}${smallBlock(0,-height*.56,width+5,6,depth+3,{top:colors.top,left:"#c9c6bd",right:"#dedbd2"})}`,
+    kitchenplant: () => `${smallBlock(0,0,width*.42,13,depth*.55,{top:"#b9825d",left:"#75472e",right:"#976143"})}
+      <g fill="${green.right}"><circle cx="${x-7}" cy="${y-24}" r="10"/><circle cx="${x+8}" cy="${y-27}" r="11"/><circle cx="${x}" cy="${y-35}" r="10"/></g>`,
+    tub: () => `${smallBlock(0,0,width,22,depth,pale)}
+      <polygon points="${x-width*.37},${y-20} ${x},${y-20-depth*.65} ${x+width*.37},${y-20} ${x},${y-20+depth*.65}" fill="#a9d5dc" stroke="#fff" stroke-width="3"/>`,
+    sink: () => `${smallBlock(0,0,width*.78,height*.48,depth,pale)}
+      <ellipse cx="${x}" cy="${y-height*.48-depth*.12}" rx="${width*.22}" ry="${depth*.22}" fill="#9fcbd2"/>
+      <path d="M${x} ${y-height*.56}q0-15 10-15" fill="none" stroke="${metal.right}" stroke-width="3"/>`,
+    towel: () => `<path d="M${x-width*.3} ${y-height*.65}L${x} ${y-height*.65-depth*.35}L${x+width*.3} ${y-height*.65}" fill="none" stroke="${metal.right}" stroke-width="4"/>
+      <polygon points="${x-width*.24},${y-height*.62} ${x},${y-height*.62-depth*.25} ${x+width*.24},${y-height*.62} ${x},${y-height*.1}" fill="#ede5d7"/>`,
+    table: () => `${smallBlock(0,-height*.42,width,8,depth,colors)}
+      <path d="M${x-width*.34} ${y-height*.34}v${height*.42}M${x+width*.34} ${y-height*.34}v${height*.42}" stroke="${colors.left}" stroke-width="6"/>`,
+    chairs: () => `${smallBlock(-width*.24,0,width*.42,16,depth*.55,colors)}${smallBlock(width*.24,-9,width*.42,24,depth*.55,colors)}`,
+    chandelier: () => `<path d="M${x} ${y-height-32}V${y-height}" stroke="${metal.right}" stroke-width="3"/><path d="M${x-20} ${y-height+4}Q${x} ${y-height+18} ${x+20} ${y-height+4}" fill="none" stroke="${colors.top}" stroke-width="5"/>
+      <g fill="#ffe79a"><circle cx="${x-20}" cy="${y-height+5}" r="5"/><circle cx="${x}" cy="${y-height+14}" r="5"/><circle cx="${x+20}" cy="${y-height+5}" r="5"/></g>`,
+    desk: () => `${smallBlock(0,-height*.25,width,8,depth,colors)}${smallBlock(0,-height*.55,width*.42,22,depth*.25,dark)}
+      <path d="M${x-width*.38} ${y-height*.18}v${height*.34}M${x+width*.38} ${y-height*.18}v${height*.34}" stroke="${colors.left}" stroke-width="6"/>`,
+    bookshelf: () => `${smallBlock(0,0,width*.82,height,depth*.65,colors)}
+      <path d="M${x-width*.31} ${y-height*.68}L${x} ${y-height*.68+depth*.45}L${x+width*.31} ${y-height*.68}M${x-width*.31} ${y-height*.36}L${x} ${y-height*.36+depth*.45}L${x+width*.31} ${y-height*.36}" fill="none" stroke="${colors.top}" stroke-width="4"/>`,
+    officechair: () => `${smallBlock(0,-4,width*.55,15,depth*.65,dark)}${smallBlock(0,-20,width*.5,25,depth*.35,dark)}
+      <path d="M${x} ${y+4}v11M${x-13} ${y+15}h26" stroke="#3f464a" stroke-width="4"/>`,
+    arcade: () => `${smallBlock(0,0,width*.75,height,depth*.75,dark)}
+      <polygon points="${x-width*.25},${y-height*.7} ${x},${y-height*.7-depth*.25} ${x+width*.25},${y-height*.7} ${x},${y-height*.7+depth*.25}" fill="#58bcd0"/>
+      <circle cx="${x-7}" cy="${y-height*.31}" r="3" fill="#e05b4b"/><circle cx="${x+5}" cy="${y-height*.27}" r="3" fill="#e9c65b"/>`,
+    bar: () => `${smallBlock(0,0,width,height*.58,depth,colors)}${smallBlock(0,-height*.58,width+4,6,depth+2,pale)}
+      <g fill="#7c5238"><rect x="${x-18}" y="${y-height-9}" width="6" height="22" rx="2"/><rect x="${x-3}" y="${y-height-14}" width="6" height="27" rx="2"/><rect x="${x+12}" y="${y-height-7}" width="6" height="20" rx="2"/></g>`,
+    gardenset: () => `${smallBlock(0,-height*.35,width*.72,7,depth*.8,colors)}${smallBlock(-width*.4,0,width*.25,18,depth*.55,colors)}${smallBlock(width*.4,0,width*.25,18,depth*.55,colors)}`,
+    gardenplant: () => `${smallBlock(0,0,width*.55,15,depth*.7,{top:"#b9825d",left:"#75472e",right:"#976143"})}
+      <g fill="#d96e98"><circle cx="${x-12}" cy="${y-30}" r="12"/><circle cx="${x+12}" cy="${y-33}" r="13"/><circle cx="${x}" cy="${y-43}" r="14"/></g>`,
+    fountain: () => `${smallBlock(0,0,width,12,depth,metal)}<ellipse cx="${x}" cy="${y-13}" rx="${width*.4}" ry="${depth*.55}" fill="#79c7d4"/>
+      ${smallBlock(0,-15,width*.2,25,depth*.25,metal)}<path d="M${x} ${y-43}q-18 12-20 28M${x} ${y-43}q18 12 20 28" fill="none" stroke="#9fe0ea" stroke-width="3"/>`
+  };
+  return (models[slot] || (() => room3DBlock(x,y,width,height,depth,colors)))();
+}
+
+function room3DBox(x, y, width, height, depth, colors, icon, label, slot) {
+  const safeLabel = String(label || slot).replace(/[&<>"']/g, ch => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  })[ch]);
+  return `<g class="room-3d-object" data-slot="${slot}" role="button" tabindex="0" aria-label="${safeLabel}">
+    <ellipse cx="${x}" cy="${y + 8}" rx="${width/2 + 8}" ry="${Math.max(8, depth * .42)}" fill="#241d17" opacity=".15"/>
+    ${room3DFurnitureModel(x, y, width, height, depth, colors, slot)}
+    <title>${safeLabel}</title>
+  </g>`;
+}
+
+const room3DCameraMemory = {};
+
+const PROPERTY_3D_THEMES = {
+  studio: {
+    wall:"#e6d7c4", floor:"#aa7958", trim:"#6f4934", window:"#86adc0",
+    material:"wood", view:"city", accent:"#b75f43", light:"#ffe8b1"
+  },
+  onebed: {
+    wall:"#dfe4d5", floor:"#b18f67", trim:"#71806b", window:"#9ec1c1",
+    material:"wood", view:"courtyard", accent:"#7d9678", light:"#fff0c7"
+  },
+  twobed: {
+    wall:"#e8dccd", floor:"#b99265", trim:"#8b674e", window:"#88afc5",
+    material:"parquet", view:"city", accent:"#c7835a", light:"#ffe1ae"
+  },
+  townhouse: {
+    wall:"#ddcfbd", floor:"#9c704d", trim:"#69483a", window:"#91b89a",
+    material:"widewood", view:"rowhomes", accent:"#8f4f3e", light:"#ffdfaa"
+  },
+  house: {
+    wall:"#e5decf", floor:"#a7794c", trim:"#596d53", window:"#8ec5db",
+    material:"oak", view:"suburb", accent:"#587c57", light:"#fff0b8"
+  },
+  estate: {
+    wall:"#eee9df", floor:"#e5e0d6", trim:"#b28b44", window:"#7ca5ba",
+    material:"marble", view:"hills", accent:"#b08a47", light:"#fff4ce", luxury:true
+  },
+  oceanmansion: {
+    wall:"#e9f0ef", floor:"#e7e7e2", trim:"#b99d63", window:"#4eb4d3",
+    material:"marble", view:"ocean", accent:"#287f98", light:"#fff8d7", luxury:true
+  },
+  privateisland: {
+    wall:"#ddd9d0", floor:"#252b32", trim:"#d2ae58", window:"#38bdd1",
+    material:"darkMarble", view:"island", accent:"#d2ae58", light:"#fff0b4", luxury:true
+  }
+};
+
+function property3DTheme(prop) {
+  return PROPERTY_3D_THEMES[prop.id] || PROPERTY_3D_THEMES.studio;
+}
+
+function property3DMaterialLabel(prop) {
+  return {
+    studio:"Warm timber",
+    onebed:"Sage & natural wood",
+    twobed:"Parquet interior",
+    townhouse:"Wide-plank wood",
+    house:"Oak & stone",
+    estate:"Calacatta marble",
+    oceanmansion:"Coastal marble",
+    privateisland:"Noir marble"
+  }[prop.id] || "Curated interior";
+}
+
+function property3DView(theme) {
+  const views = {
+    city: `<g fill="#526d79" opacity=".58"><rect x="63" y="111" width="12" height="23"/><rect x="78" y="101" width="15" height="38"/><rect x="97" y="116" width="12" height="29"/><rect x="114" y="106" width="18" height="46"/></g>`,
+    courtyard: `<g><circle cx="89" cy="125" r="13" fill="#6f9b68"/><circle cx="116" cy="134" r="17" fill="#527f55"/><rect x="84" y="134" width="4" height="16" fill="#76553c"/></g>`,
+    rowhomes: `<g opacity=".75"><path d="M63 124 L79 111 L96 127 V148 H63Z" fill="#a9614d"/><path d="M96 128 L113 114 L132 131 V151 H96Z" fill="#c18862"/><rect x="71" y="132" width="9" height="16" fill="#f0d8ad"/></g>`,
+    suburb: `<g><circle cx="76" cy="126" r="17" fill="#4f8a52"/><circle cx="128" cy="128" r="20" fill="#6da563"/><path d="M82 142 L108 121 L137 146 V154 H82Z" fill="#d7c09e"/><rect x="103" y="137" width="12" height="17" fill="#8a684b"/></g>`,
+    hills: `<path d="M61 139 Q82 111 105 132 Q129 98 150 132 V160 H61Z" fill="#68886a" opacity=".85"/><path d="M61 148 Q92 126 119 144 Q138 125 150 139 V161 H61Z" fill="#8fa981"/>`,
+    ocean: `<g><rect x="61" y="118" width="89" height="44" fill="#50b6d0"/><path d="M61 129 Q78 121 95 129 T130 129 T160 129 M61 143 Q80 135 99 143 T138 143" fill="none" stroke="#e9ffff" stroke-width="3" opacity=".7"/></g>`,
+    island: `<g><rect x="61" y="116" width="89" height="46" fill="#35bcd0"/><path d="M98 149 Q111 130 128 148 Q115 159 98 149" fill="#d8c37d"/><path d="M118 145 Q115 124 126 109 M119 125 Q106 117 102 108 M121 122 Q134 114 138 105" fill="none" stroke="#3e714b" stroke-width="4"/></g>`
+  };
+  return views[theme.view] || views.city;
+}
+
+function property3DWallDetail(prop, theme, roomType) {
+  if (prop.id === "studio") return `<g opacity=".22" stroke="${theme.trim}" stroke-width="1"><path d="M31 128 L239 53 M31 166 L239 91 M31 204 L239 129 M31 242 L239 167"/><path d="M72 112 L72 280 M132 91 L132 250 M192 69 L192 220"/></g>`;
+  if (prop.id === "townhouse") return `<g opacity=".24" stroke="${theme.trim}" stroke-width="3"><path d="M250 71 L440 139 M250 104 L440 172 M250 137 L440 205"/></g>`;
+  if (prop.id === "house") {
+    if (roomType === "living") return `<g><polygon points="275,108 337,131 337,190 275,164" fill="${room3DShade(theme.wall,-14)}"/><polygon points="282,118 330,136 330,157 282,139" fill="#384a43"/><rect x="295" y="145" width="18" height="25" fill="#a76a40" opacity=".82"/><polyline points="268,107 337,132 344,128" fill="none" stroke="#f4efe4" stroke-width="5"/></g>`;
+    if (roomType === "kitchen") return `<g><polygon points="274,99 327,118 327,158 274,138" fill="#eef0e8" stroke="${theme.trim}" stroke-width="2"/><path d="M300 109V148 M275 119L327 138" stroke="${theme.trim}" stroke-width="2"/><polygon points="342,124 374,136 374,169 342,157" fill="#eef0e8" stroke="${theme.trim}" stroke-width="2"/></g>`;
+    if (roomType === "bathroom") return `<g opacity=".22" stroke="${theme.trim}" stroke-width="1.5"><path d="M250 99L438 167 M250 125L438 193 M286 87V217 M342 107V238 M398 128V258"/></g>`;
+    return `<g><polygon points="286,101 333,118 333,153 286,136" fill="#f3ecda" stroke="${theme.trim}" stroke-width="3"/><path d="M292 130Q307 106 326 140" fill="#6f9870" opacity=".75"/></g>`;
+  }
+  if (theme.luxury) return `<g fill="${theme.trim}" opacity=".78"><circle cx="283" cy="91" r="4"/><path d="M283 94 V115 M275 109 H291" stroke="${theme.trim}" stroke-width="3"/><circle cx="397" cy="132" r="4"/><path d="M397 135 V157 M389 151 H405" stroke="${theme.trim}" stroke-width="3"/></g>`;
+  return "";
+}
+
+function room3DPosition(roomIndex) {
+  if (!state.room3DPositions || typeof state.room3DPositions !== "object") state.room3DPositions = {};
+  const key = `${state.property || "home"}:${roomIndex}`;
+  const saved = state.room3DPositions[key];
+  if (!saved || !Number.isFinite(saved.x) || !Number.isFinite(saved.y)) {
+    state.room3DPositions[key] = { x: 231, y: 296 };
+  }
+  return state.room3DPositions[key];
+}
+
+function setRoom3DPosition(roomIndex, position) {
+  if (!state.room3DPositions || typeof state.room3DPositions !== "object") state.room3DPositions = {};
+  state.room3DPositions[`${state.property || "home"}:${roomIndex}`] = position;
+}
+
+function clampRoom3DPosition(x, y) {
+  const safeY = Math.max(242, Math.min(310, y));
+  const halfWidth = 48 + (safeY - 242) * 1.55;
+  return {
+    x: Math.round(Math.max(240 - halfWidth, Math.min(240 + halfWidth, x))),
+    y: Math.round(safeY)
+  };
+}
+
+function renderRoom3DSVG(prop, roomType, roomIndex) {
+  const theme = property3DTheme(prop);
+  const wallColor = theme.wall;
+  const floorColor = theme.floor;
+  const roomDef = ROOM_TYPES[roomType];
+  const placed = state.placedFurniture[roomIndex] || {};
+  const scenery = ROOM_SCENERY[roomType] || ROOM_SCENERY.default;
+  const leftWall = room3DShade(wallColor, -8);
+  const rightWall = room3DShade(wallColor, 10);
+  const floorLight = room3DShade(floorColor, 14);
+  const floorDark = room3DShade(floorColor, -18);
+  const trim = room3DShade(wallColor, -30);
+  const playerPosition = clampRoom3DPosition(room3DPosition(roomIndex).x, room3DPosition(roomIndex).y);
+  setRoom3DPosition(roomIndex, playerPosition);
+  const playerOffsetX = playerPosition.x - 231;
+  const playerOffsetY = playerPosition.y - 296;
+
+  const positions = [
+    {x:137,y:247,w:72,h:38,d:23},
+    {x:314,y:251,w:68,h:42,d:22},
+    {x:333,y:183,w:53,h:52,d:17},
+    {x:235,y:292,w:56,h:32,d:19},
+    {x:122,y:169,w:48,h:46,d:16},
+    {x:235,y:222,w:74,h:20,d:27},
+  ];
+  const objects = roomDef.slots.map((slot, i) => {
+    const itemId = placed[slot];
+    if (!itemId) return null;
+    const item = FURNITURE.find(f => f.id === itemId);
+    const pos = positions[i] || positions[positions.length - 1];
+    const grade = gradeColors(itemId);
+    const colors = {
+      top: grade.high ? "#e4c568" : room3DShade(grade.base, 22),
+      left: grade.high ? "#aa7c2e" : room3DShade(grade.base, -12),
+      right: grade.high ? "#c79b3c" : grade.base
+    };
+    if (theme.luxury && slot === "counter") {
+      colors.top = "url(#roomMarbleTop)";
+      colors.left = room3DShade(theme.floor, -30);
+      colors.right = room3DShade(theme.floor, -16);
+    }
+    if (slot === "rug") {
+      return { y: 205, svg: `<g class="room-3d-object" data-slot="${slot}" role="button" tabindex="0" aria-label="${item.name}">
+        <polygon points="159,260 235,219 319,264 239,310" fill="${grade.high ? "#b8673e" : "#9e7660"}" opacity=".92"/>
+        <polygon points="170,260 235,226 307,264 239,302" fill="none" stroke="${grade.accent}" stroke-width="3" opacity=".7"/>
+        <title>${item.name}</title>
+      </g>` };
+    }
+    return { y: pos.y, svg: room3DBox(pos.x, pos.y, pos.w, pos.h, pos.d, colors, item.icon, item.name, slot) };
+  }).filter(Boolean).sort((a,b) => a.y - b.y).map(entry => entry.svg).join("");
+
+  const luxuryFixture = theme.luxury && roomType === "kitchen"
+    ? `<g aria-label="Built-in marble kitchen island">
+        <ellipse cx="239" cy="283" rx="68" ry="17" fill="#241d17" opacity=".13"/>
+        <polygon points="176,252 237,226 304,253 240,282" fill="url(#roomMarbleTop)" stroke="${theme.trim}" stroke-width="2"/>
+        <polygon points="176,252 240,282 240,304 176,273" fill="${room3DShade(theme.floor,-18)}"/>
+        <polygon points="240,282 304,253 304,274 240,304" fill="${room3DShade(theme.floor,-30)}"/>
+        <polyline points="183,254 238,232 296,255" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/>
+      </g>`
+    : theme.luxury && roomType === "bathroom"
+      ? `<g aria-label="Marble vanity"><polygon points="286,229 344,207 372,219 314,244" fill="url(#roomMarbleTop)" stroke="${theme.trim}" stroke-width="2"/><polygon points="314,244 372,219 372,247 314,272" fill="${room3DShade(theme.floor,-25)}"/></g>`
+      : "";
+
+  const playerName = String(state.name || "You").replace(/[&<>"']/g, "");
+  const windowColor = scenery.frosted ? scenery.window : theme.window;
+  const windowTreatment = scenery.frosted
+    ? `<path d="M76 86 L147 124 M67 104 L137 141" stroke="#fff" stroke-width="4" opacity=".38"/>`
+    : `<path d="M66 91 L139 132" stroke="#fff" stroke-width="5" opacity=".35"/>`;
+  const floorFill = theme.material === "marble" ? "url(#roomMarble)" : theme.material === "darkMarble" ? "url(#roomDarkMarble)" : "url(#roomFloor)";
+  const floorLines = theme.material === "marble" || theme.material === "darkMarble"
+    ? `<g opacity=".58" fill="none" stroke="${theme.material === "darkMarble" ? "#c9b171" : "#9ea5a3"}" stroke-width="1.3">
+        <path d="M53 313 Q115 278 171 279 T284 255 T423 310"/><path d="M126 333 Q182 297 229 304 T355 286"/>
+      </g>`
+    : theme.material === "parquet"
+      ? `<g opacity=".3" stroke="${trim}" stroke-width="1"><path d="M70 300 L240 210 L410 300 M112 322 L282 232 M198 347 L368 257 M368 322 L198 232 M282 347 L112 257"/><path d="M153 278 L196 300 M196 257 L240 279 M240 235 L283 257 M283 258 L326 280"/></g>`
+      : `<g opacity=".27" stroke="${trim}" stroke-width="${theme.material === "widewood" || theme.material === "oak" ? 2 : 1}"><path d="M70 299 L240 209 L410 299"/><path d="M112 321 L282 231"/><path d="M198 347 L368 257"/><path d="M368 321 L198 231"/><path d="M282 347 L112 257"/></g>`;
+
+  return `<svg class="room-3d-scene" viewBox="0 0 480 360" preserveAspectRatio="xMidYMid meet" aria-hidden="false">
+    <defs>
+      <linearGradient id="roomSky" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="${theme.light}"/><stop offset=".45" stop-color="${windowColor}"/><stop offset="1" stop-color="${room3DShade(windowColor,-24)}"/>
+      </linearGradient>
+      <linearGradient id="roomFloor" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${floorLight}"/><stop offset="1" stop-color="${floorDark}"/>
+      </linearGradient>
+      <pattern id="roomMarble" width="80" height="55" patternUnits="userSpaceOnUse" patternTransform="rotate(-14)">
+        <rect width="80" height="55" fill="#e8e5dd"/><path d="M-8 18 Q16 6 33 23 T88 17 M5 48 Q29 33 51 49 T94 42" fill="none" stroke="#aeb5b4" stroke-width="2" opacity=".72"/>
+      </pattern>
+      <pattern id="roomDarkMarble" width="82" height="58" patternUnits="userSpaceOnUse" patternTransform="rotate(-10)">
+        <rect width="82" height="58" fill="#252b32"/><path d="M-8 17 Q20 5 39 25 T91 18 M4 49 Q27 34 52 50 T95 43" fill="none" stroke="#c6ad6c" stroke-width="1.6" opacity=".58"/>
+      </pattern>
+      <pattern id="roomMarbleTop" width="54" height="34" patternUnits="userSpaceOnUse">
+        <rect width="54" height="34" fill="#f2f0ea"/><path d="M-5 12 Q13 2 25 15 T60 10 M1 29 Q18 19 37 30" fill="none" stroke="#a9b0ae" stroke-width="1.4" opacity=".8"/>
+      </pattern>
+      <filter id="roomSoftShadow" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="5"/>
+      </filter>
+    </defs>
+
+    <ellipse cx="240" cy="315" rx="190" ry="26" fill="#4a3625" opacity=".13" filter="url(#roomSoftShadow)"/>
+    <polygon points="30,91 240,15 240,209 30,320" fill="${leftWall}"/>
+    <polygon points="240,15 450,91 450,320 240,209" fill="${rightWall}"/>
+    <polygon points="30,320 240,209 450,320 240,354" fill="${floorFill}"/>
+
+    ${floorLines}
+    <polyline points="30,320 240,209 450,320" fill="none" stroke="${trim}" stroke-width="7"/>
+    <line x1="240" y1="15" x2="240" y2="209" stroke="${trim}" stroke-width="3" opacity=".65"/>
+    ${property3DWallDetail(prop, theme, roomType)}
+
+    <g>
+      <polygon points="55,75 156,112 156,171 55,127" fill="${trim}" opacity=".7"/>
+      <polygon points="61,79 150,112 150,162 61,124" fill="url(#roomSky)"/>
+      ${property3DView(theme)}
+      <path d="M105 96 L105 143 M61 101 L150 137" stroke="${trim}" stroke-width="3"/>
+      ${windowTreatment}
+      <polygon class="room-sunbeam" points="62,125 150,161 277,292 170,257" fill="#fff6bf" opacity=".22"/>
+    </g>
+
+    <g>
+      <polygon points="378,96 432,77 432,207 378,229" fill="${trim}"/>
+      <polygon points="383,99 427,84 427,204 383,221" fill="${room3DShade(wallColor,-18)}"/>
+      <ellipse cx="418" cy="153" rx="4" ry="6" fill="#e8c765"/>
+    </g>
+
+    ${luxuryFixture}
+    ${objects}
+
+    <g id="room-player" transform="translate(${playerOffsetX} ${playerOffsetY})" aria-label="${playerName}">
+      <g>
+        <ellipse cx="230" cy="296" rx="22" ry="9" fill="#241d17" opacity=".18"/>
+        <polygon points="217,262 231,254 245,262 231,270" fill="#ed7651"/>
+        <polygon points="217,262 231,270 231,292 217,284" fill="#bd4f35"/>
+        <polygon points="231,270 245,262 245,284 231,292" fill="#d75e3f"/>
+        <circle cx="231" cy="247" r="12" fill="#f1c27d"/>
+        <path d="M219 246 Q220 231 232 233 Q245 234 243 248 Q235 239 219 246" fill="#503422"/>
+        <circle cx="227" cy="247" r="1.4" fill="#2c2927"/><circle cx="235" cy="247" r="1.4" fill="#2c2927"/>
+      </g>
+    </g>
+
+    <g opacity=".55" fill="#fff">
+      <circle cx="180" cy="75" r="2"/><circle cx="347" cy="107" r="1.6"/><circle cx="302" cy="55" r="1.2"/>
+    </g>
+  </svg>`;
+}
+
+function setupRoom3DControls(stage) {
+  const wrap = stage.querySelector("#room-canvas-wrap");
+  if (!wrap) return;
+  const roomIndex = state.activeRoomIndex;
+  const cameraKey = `${state.property || "home"}:${roomIndex}`;
+  const remembered = room3DCameraMemory[cameraKey] || { x: 0, y: 0 };
+  let startX = 0, startY = 0;
+  let startTiltX = remembered.x, startTiltY = remembered.y;
+  let tiltX = remembered.x, tiltY = remembered.y;
+  let dragging = false, didDrag = false, activePointerId = null, gestureTarget = null, movementFrame = null;
+  const applyCamera = () => {
+    wrap.style.setProperty("--room-tilt-x", `${tiltX}deg`);
+    wrap.style.setProperty("--room-tilt-y", `${tiltY}deg`);
+  };
+  const resetCamera = () => {
+    tiltX = 0; tiltY = 0;
+    startTiltX = 0; startTiltY = 0;
+    room3DCameraMemory[cameraKey] = { x: 0, y: 0 };
+    applyCamera();
+  };
+  applyCamera();
+
+  wrap.addEventListener("pointerdown", e => {
+    const target = e.target instanceof Element ? e.target : null;
+    if (target?.closest("button")) return;
+    e.preventDefault();
+    dragging = true;
+    didDrag = false;
+    gestureTarget = target;
+    activePointerId = e.pointerId;
+    startX = e.clientX;
+    startY = e.clientY;
+    startTiltX = tiltX;
+    startTiltY = tiltY;
+    wrap.classList.add("dragging");
+    wrap.focus({ preventScroll: true });
+    wrap.setPointerCapture?.(e.pointerId);
+  }, { passive: false });
+  wrap.addEventListener("pointermove", e => {
+    if (!dragging || e.pointerId !== activePointerId) return;
+    e.preventDefault();
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.abs(dx) + Math.abs(dy) > 5) {
+      didDrag = true;
+      wrap.classList.add("interacted");
+    }
+    tiltY = Math.max(-11, Math.min(11, startTiltY + dx * .07));
+    tiltX = Math.max(-6, Math.min(7, startTiltX - dy * .055));
+    applyCamera();
+  }, { passive: false });
+  const movePlayerTo = targetPosition => {
+    const from = { ...room3DPosition(roomIndex) };
+    const next = clampRoom3DPosition(targetPosition.x, targetPosition.y);
+    const player = wrap.querySelector("#room-player");
+    if (!player || (from.x === next.x && from.y === next.y)) return;
+    if (movementFrame) cancelAnimationFrame(movementFrame);
+    player.classList.add("walking");
+    const started = performance.now();
+    const duration = Math.min(520, 220 + Math.hypot(next.x-from.x, next.y-from.y) * 1.7);
+    const animate = now => {
+      const progress = Math.min(1, (now - started) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const x = from.x + (next.x - from.x) * eased;
+      const y = from.y + (next.y - from.y) * eased;
+      player.setAttribute("transform", `translate(${x - 231} ${y - 296})`);
+      if (progress < 1) movementFrame = requestAnimationFrame(animate);
+      else {
+        movementFrame = null;
+        player.classList.remove("walking");
+        setRoom3DPosition(roomIndex, next);
+        saveGame();
+      }
+    };
+    haptic("light");
+    movementFrame = requestAnimationFrame(animate);
+  };
+  const walkToTap = e => {
+    const svg = wrap.querySelector(".room-3d-scene");
+    if (!svg || e?.clientX === undefined) return;
+    const rect = svg.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width * 480;
+    const y = (e.clientY - rect.top) / rect.height * 360;
+    if (y < 211) return;
+    wrap.classList.add("interacted");
+    const marker = document.createElement("span");
+    marker.className = "room-walk-marker";
+    const wrapRect = wrap.getBoundingClientRect();
+    marker.style.left = `${e.clientX - wrapRect.left}px`;
+    marker.style.top = `${e.clientY - wrapRect.top}px`;
+    wrap.appendChild(marker);
+    marker.addEventListener("animationend", () => marker.remove(), { once:true });
+    movePlayerTo({ x, y });
+  };
+  const endDrag = e => {
+    if (activePointerId !== null && e?.pointerId !== undefined && e.pointerId !== activePointerId) return;
+    const shouldWalk = !didDrag && !(gestureTarget?.closest?.(".room-3d-object"));
+    dragging = false;
+    activePointerId = null;
+    wrap.classList.remove("dragging");
+    room3DCameraMemory[cameraKey] = { x: tiltX, y: tiltY };
+    if (shouldWalk && e?.type === "pointerup") walkToTap(e);
+  };
+  wrap.addEventListener("pointerup", endDrag);
+  wrap.addEventListener("pointercancel", endDrag);
+  wrap.addEventListener("lostpointercapture", endDrag);
+  wrap.addEventListener("dblclick", resetCamera);
+  stage.querySelector(".room-reset")?.addEventListener("click", resetCamera);
+  stage.querySelector(".room-decorate")?.addEventListener("click", () => {
+    stage.parentElement?.querySelector(".room-decorate-title")?.scrollIntoView({ behavior:"smooth", block:"start" });
+  });
+
+  const movePlayer = direction => {
+    const current = room3DPosition(roomIndex);
+    const deltas = {
+      up: { x: 0, y: -13 },
+      down: { x: 0, y: 13 },
+      left: { x: -16, y: 0 },
+      right: { x: 16, y: 0 }
+    };
+    const delta = deltas[direction];
+    if (!delta) return;
+    movePlayerTo({ x: current.x + delta.x, y: current.y + delta.y });
+  };
+  wrap.addEventListener("keydown", e => {
+    const keys = {
+      ArrowUp: "up", w: "up", W: "up",
+      ArrowDown: "down", s: "down", S: "down",
+      ArrowLeft: "left", a: "left", A: "left",
+      ArrowRight: "right", d: "right", D: "right"
+    };
+    const direction = keys[e.key];
+    if (!direction) return;
+    e.preventDefault();
+    movePlayer(direction);
+  });
+
+  wrap.querySelectorAll(".room-3d-object").forEach(object => {
+    const showItem = () => {
+      if (didDrag) return;
+      const slot = object.dataset.slot;
+      const itemId = (state.placedFurniture[state.activeRoomIndex] || {})[slot];
+      const item = FURNITURE.find(f => f.id === itemId);
+      if (item) toast(`${item.name} · tap an option below to redecorate`);
+    };
+    object.addEventListener("click", showItem);
+    object.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showItem(); }
+    });
+  });
+}
 
 function renderRoomSVG(prop, roomType, roomIndex) {
   const wallColor = ["#e8dfd0","#e3d9c6","#dcd0ba","#d5c7ab","#cebf9d","#c2af88","#e6dcc4","#1f2b3a"][prop.tier-1] || "#e8dfd0";
@@ -4366,16 +5145,452 @@ function closeBusiness(typeId) {
 }
 
 const VEHICLES = [
- {id:"sedan", name:"Used Sedan", price:5000, weeklyUpkeep:25, happinessBonus:2, looksBonus:1},
- {id:"truck", name:"Pickup Truck", price:15000, weeklyUpkeep:45, happinessBonus:3, looksBonus:1},
- {id:"sports", name:"Sports Car", price:45000, weeklyUpkeep:90, happinessBonus:5, looksBonus:5},
- {id:"suv", name:"Luxury SUV", price:85000, weeklyUpkeep:140, happinessBonus:6, looksBonus:6},
- {id:"supercar", name:"Exotic Supercar", price:320000, weeklyUpkeep:320, happinessBonus:8, looksBonus:10},
+ {id:"sedan", name:"Used Sedan", price:5000, weeklyUpkeep:25, happinessBonus:2, looksBonus:1, drive:{maxSpeed:108,accel:18,handling:1.7,redline:6500,gears:5,color:"#b55f48"}},
+ {id:"truck", name:"Pickup Truck", price:15000, weeklyUpkeep:45, happinessBonus:3, looksBonus:1, drive:{maxSpeed:98,accel:15,handling:1.28,redline:5800,gears:5,color:"#557362"}},
+ {id:"sports", name:"Sports Car", price:45000, weeklyUpkeep:90, happinessBonus:5, looksBonus:5, drive:{maxSpeed:168,accel:30,handling:2.35,redline:7600,gears:6,color:"#d9a43b"}},
+ {id:"suv", name:"Luxury SUV", price:85000, weeklyUpkeep:140, happinessBonus:6, looksBonus:6, drive:{maxSpeed:140,accel:24,handling:1.78,redline:6800,gears:8,color:"#263b4c"}},
+ {id:"supercar", name:"Exotic Supercar", price:320000, weeklyUpkeep:320, happinessBonus:8, looksBonus:10, drive:{maxSpeed:220,accel:42,handling:2.75,redline:8500,gears:7,color:"#cf493f"}},
  {id:"yacht", name:"Luxury Yacht", price:1800000, weeklyUpkeep:1500, happinessBonus:12, looksBonus:12},
  {id:"helicopter", name:"Private Helicopter", price:3500000, weeklyUpkeep:2800, happinessBonus:14, looksBonus:8},
  {id:"jet", name:"Private Jet", price:12000000, weeklyUpkeep:9000, happinessBonus:18, looksBonus:14},
 ];
 const VEHICLE_RESALE_RATE = 0.6;
+let driveSession = null;
+
+function driveGridDistance(value, spacing=120) {
+  const wrapped = ((value + spacing/2) % spacing + spacing) % spacing - spacing/2;
+  return Math.abs(wrapped);
+}
+
+function driveProject(session, point) {
+  const { canvas, player } = session;
+  const width = canvas.clientWidth, height = canvas.clientHeight;
+  const cameraHeading = player.heading + session.camera.yaw;
+  const sin = Math.sin(cameraHeading), cos = Math.cos(cameraHeading);
+  const speedPullback = Math.min(3.5, Math.abs(player.speed) / 55);
+  const cameraDistance = session.camera.distance + speedPullback;
+  const cameraX = player.x - sin * cameraDistance;
+  const cameraZ = player.z - cos * cameraDistance;
+  const dx = point.x - cameraX, dz = point.z - cameraZ;
+  const cameraXSpace = dx * cos - dz * sin;
+  const cameraZSpace = dx * sin + dz * cos;
+  const cameraYSpace = (point.y || 0) - (5.4 + player.jumpY * .28);
+  const pitch = session.camera.pitch, cp = Math.cos(pitch), sp = Math.sin(pitch);
+  const projectedY = cameraYSpace * cp - cameraZSpace * sp;
+  const projectedZ = cameraYSpace * sp + cameraZSpace * cp;
+  if (projectedZ < .7) return null;
+  const speedRatio = Math.min(1,Math.abs(player.speed)/session.car.drive.maxSpeed);
+  const focal = Math.min(width,height) * (.98-speedRatio*.13);
+  return {
+    x: width/2 + cameraXSpace * focal / projectedZ,
+    y: height*.35 - projectedY * focal / projectedZ,
+    z: projectedZ,
+    scale: focal / projectedZ
+  };
+}
+
+function drivePolygon(ctx, points, fill, stroke=null, width=1) {
+  if (!points.length || points.some(point => !point)) return;
+  ctx.beginPath();
+  ctx.moveTo(points[0].x,points[0].y);
+  for (let i=1;i<points.length;i++) ctx.lineTo(points[i].x,points[i].y);
+  ctx.closePath();
+  ctx.fillStyle=fill;
+  ctx.fill();
+  if (stroke) { ctx.strokeStyle=stroke; ctx.lineWidth=width; ctx.stroke(); }
+}
+
+function driveWorldPolygon(session, points, fill, stroke=null, width=1) {
+  drivePolygon(session.ctx, points.map(point => driveProject(session,point)), fill, stroke, width);
+}
+
+function driveBuilding(session, x, z, width, depth, height, color) {
+  const y=0, top=height;
+  driveWorldPolygon(session,[
+    {x:x-width/2-5,y:.03,z:z-depth/2-5},{x:x+width/2+5,y:.03,z:z-depth/2-5},
+    {x:x+width/2+5,y:.03,z:z+depth/2+5},{x:x-width/2-5,y:.03,z:z+depth/2+5}
+  ],"#737b79");
+  const p = {
+    a:{x:x-width/2,y,z:z-depth/2}, b:{x:x+width/2,y,z:z-depth/2},
+    c:{x:x+width/2,y,z:z+depth/2}, d:{x:x-width/2,y,z:z+depth/2},
+    at:{x:x-width/2,y:top,z:z-depth/2}, bt:{x:x+width/2,y:top,z:z-depth/2},
+    ct:{x:x+width/2,y:top,z:z+depth/2}, dt:{x:x-width/2,y:top,z:z+depth/2}
+  };
+  driveWorldPolygon(session,[p.a,p.b,p.bt,p.at],room3DShade(color,-18));
+  driveWorldPolygon(session,[p.b,p.c,p.ct,p.bt],room3DShade(color,-8));
+  driveWorldPolygon(session,[p.c,p.d,p.dt,p.ct],color);
+  driveWorldPolygon(session,[p.d,p.a,p.at,p.dt],room3DShade(color,8));
+  driveWorldPolygon(session,[p.at,p.bt,p.ct,p.dt],room3DShade(color,22));
+  const front = driveProject(session,{x,z:z-depth/2-.05,y:height*.58});
+  if (front && front.z<180) {
+    const windowWidth=Math.max(1.5,front.scale*2.2), windowHeight=Math.max(2,front.scale*3);
+    session.ctx.fillStyle="rgba(244,211,121,.48)";
+    session.ctx.fillRect(front.x-windowWidth/2,front.y-windowHeight/2,windowWidth,windowHeight);
+  }
+}
+
+function driveTrafficCar(session,traffic) {
+  const alongX=traffic.axis==="x";
+  const halfW=alongX?3.4:1.8,halfD=alongX?1.8:3.4;
+  const x=traffic.x,z=traffic.z,h=1.35;
+  const p={
+    a:{x:x-halfW,y:.1,z:z-halfD},b:{x:x+halfW,y:.1,z:z-halfD},c:{x:x+halfW,y:.1,z:z+halfD},d:{x:x-halfW,y:.1,z:z+halfD},
+    at:{x:x-halfW,y:h,z:z-halfD},bt:{x:x+halfW,y:h,z:z-halfD},ct:{x:x+halfW,y:h,z:z+halfD},dt:{x:x-halfW,y:h,z:z+halfD}
+  };
+  driveWorldPolygon(session,[p.a,p.b,p.bt,p.at],room3DShade(traffic.color,-22));
+  driveWorldPolygon(session,[p.b,p.c,p.ct,p.bt],room3DShade(traffic.color,-10));
+  driveWorldPolygon(session,[p.c,p.d,p.dt,p.ct],traffic.color);
+  driveWorldPolygon(session,[p.at,p.bt,p.ct,p.dt],room3DShade(traffic.color,20));
+}
+
+function driveLamp(session, x, z) {
+  const base=driveProject(session,{x,y:0,z}), top=driveProject(session,{x,y:6,z});
+  if(!base||!top||top.z>190)return;
+  const ctx=session.ctx;
+  ctx.strokeStyle="rgba(31,38,42,.9)";
+  ctx.lineWidth=Math.max(1,top.scale*.06);
+  ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.lineTo(top.x,top.y);ctx.stroke();
+  const glow=Math.max(2,top.scale*.22);
+  const gradient=ctx.createRadialGradient(top.x,top.y,0,top.x,top.y,glow*2.8);
+  gradient.addColorStop(0,"rgba(255,226,137,.95)");gradient.addColorStop(.35,"rgba(255,210,101,.42)");gradient.addColorStop(1,"rgba(255,210,101,0)");
+  ctx.fillStyle=gradient;ctx.beginPath();ctx.arc(top.x,top.y,glow*2.8,0,Math.PI*2);ctx.fill();
+}
+
+function driveTree(session,x,z) {
+  const base=driveProject(session,{x,y:0,z}), crown=driveProject(session,{x,y:5,z});
+  if(!base||!crown||crown.z>170)return;
+  const ctx=session.ctx,size=Math.max(2,crown.scale*.48);
+  ctx.strokeStyle="#4f3b2b";ctx.lineWidth=Math.max(1,crown.scale*.08);ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.lineTo(crown.x,crown.y);ctx.stroke();
+  ctx.fillStyle="#426c4c";ctx.beginPath();ctx.arc(crown.x,crown.y,size,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="rgba(105,151,94,.72)";ctx.beginPath();ctx.arc(crown.x-size*.35,crown.y-size*.3,size*.62,0,Math.PI*2);ctx.fill();
+}
+
+function driveRamp(session, ramp) {
+  const sin=Math.sin(ramp.heading), cos=Math.cos(ramp.heading), rightX=cos*5, rightZ=-sin*5, frontX=sin*8, frontZ=cos*8;
+  const backLeft={x:ramp.x-rightX,y:0,z:ramp.z-rightZ};
+  const backRight={x:ramp.x+rightX,y:0,z:ramp.z+rightZ};
+  const frontLeft={x:ramp.x+frontX-rightX,y:2.8,z:ramp.z+frontZ-rightZ};
+  const frontRight={x:ramp.x+frontX+rightX,y:2.8,z:ramp.z+frontZ+rightZ};
+  driveWorldPolygon(session,[backLeft,backRight,frontRight,frontLeft],"#636b6e","#d9b953",1.5);
+  driveWorldPolygon(session,[frontLeft,frontRight,{...frontRight,y:0},{...frontLeft,y:0}],"#3f4649");
+  for(let i=.2;i<.9;i+=.22){
+    const cx=ramp.x+frontX*i, cz=ramp.z+frontZ*i;
+    driveWorldPolygon(session,[
+      {x:cx-rightX*.65,y:2.8*i+.04,z:cz-rightZ*.65},
+      {x:cx+rightX*.65,y:2.8*i+.04,z:cz+rightZ*.65},
+      {x:cx+rightX*.65+frontX*.08,y:2.8*(i+.08)+.04,z:cz+rightZ*.65+frontZ*.08},
+      {x:cx-rightX*.65+frontX*.08,y:2.8*(i+.08)+.04,z:cz-rightZ*.65+frontZ*.08}
+    ],"#e6c455");
+  }
+}
+
+function driveRenderWorld(session) {
+  const {ctx,canvas,player}=session, width=canvas.clientWidth, height=canvas.clientHeight;
+  const sky=ctx.createLinearGradient(0,0,0,height*.64);
+  sky.addColorStop(0,"#314f62");sky.addColorStop(.55,"#7695a0");sky.addColorStop(1,"#d5a87e");
+  ctx.fillStyle=sky;ctx.fillRect(0,0,width,height);
+  const glow=ctx.createRadialGradient(width*.72,height*.24,4,width*.72,height*.24,width*.32);
+  glow.addColorStop(0,"rgba(255,221,157,.34)");glow.addColorStop(1,"rgba(255,221,157,0)");
+  ctx.fillStyle=glow;ctx.fillRect(0,0,width,height*.65);
+  ctx.fillStyle="#1e3039";
+  for(let i=0;i<18;i++){const bw=24+(i*17%43),bh=20+(i*29%86);ctx.fillRect(i*width/17-bw/2,height*.35-bh,bw,bh);}
+  ctx.fillStyle="#485b4c";ctx.fillRect(0,height*.35,width,height*.65);
+
+  const tile=30, range=390;
+  const startX=Math.floor((player.x-range)/tile)*tile, endX=player.x+range;
+  const startZ=Math.floor((player.z-range)/tile)*tile, endZ=player.z+range;
+  const roadTiles=[];
+  for(let x=startX;x<endX;x+=tile){
+    for(let z=startZ;z<endZ;z+=tile){
+      const cx=x+tile/2,cz=z+tile/2;
+      if(driveGridDistance(cx)<17||driveGridDistance(cz)<17){
+        const center=driveProject(session,{x:cx,y:0,z:cz});
+        if(center)roadTiles.push({x,z,depth:center.z});
+      }
+    }
+  }
+  roadTiles.sort((a,b)=>b.depth-a.depth);
+  roadTiles.forEach(({x,z})=>{
+    driveWorldPolygon(session,[{x,y:.02,z},{x:x+tile,y:.02,z},{x:x+tile,y:.02,z:z+tile},{x,y:.02,z:z+tile}],"#3a4145");
+    const cx=x+tile/2,cz=z+tile/2;
+    if(driveGridDistance(cx)<6){
+      driveWorldPolygon(session,[{x:cx-.45,y:.04,z:z+4},{x:cx+.45,y:.04,z:z+4},{x:cx+.45,y:.04,z:z+12},{x:cx-.45,y:.04,z:z+12}],"rgba(235,207,112,.8)");
+    }
+    if(driveGridDistance(cz)<6){
+      driveWorldPolygon(session,[{x:x+4,y:.04,z:cz-.45},{x:x+12,y:.04,z:cz-.45},{x:x+12,y:.04,z:cz+.45},{x:x+4,y:.04,z:cz+.45}],"rgba(235,207,112,.8)");
+    }
+  });
+
+  const buildings=[];
+  const gx0=Math.floor(player.x/120),gz0=Math.floor(player.z/120);
+  for(let gx=gx0-4;gx<=gx0+4;gx++)for(let gz=gz0-4;gz<=gz0+4;gz++){
+    const x=gx*120+60,z=gz*120+60;
+    const projection=driveProject(session,{x,y:0,z});
+    if(projection&&projection.z<430){
+      const seed=Math.abs((gx*73856093)^(gz*19349663));
+      buildings.push({x,z,depth:projection.z,h:17+seed%32,w:42+seed%16,d:42+(seed>>3)%16,color:["#6e7777","#756d68","#66747a","#7b765f"][seed%4]});
+    }
+  }
+  buildings.sort((a,b)=>b.depth-a.depth).forEach(b=>driveBuilding(session,b.x,b.z,b.w,b.d,b.h,b.color));
+
+  const trees=[];
+  for(let gx=gx0-3;gx<=gx0+3;gx++)for(let gz=gz0-3;gz<=gz0+3;gz++){
+    trees.push({x:gx*120+25,z:gz*120+25},{x:gx*120+95,z:gz*120+95});
+  }
+  trees.map(tree=>({...tree,p:driveProject(session,{...tree,y:0})})).filter(tree=>tree.p).sort((a,b)=>b.p.z-a.p.z).forEach(tree=>driveTree(session,tree.x,tree.z));
+
+  const lamps=[];
+  for(let gx=gx0-3;gx<=gx0+3;gx++)for(let gz=gz0-4;gz<=gz0+4;gz++){
+    const roadX=gx*120;
+    for(const offset of[-35,35])lamps.push({x:roadX+18,z:gz*120+offset});
+  }
+  for(let gz=gz0-3;gz<=gz0+3;gz++)for(let gx=gx0-4;gx<=gx0+4;gx++){
+    const roadZ=gz*120;
+    for(const offset of[-35,35])lamps.push({x:gx*120+offset,z:roadZ+18});
+  }
+  lamps.map(l=>({...l,p:driveProject(session,{...l,y:0})})).filter(l=>l.p).sort((a,b)=>b.p.z-a.p.z).forEach(l=>driveLamp(session,l.x,l.z));
+  session.traffic.map(car=>({car,p:driveProject(session,{x:car.x,y:0,z:car.z})})).filter(item=>item.p&&item.p.z<260).sort((a,b)=>b.p.z-a.p.z).forEach(item=>driveTrafficCar(session,item.car));
+  session.ramps.forEach(r=>driveRamp(session,r));
+  const speedRatio=Math.min(1,Math.max(0,(Math.abs(player.speed)-58)/95));
+  if(speedRatio>0){
+    const phase=performance.now()*.018*Math.max(.4,speedRatio),vanishX=width/2,vanishY=height*.35;
+    ctx.strokeStyle=session.boosting?`rgba(103,232,245,${.2+speedRatio*.3})`:`rgba(220,239,242,${.08+speedRatio*.18})`;ctx.lineWidth=1+speedRatio+(session.boosting?1:0);
+    for(let i=0;i<16;i++){
+      const angle=-2.85+i*.38;
+      const radius=70+((i*83+phase)%Math.max(120,height*.58));
+      const length=9+speedRatio*30;
+      const sx=vanishX+Math.cos(angle)*radius,sy=vanishY+Math.sin(angle)*radius*.72;
+      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(vanishX+Math.cos(angle)*(radius+length),vanishY+Math.sin(angle)*(radius+length)*.72);ctx.stroke();
+    }
+  }
+}
+
+function driveRenderCar(session) {
+  const {ctx,canvas,car,player}=session,width=canvas.clientWidth,height=canvas.clientHeight;
+  const jumpOffset=player.jumpY*7, centerX=width/2, baseY=height*.78-jumpOffset;
+  const scale=Math.min(width,height)/430;
+  const steer=player.steer||0;
+  const orbit=Math.sin(session.camera.yaw);
+  ctx.save();ctx.translate(centerX,baseY);ctx.rotate(-steer*.035);ctx.transform(1,0,orbit*.16,1,0,0);ctx.scale(scale*(1-Math.abs(orbit)*.12),scale);
+  ctx.fillStyle=`rgba(0,0,0,${Math.max(.05,.28-player.jumpY*.025)})`;
+  ctx.beginPath();ctx.ellipse(0,18+player.jumpY*5,47,12,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#171b1e";ctx.fillRect(-43,-5,10,29);ctx.fillRect(33,-5,10,29);
+  ctx.fillStyle=room3DShade(car.drive.color,-18);
+  ctx.beginPath();ctx.moveTo(-42,8);ctx.lineTo(-33,-33);ctx.lineTo(33,-33);ctx.lineTo(42,8);ctx.lineTo(34,25);ctx.lineTo(-34,25);ctx.closePath();ctx.fill();
+  ctx.fillStyle=car.drive.color;ctx.beginPath();ctx.moveTo(-34,-30);ctx.lineTo(-22,-53);ctx.lineTo(22,-53);ctx.lineTo(34,-30);ctx.closePath();ctx.fill();
+  ctx.fillStyle="#263941";ctx.beginPath();ctx.moveTo(-20,-50);ctx.lineTo(-13,-66);ctx.lineTo(13,-66);ctx.lineTo(20,-50);ctx.closePath();ctx.fill();
+  ctx.fillStyle=session.input.brake?"#ff6a56":"#b93f38";
+  ctx.shadowColor=session.input.brake?"rgba(255,67,45,.8)":"transparent";ctx.shadowBlur=session.input.brake?10:0;
+  ctx.fillRect(-30,4,13,7);ctx.fillRect(17,4,13,7);ctx.shadowBlur=0;
+  ctx.fillStyle="#f1d782";ctx.fillRect(-4,13,8,4);
+  if(session.boosting){
+    const flame=10+Math.sin(performance.now()*.04)*5;
+    ctx.fillStyle="rgba(97,231,244,.9)";ctx.beginPath();ctx.moveTo(-10,24);ctx.lineTo(-3,24+flame);ctx.lineTo(2,24);ctx.fill();
+    ctx.beginPath();ctx.moveTo(8,24);ctx.lineTo(13,24+flame);ctx.lineTo(18,24);ctx.fill();
+  }
+  ctx.strokeStyle="rgba(255,255,255,.42)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-30,-32);ctx.lineTo(30,-32);ctx.stroke();
+  ctx.restore();
+}
+
+function driveToast(session,text) {
+  session.toast.textContent=text;
+  session.toast.classList.add("show");
+  clearTimeout(session.toastTimer);
+  session.toastTimer=setTimeout(()=>session.toast?.classList.remove("show"),900);
+}
+
+function driveUpdate(session, dt) {
+  const {player,input,car}=session,spec=car.drive;
+  const offRoad=driveGridDistance(player.x)>19&&driveGridDistance(player.z)>19;
+  const forward=input.gas?1:0, brake=input.brake?1:0;
+  if(forward)player.speed+=spec.accel*dt*(1-Math.min(.72,Math.abs(player.speed)/spec.maxSpeed*.72));
+  else if(brake&&player.speed>0)player.speed-=48*dt;
+  else if(brake)player.speed=Math.max(-18,player.speed-12*dt);
+  else {
+    const drag=offRoad?13:4.2;
+    player.speed-=Math.sign(player.speed)*Math.min(Math.abs(player.speed),drag*dt);
+  }
+  session.boosting=Boolean(input.boost&&input.gas&&session.nitro>0&&player.speed>8);
+  if(session.boosting){
+    player.speed+=(22+spec.accel*.55)*dt;
+    session.nitro=Math.max(0,session.nitro-27*dt);
+  } else {
+    session.nitro=Math.min(100,session.nitro+6.5*dt);
+  }
+  if(offRoad&&Math.abs(player.speed)>52)player.speed-=Math.sign(player.speed)*32*dt;
+  const activeMax=spec.maxSpeed*(session.boosting?1.16:1);
+  player.speed=Math.max(-18,Math.min(activeMax,player.speed));
+  const steerTarget=(input.left?1:0)-(input.right?1:0);
+  player.steer+=(steerTarget-player.steer)*Math.min(1,dt*9);
+  const speedRatioForSteer=Math.min(1,Math.abs(player.speed)/spec.maxSpeed);
+  const grip=(.16+Math.min(.78,Math.abs(player.speed)/58))*(1-speedRatioForSteer*.24);
+  if(Math.abs(player.speed)>.6)player.heading+=player.steer*spec.handling*grip*dt*Math.sign(player.speed);
+  const worldSpeed=player.speed*.24;
+  player.x+=Math.sin(player.heading)*worldSpeed*dt;
+  player.z+=Math.cos(player.heading)*worldSpeed*dt;
+  if(player.x>520)player.x=-520; else if(player.x< -520)player.x=520;
+  if(player.z>520)player.z=-520; else if(player.z< -520)player.z=520;
+  for(const traffic of session.traffic){
+    const trafficWorldSpeed=traffic.speed*.17*traffic.dir;
+    if(traffic.axis==="z")traffic.z+=trafficWorldSpeed*dt;
+    else traffic.x+=trafficWorldSpeed*dt;
+    if(Math.abs(traffic.x-player.x)>430||Math.abs(traffic.z-player.z)>430){
+      if(traffic.axis==="z"){traffic.z=player.z-traffic.dir*360;traffic.x=Math.round(player.x/120)*120+traffic.lane;}
+      else{traffic.x=player.x-traffic.dir*360;traffic.z=Math.round(player.z/120)*120+traffic.lane;}
+    }
+    if(performance.now()>session.collisionCooldown&&player.jumpY<1&&Math.hypot(player.x-traffic.x,player.z-traffic.z)<4.5){
+      player.speed*=-.22;session.collisionCooldown=performance.now()+1200;
+      driveToast(session,"Collision");haptic("heavy");
+    }
+  }
+  if(player.jumpY>0||player.jumpV>0){
+    player.jumpV-=12.5*dt;player.jumpY+=player.jumpV*dt;
+    if(player.jumpY<=0){player.jumpY=0;player.jumpV=0;if(player.wasAirborne){driveToast(session,"Smooth landing");player.wasAirborne=false;}}
+  }
+  if(player.jumpY===0&&Math.abs(player.speed)>24&&performance.now()>player.rampCooldown){
+    for(const ramp of session.ramps){
+      if(Math.hypot(player.x-ramp.x,player.z-ramp.z)<10){
+        player.jumpV=5.8+Math.min(2.6,Math.abs(player.speed)/80);
+        player.rampCooldown=performance.now()+1800;player.wasAirborne=true;
+        driveToast(session,"AIR");haptic("heavy");break;
+      }
+    }
+  }
+  const ratio=Math.min(.999,Math.abs(player.speed)/spec.maxSpeed);
+  player.gear=Math.max(1,Math.min(spec.gears,Math.floor(ratio*spec.gears)+1));
+  const band=(ratio*spec.gears)%1;
+  player.rpm=Math.round(900+(spec.redline-900)*(.36+band*.64)*(input.gas?1:.78));
+  if(Math.abs(player.speed)<1&&!input.gas)player.rpm=850;
+}
+
+function driveFrame(time) {
+  const session=driveSession;
+  if(!session)return;
+  const dt=Math.min(.034,Math.max(.001,(time-session.lastTime)/1000||.016));
+  session.lastTime=time;
+  driveUpdate(session,dt);
+  const cameraBlend=Math.min(1,dt*10);
+  session.camera.yaw+=(session.camera.targetYaw-session.camera.yaw)*cameraBlend;
+  session.camera.pitch+=(session.camera.targetPitch-session.camera.pitch)*cameraBlend;
+  session.camera.distance+=(session.camera.targetDistance-session.camera.distance)*cameraBlend;
+  if(session.webgl){
+    session.webgl.render({
+      x:session.player.x,z:session.player.z,heading:session.player.heading,steer:session.player.steer,
+      jumpY:session.player.jumpY,speed:session.player.speed,brake:session.input.brake,boosting:session.boosting,
+      cameraYaw:session.camera.yaw,cameraPitch:session.camera.pitch,cameraDistance:session.camera.distance,
+      traffic:session.traffic
+    });
+  }else{
+    const dpr=Math.min(2,window.devicePixelRatio||1),w=session.canvas.clientWidth,h=session.canvas.clientHeight;
+    if(session.canvas.width!==Math.round(w*dpr)||session.canvas.height!==Math.round(h*dpr)){
+      session.canvas.width=Math.round(w*dpr);session.canvas.height=Math.round(h*dpr);
+    }
+    session.ctx.setTransform(dpr,0,0,dpr,0,0);
+    driveRenderWorld(session);driveRenderCar(session);
+  }
+  session.speedEl.textContent=Math.round(Math.abs(session.player.speed));
+  session.gearEl.textContent=session.player.speed<-.8?"R":Math.abs(session.player.speed)<1?"N":session.player.gear;
+  session.rpmFill.style.width=`${Math.min(100,session.player.rpm/session.car.drive.redline*100)}%`;
+  session.nitroFill.style.width=`${session.nitro}%`;
+  session.root.classList.toggle("boosting",session.boosting);
+  session.raf=requestAnimationFrame(driveFrame);
+}
+
+function closeDriveGame() {
+  if(!driveSession)return;
+  cancelAnimationFrame(driveSession.raf);
+  clearTimeout(driveSession.toastTimer);
+  document.removeEventListener("keydown",driveSession.keyDown);
+  document.removeEventListener("keyup",driveSession.keyUp);
+  driveSession.webgl?.dispose?.();
+  driveSession.root.remove();
+  driveSession=null;
+}
+
+function openDriveGame(vehicleId) {
+  closeDriveGame();
+  const car=VEHICLES.find(v=>v.id===vehicleId&&v.drive);
+  if(!car||!state.vehicles.some(v=>v.id===vehicleId)){toast("That car is not in your garage.");return;}
+  const root=document.createElement("div");
+  root.id="drive-game";
+  root.innerHTML=`<canvas id="drive-canvas" aria-label="Wayfare Free Drive 3D world"></canvas>
+    <div class="drive-topbar"><div class="drive-car-card"><div class="drive-car-name">${car.name}</div><div class="drive-car-spec">${car.drive.maxSpeed} mph · ${car.drive.redline.toLocaleString()} rpm</div></div><div class="drive-top-actions"><button class="drive-camera drive-view" type="button" aria-label="Change driving camera">Chase</button><button class="drive-camera drive-center" type="button" aria-label="Center driving camera">Center</button><button class="drive-close" type="button" aria-label="Exit Free Drive">×</button></div></div>
+    <div class="drive-camera-hint">Drag the world to orbit the camera</div>
+    <div class="drive-toast"></div>
+    <div class="drive-cluster"><div class="drive-speed-row"><span class="drive-speed">0</span><span class="drive-speed-unit">MPH</span></div><span class="drive-gear">N</span><div class="drive-rpm-label">RPM · ${car.drive.redline.toLocaleString()} redline</div><div class="drive-rpm-track"><div class="drive-rpm-fill"></div></div><div class="drive-nitro"><span class="drive-nitro-label">N₂O</span><div class="drive-nitro-track"><div class="drive-nitro-fill"></div></div></div></div>
+    <div class="drive-controls"><div class="drive-steer"><button class="drive-control" data-drive-input="left" aria-label="Steer left">←</button><button class="drive-control" data-drive-input="right" aria-label="Steer right">→</button></div><div class="drive-pedals"><button class="drive-control drive-pedal brake" data-drive-input="brake">BRAKE</button><button class="drive-control drive-pedal boost" data-drive-input="boost">BOOST</button><button class="drive-control drive-pedal" data-drive-input="gas">GAS</button></div></div>`;
+  document.body.appendChild(root);
+  const canvas=root.querySelector("#drive-canvas");
+  const input={left:false,right:false,gas:false,brake:false,boost:false};
+  const ramps=[
+    {x:0,z:70,heading:0},{x:120,z:-65,heading:Math.PI},{x:-120,z:180,heading:0},
+    {x:180,z:120,heading:Math.PI/2},{x:-180,z:-120,heading:-Math.PI/2},{x:240,z:300,heading:Math.PI}
+  ];
+  const trafficColors=["#d46a4f","#527894","#d8b44c","#65705e","#b8b8b2","#7a5d85"];
+  const traffic=Array.from({length:16},(_,i)=>{
+    const axis=i%2===0?"z":"x",dir=i%4<2?1:-1,lane=i%3===0?-7:7;
+    if(axis==="z")return{axis,dir,lane,x:(Math.floor(i/4)-2)*120+lane,z:(i-8)*38,speed:32+(i*7%31),color:trafficColors[i%trafficColors.length]};
+    return{axis,dir,lane,x:(i-8)*42,z:(Math.floor(i/4)-2)*120+lane,speed:34+(i*9%28),color:trafficColors[i%trafficColors.length]};
+  });
+  let webgl=null,ctx=null;
+  try{
+    webgl=window.WayfareDrive3D?.create?.({canvas,color:car.drive.color,carId:car.id,ramps,traffic});
+  }catch(error){
+    console.warn("WebGL Free Drive fallback",error);
+  }
+  if(!webgl)ctx=canvas.getContext("2d");
+  const keyMap={ArrowLeft:"left",a:"left",A:"left",ArrowRight:"right",d:"right",D:"right",ArrowUp:"gas",w:"gas",W:"gas",ArrowDown:"brake",s:"brake",S:"brake"," ":"boost"};
+  const keyDown=e=>{if(e.key==="Escape"){closeDriveGame();return;}const key=keyMap[e.key];if(key){e.preventDefault();input[key]=true;}};
+  const keyUp=e=>{const key=keyMap[e.key];if(key){e.preventDefault();input[key]=false;}};
+  document.addEventListener("keydown",keyDown);document.addEventListener("keyup",keyUp);
+  const camera={yaw:0,targetYaw:0,pitch:.285,targetPitch:.285,distance:10,targetDistance:10,mode:0,dragging:false,pointerId:null,lastX:0,lastY:0};
+  const cameraModes=[
+    {name:"Chase",distance:10,pitch:.285},
+    {name:"Close",distance:6.2,pitch:.22},
+    {name:"Cinematic",distance:15,pitch:.38}
+  ];
+  const applyCameraMode=mode=>{
+    camera.mode=(mode+cameraModes.length)%cameraModes.length;
+    const preset=cameraModes[camera.mode];
+    camera.targetDistance=preset.distance;camera.targetPitch=preset.pitch;
+    root.querySelector(".drive-view").textContent=preset.name;
+  };
+  const resetCamera=()=>{camera.targetYaw=0;const preset=cameraModes[camera.mode];camera.targetPitch=preset.pitch;camera.targetDistance=preset.distance;};
+  root.addEventListener("pointerdown",e=>{
+    const target=e.target instanceof Element?e.target:null;
+    if(target?.closest("button"))return;
+    e.preventDefault();camera.dragging=true;camera.pointerId=e.pointerId;camera.lastX=e.clientX;camera.lastY=e.clientY;
+    root.setPointerCapture?.(e.pointerId);root.classList.add("camera-used","camera-dragging");
+  },{passive:false});
+  root.addEventListener("pointermove",e=>{
+    if(!camera.dragging||e.pointerId!==camera.pointerId)return;
+    e.preventDefault();
+    const dx=e.clientX-camera.lastX,dy=e.clientY-camera.lastY;
+    camera.targetYaw-=dx*.008;
+    camera.targetPitch=Math.max(.11,Math.min(.55,camera.targetPitch+dy*.0048));
+    camera.lastX=e.clientX;camera.lastY=e.clientY;
+  },{passive:false});
+  const endCameraDrag=e=>{if(camera.pointerId!==null&&e?.pointerId!==undefined&&e.pointerId!==camera.pointerId)return;camera.dragging=false;camera.pointerId=null;root.classList.remove("camera-dragging");};
+  ["pointerup","pointercancel","lostpointercapture"].forEach(type=>root.addEventListener(type,endCameraDrag));
+  root.addEventListener("dblclick",e=>{if(!(e.target instanceof Element)||!e.target.closest("button"))resetCamera();});
+  root.querySelector(".drive-center").onclick=resetCamera;
+  root.querySelector(".drive-view").onclick=()=>{applyCameraMode(camera.mode+1);driveToast(driveSession,cameraModes[camera.mode].name+" camera");};
+  root.querySelectorAll("[data-drive-input]").forEach(button=>{
+    const key=button.dataset.driveInput;
+    const set=active=>{input[key]=active;button.classList.toggle("active",active);};
+    button.addEventListener("pointerdown",e=>{e.preventDefault();button.setPointerCapture?.(e.pointerId);set(true);});
+    ["pointerup","pointercancel","lostpointercapture"].forEach(type=>button.addEventListener(type,()=>set(false)));
+  });
+  root.querySelector(".drive-close").onclick=closeDriveGame;
+  driveSession={
+    root,canvas,ctx,webgl,car,input,ramps,traffic,keyDown,keyUp,camera,nitro:100,boosting:false,collisionCooldown:0,lastTime:performance.now(),raf:null,toastTimer:null,
+    toast:root.querySelector(".drive-toast"),speedEl:root.querySelector(".drive-speed"),gearEl:root.querySelector(".drive-gear"),rpmFill:root.querySelector(".drive-rpm-fill"),nitroFill:root.querySelector(".drive-nitro-fill"),
+    player:{x:0,z:0,heading:0,steer:0,speed:0,rpm:850,gear:1,jumpY:0,jumpV:0,rampCooldown:0,wasAirborne:false}
+  };
+  haptic("medium");
+  driveToast(driveSession,"Free Drive");
+  driveSession.raf=requestAnimationFrame(driveFrame);
+}
 
 function sellVehicle(id) {
   const idx = state.vehicles.findIndex(v=>v.id===id);
@@ -4395,15 +5610,61 @@ function renderVehicles(main){
  title.textContent="Vehicles";
  main.appendChild(title);
 
+ const drivable = state.vehicles
+   .map(owned => VEHICLES.find(v => v.id === owned.id))
+   .filter(v => v?.drive);
+ const driveCard = document.createElement("div");
+ driveCard.className = "drive-launch";
+ driveCard.innerHTML = `<div class="drive-launch-kicker">Wayfare Free Drive</div>
+   <div class="drive-launch-title">Take the long way home.</div>
+   <div class="drive-launch-copy">Roam the city, chase speed, hit ramps, and feel the difference between every car in your garage.</div>`;
+ if (drivable.length) {
+   const selectedId = drivable.some(v => v.id === state.selectedDriveVehicle) ? state.selectedDriveVehicle : drivable[0].id;
+   state.selectedDriveVehicle = selectedId;
+   const select = document.createElement("select");
+   select.setAttribute("aria-label", "Choose a car for Free Drive");
+   select.style.cssText = "position:relative;z-index:1;width:100%;min-height:40px;margin-top:12px;padding:0 10px;color:#f6f3eb;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.15);border-radius:11px;font:700 11px var(--font-body);";
+   drivable.forEach(v => {
+     const option = document.createElement("option");
+     option.value = v.id;
+     option.textContent = `${v.name} · ${v.drive.maxSpeed} mph`;
+     option.selected = v.id === selectedId;
+     select.appendChild(option);
+   });
+   select.onchange = () => { state.selectedDriveVehicle = select.value; saveGame(); };
+   driveCard.appendChild(select);
+   const launch = document.createElement("button");
+   launch.className = "drive-launch-button";
+   launch.textContent = "Start Free Drive";
+   launch.onclick = () => openDriveGame(select.value);
+   driveCard.appendChild(launch);
+ } else {
+   const launch = document.createElement("button");
+   launch.className = "drive-launch-button";
+   launch.textContent = "Buy a street car to unlock";
+   launch.disabled = true;
+   driveCard.appendChild(launch);
+ }
+ main.appendChild(driveCard);
+
  if(state.vehicles.length){
    const owned = document.createElement("div");
    owned.className = "section-title";
    owned.textContent = "Garage";
    main.appendChild(owned);
    state.vehicles.forEach(v=>{
+     const catalogVehicle = VEHICLES.find(item=>item.id===v.id) || v;
      const c=document.createElement("div");
      c.className="panel-card";
-     c.innerHTML=`<div class="panel-row"><div><div class="panel-title">${v.name}</div><div class="panel-sub">${fmtMoney(v.weeklyUpkeep)}/wk upkeep</div></div></div>`;
+     c.innerHTML=`<div class="panel-row"><div><div class="panel-title">${v.name}</div><div class="panel-sub">${catalogVehicle.drive ? catalogVehicle.drive.maxSpeed+" mph · "+catalogVehicle.drive.redline.toLocaleString()+" rpm · " : ""}${fmtMoney(v.weeklyUpkeep)}/wk upkeep</div></div></div>`;
+     if(catalogVehicle.drive){
+       const drive=document.createElement("button");
+       drive.className="panel-action";
+       drive.textContent="Free Drive";
+       drive.style.marginTop="8px";
+       drive.onclick=()=>openDriveGame(v.id);
+       c.appendChild(drive);
+     }
      const b=document.createElement("button");
      b.className="panel-action secondary";
      b.textContent=`Sell for ${fmtMoney(Math.round(v.price*VEHICLE_RESALE_RATE))}`;
@@ -4423,7 +5684,7 @@ function renderVehicles(main){
    const owned = state.vehicles.some(x=>x.id===v.id);
    const c=document.createElement("div");
    c.className="panel-card";
-   c.innerHTML=`<div class="panel-row"><div><div class="panel-title">${v.name}</div><div class="panel-sub">${owned ? "Already in your garage" : fmtMoney(v.price)+" · "+fmtMoney(v.weeklyUpkeep)+"/wk upkeep"}</div></div></div>`;
+   c.innerHTML=`<div class="panel-row"><div><div class="panel-title">${v.name}</div><div class="panel-sub">${owned ? "Already in your garage" : fmtMoney(v.price)+" · "+fmtMoney(v.weeklyUpkeep)+"/wk upkeep"}${v.drive ? " · "+v.drive.maxSpeed+" mph" : ""}</div></div></div>`;
    const b=document.createElement("button");
    b.className="panel-action";
    b.textContent= owned ? "Owned" : "Buy";
