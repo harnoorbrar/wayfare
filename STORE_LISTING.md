@@ -50,14 +50,15 @@ pets, including a tiny dragon who is technically a very committed iguana.
 ## Keywords (100 char max, comma-separated, no spaces after commas)
 life sim,bitlife,simulator,life game,rpg,career,family,pets,dynasty,choices,text adventure
 
-## What's New (Version 1.4)
-Your life has more purpose — and more choice.
+## What's New (Version 1.5)
+Homes and cars finally feel alive.
 
-• Choose a lasting Life Ambition and pursue meaningful milestones
-• Spend two focused Activities each year to shape your stats and skills
-• Explore a cleaner, more polished dashboard and dark-mode experience
-• Continue growing beyond age 100 and complete a truly legendary life
-• Enjoy stability fixes for aging, death, and continuing as your child
+• Walk through redesigned 3D rooms with distinct styles for every property
+• Enjoy premium materials, including marble floors and countertops in luxury homes
+• Take owned cars into Free Drive with unique speed, handling, RPM, traffic, ramps, and camera views
+• Get a more polished dashboard, smoother controls, and clearer settings
+• Use improved save backups plus stability fixes for aging, death, and continuing as your child
+• Unlock Wayfare Plus monthly or for life to remove ads and access premium perks
 
 ## App Store Category
 Primary: Games
@@ -68,11 +69,10 @@ Secondary: Simulation
   market investing is not simulated gambling per Apple's definition)
 - Alcohol/Tobacco/Drug Use: Infrequent/Mild (life-event references)
 - Mature/Suggestive Themes: Infrequent/Mild (dating, marriage, death)
-→ Expected result: 9+ (confirm via questionnaire)
+→ Expected result: 13+ under the current questionnaire (confirm in App Store Connect)
 
 ## Support URL
-https://harnoorbrar.github.io/wayfare/ (or a dedicated support page —
-consider adding a short "Support" section/anchor to your existing site)
+https://harnoorbrar.github.io/wayfare/support.html
 
 ## Privacy Policy URL
 https://harnoorbrar.github.io/wayfare/privacy.html
@@ -82,3 +82,26 @@ https://harnoorbrar.github.io/wayfare/
 
 ## Copyright
 2026 Harnoor Brar
+
+## Notes for App Review (Version 1.5)
+Wayfare does not require an account or demo login.
+
+This update adds:
+- Interactive 3D home rooms: tap More > Home, choose Browse Properties,
+  rent any property with Move In Empty, then tap the room/floor and drag to
+  move and look around.
+- Wayfare Free Drive: tap More > Vehicles after purchasing a street car,
+  then tap Free Drive. Controls, camera switching, traffic, ramps, speed,
+  RPM, and vehicle-specific performance are available in the driving view.
+- Advertising for free players: interstitial ads appear only at natural
+  breaks after five completed age-ups, beginning when the simulated
+  character is age 8. Ads never appear for Wayfare Plus customers.
+- Wayfare Plus: tap the ✦ button in the top-right corner. The monthly
+  auto-renewable subscription and lifetime non-consumable both grant the
+  same "plus" entitlement: no ads, one Time Machine undo per life,
+  exclusive pets, and a Plus legacy badge. Restore Purchases is on the same
+  screen.
+
+Products submitted with this app version:
+- com.harnoorbrar.wayfare.plus.monthly
+- com.harnoorbrar.wayfare.plus.lifetime

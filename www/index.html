@@ -1298,6 +1298,7 @@
   .settings-section { margin-top:18px; }
   .settings-list { margin-bottom:18px; overflow:hidden; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.42); }
   .settings-row { width:100%; min-height:59px; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 12px; color:var(--ink); background:transparent; border:0; border-bottom:1px solid var(--line); font:inherit; text-align:left; }
+  .settings-row-link { text-decoration:none; cursor:pointer; }
   .settings-row:last-child { border-bottom:0; }
   .settings-row-copy { min-width:0; }
   .settings-row-title { font-size:13.5px; font-weight:750; }
@@ -1679,13 +1680,27 @@ function openSettings() {
         <button class="panel-action secondary" id="restore-backup">Restore</button>
       </div>
     </div>
-    ${admobPlugin() ? `<div class="settings-label">Privacy</div>
+    <div class="settings-label">Privacy &amp; support</div>
     <div class="settings-list">
+      <a class="settings-row settings-row-link" href="https://harnoorbrar.github.io/wayfare/privacy.html" target="_blank" rel="noopener">
+        <div class="settings-row-copy"><div class="settings-row-title">Privacy Policy</div><div class="settings-row-sub">See how saves, purchases, and advertising data are handled.</div></div>
+        <span aria-hidden="true">›</span>
+      </a>
+      <a class="settings-row settings-row-link" href="https://harnoorbrar.github.io/wayfare/terms.html" target="_blank" rel="noopener">
+        <div class="settings-row-copy"><div class="settings-row-title">Terms of Use</div><div class="settings-row-sub">Review Wayfare and Wayfare Plus terms.</div></div>
+        <span aria-hidden="true">›</span>
+      </a>
+      <a class="settings-row settings-row-link" href="https://harnoorbrar.github.io/wayfare/support.html" target="_blank" rel="noopener">
+        <div class="settings-row-copy"><div class="settings-row-title">Help or report an ad</div><div class="settings-row-sub">Get support or report inappropriate advertising.</div></div>
+        <span aria-hidden="true">›</span>
+      </a>
+      ${admobPlugin() ? `
       <button class="settings-row" id="ad-privacy-options">
         <div class="settings-row-copy"><div class="settings-row-title">Ad privacy choices</div><div class="settings-row-sub">Review the privacy choices used for ads.</div></div>
         <span aria-hidden="true">›</span>
       </button>
-    </div>` : ""}
+      ` : ""}
+    </div>
     <button class="panel-action settings-close" id="settings-close">Done</button>`;
   sheet.querySelectorAll(".theme-option").forEach(button => {
     const active = button.dataset.themeOption === preference;
@@ -1778,7 +1793,8 @@ async function openPaywall() {
     <div id="paywall-packages"><div class="paywall-loading">Loading options…</div></div>
     <button class="pw-restore" id="pw-restore">Restore Purchases</button>
     <div class="pw-legal">
-      Subscriptions renew automatically until cancelled in Settings.
+      Monthly subscription renews automatically unless cancelled at least 24 hours before the current period ends.
+      Payment is charged to your Apple ID at confirmation. Manage or cancel in Apple ID subscription settings.
       <a href="https://harnoorbrar.github.io/wayfare/terms.html" target="_blank" rel="noopener">Terms of Use</a> ·
       <a href="https://harnoorbrar.github.io/wayfare/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
     </div>
@@ -1858,7 +1874,10 @@ let _adDue = false;
 async function prepareInterstitial() {
   if (!adsActive()) return;
   try {
-    await admobPlugin().prepareInterstitial({ adId: ADS.interstitialId });
+    await admobPlugin().prepareInterstitial({
+      adId: ADS.interstitialId,
+      npa: true,
+    });
     _interstitialReady = true;
   } catch(e) { _interstitialReady = false; }
 }
@@ -1866,7 +1885,11 @@ async function initAds() {
   if (!adsActive()) return;
   const AdMob = admobPlugin();
   try {
-    await AdMob.initialize({});
+    await AdMob.initialize({
+      tagForChildDirectedTreatment: false,
+      tagForUnderAgeOfConsent: false,
+      maxAdContentRating: "Teen",
+    });
     let consent = await AdMob.requestConsentInfo({ tagForUnderAgeOfConsent: false });
     if (!consent.canRequestAds && consent.isConsentFormAvailable) consent = await AdMob.showConsentForm();
     if (!consent.canRequestAds) return;

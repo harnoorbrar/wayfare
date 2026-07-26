@@ -6,7 +6,7 @@ Psuedo-elegant indie life simulator running as a PWA.
 
 1. Create a new repository on GitHub (for example `wayfare`).
 2. In the repo, click **Add file > Upload files**.
-3. Upload the contents of this folder: `index.html`, `manifest.json`, `service-worker.js`, `privacy.html`, `terms.html`, and `/icons`.
+3. Upload the contents of this folder: `index.html`, `manifest.json`, `service-worker.js`, `privacy.html`, `terms.html`, `support.html`, and `/icons`.
 4. Commit to `main`.
 5. Open **Settings > Pages > Build and deployment**. Set **Source** to **Deploy from a branch** and choose `main` and `/root`.
 6. Visit your GitHub Pages URL to test install.
