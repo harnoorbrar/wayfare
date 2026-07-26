@@ -5,6 +5,7 @@ import {
   ensureActivityState,
   focusRemaining,
   performActivity,
+  recommendation,
 } from './activities';
 import type { GameState } from './state';
 
@@ -62,5 +63,44 @@ describe('activities', () => {
     expect(availability(child, lead).reason).toBe('Unlocks at age 18.');
     const brokeAdult = life({ money: 0 });
     expect(performActivity(brokeAdult, 'network')).toEqual({ ok: false, reason: 'Needs $100.' });
+  });
+
+  it('turns a deliberate connection into stronger close relationships', () => {
+    const state = life({
+      relationships: [
+        { id: 1, type: 'friend', closeness: 72, trust: 74 },
+        { id: 2, type: 'sibling', closeness: 40, trust: 50 },
+        { id: 3, type: 'coworker', closeness: 20, trust: 30 },
+      ],
+    });
+    const result = performActivity(state, 'connect');
+    expect(result.relationshipsImproved).toBe(2);
+    expect(state.relationships[0].closeness).toBe(75);
+    expect(state.relationships[1].trust).toBe(53);
+    expect(state.relationships[2].closeness).toBe(20);
+  });
+
+  it('keeps relationship time unavailable until the player knows someone', () => {
+    const state = life();
+    expect(performActivity(state, 'connect')).toEqual({ ok: false, reason: 'Meet someone first.' });
+  });
+
+  it('recommends an available action that supports the selected ambition', () => {
+    const family = life({
+      ambition: { id: 'family', claimed: [] },
+      relationships: [{ id: 1, type: 'friend', closeness: 50 }],
+    });
+    expect(recommendation(family)?.activity.id).toBe('connect');
+    const mastery = life({ ambition: { id: 'mastery', claimed: [] } });
+    expect(recommendation(mastery)?.activity.id).toBe('study');
+    const fortune = life({ ambition: { id: 'fortune', claimed: [] } });
+    expect(recommendation(fortune)?.activity.id).toBe('review_finances');
+  });
+
+  it('surfaces the activity that closes the next career skill gap', () => {
+    const state = life({ job: 'retail', yearsAtJob: 3, skills: { charisma: 24, leadership: 0 } });
+    const next = recommendation(state);
+    expect(next?.activity.id).toBe('lead');
+    expect(next?.reason).toContain('Store Manager');
   });
 });

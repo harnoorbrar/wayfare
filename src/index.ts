@@ -117,6 +117,7 @@ import {
   ensureActivityState,
   focusRemaining,
   performActivity,
+  recommendation as activityRecommendation,
 } from './domain/activities';
 import type { GameState, Relationship } from './domain/state';
 
@@ -322,6 +323,7 @@ export const activities = {
   ensure: ensureActivityState,
   focusRemaining,
   perform: performActivity,
+  recommendation: activityRecommendation,
 };
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
