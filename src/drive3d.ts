@@ -22,7 +22,9 @@ type DriveRenderState = {
   cameraYaw: number;
   cameraPitch: number;
   cameraDistance: number;
+  bodyRoll: number;
   traffic: TrafficState[];
+  checkpoint?: { x: number; z: number };
 };
 
 type DriveOptions = {
@@ -64,6 +66,83 @@ function addBox(
   return part;
 }
 
+function addWheel(
+  parent: THREE.Object3D,
+  position: [number, number, number],
+  radius: number,
+  tire: THREE.Material,
+  rim: THREE.Material,
+) {
+  const wheel = new THREE.Group();
+  const tireMesh = mesh(new THREE.CylinderGeometry(radius, radius, 0.38, 24), tire);
+  tireMesh.rotation.z = Math.PI / 2;
+  wheel.add(tireMesh);
+  const rimMesh = mesh(new THREE.CylinderGeometry(radius * 0.58, radius * 0.58, 0.405, 12), rim);
+  rimMesh.rotation.z = Math.PI / 2;
+  wheel.add(rimMesh);
+  const hub = mesh(new THREE.CylinderGeometry(radius * 0.16, radius * 0.16, 0.43, 12), tire);
+  hub.rotation.z = Math.PI / 2;
+  wheel.add(hub);
+  wheel.position.set(...position);
+  parent.add(wheel);
+  return wheel;
+}
+
+function createSupercar(
+  car: THREE.Group,
+  paint: THREE.Material,
+  paintDark: THREE.Material,
+  glass: THREE.Material,
+  black: THREE.Material,
+  chrome: THREE.Material,
+  headLight: THREE.Material,
+  redLight: THREE.Material,
+) {
+  const carbon = material(0x111619, 0.36, 0.64);
+  const wheelMetal = material(0x9ba4a8, 0.24, 0.82);
+  const body = addBox(car, [2.14, 0.38, 4.64], [0, 0.68, 0], paint);
+  body.geometry.rotateX(-0.018);
+  addBox(car, [1.98, 0.22, 3.55], [0, 0.93, -0.08], paintDark);
+  const nose = addBox(car, [1.96, 0.22, 1.25], [0, 0.94, 1.64], paint);
+  nose.rotation.x = -0.1;
+  addBox(car, [1.84, 0.12, 0.72], [0, 0.91, 2.18], paintDark);
+  addBox(car, [1.5, 0.58, 1.72], [0, 1.28, -0.32], glass);
+  const roof = addBox(car, [1.34, 0.12, 1.05], [0, 1.62, -0.47], carbon);
+  roof.rotation.x = 0.025;
+
+  for (const side of [-1, 1]) {
+    const sill = addBox(car, [0.13, 0.18, 2.8], [side * 1.08, 0.5, -0.02], carbon);
+    sill.rotation.z = side * -0.03;
+    addBox(car, [0.09, 0.34, 0.82], [side * 1.09, 0.78, -0.52], black);
+    const intake = addBox(car, [0.08, 0.38, 0.7], [side * 1.1, 0.84, -0.84], black);
+    intake.rotation.z = side * 0.12;
+    const mirrorArm = addBox(car, [0.08, 0.08, 0.34], [side * 0.93, 1.36, 0.24], carbon);
+    mirrorArm.rotation.z = side * 0.18;
+    addBox(car, [0.28, 0.13, 0.24], [side * 1.02, 1.44, 0.18], paint);
+    addBox(car, [0.5, 0.13, 0.12], [side * 0.67, 0.96, 2.29], headLight);
+    addBox(car, [0.62, 0.12, 0.11], [side * 0.65, 0.88, -2.34], redLight);
+  }
+
+  const diffuser = addBox(car, [1.82, 0.18, 0.38], [0, 0.47, -2.35], carbon);
+  diffuser.rotation.x = 0.12;
+  for (const x of [-0.62, -0.2, 0.2, 0.62]) addBox(car, [0.06, 0.25, 0.46], [x, 0.47, -2.42], carbon);
+  addBox(car, [1.78, 0.07, 0.42], [0, 1.22, -2.14], carbon);
+  addBox(car, [0.08, 0.42, 0.08], [-0.68, 1.03, -2.12], carbon);
+  addBox(car, [0.08, 0.42, 0.08], [0.68, 1.03, -2.12], carbon);
+  addBox(car, [0.7, 0.08, 0.1], [0, 0.66, -2.47], chrome);
+
+  const wheelPositions: Array<[number, number, number]> = [
+    [-1.1, 0.54, 1.42], [1.1, 0.54, 1.42],
+    [-1.12, 0.56, -1.45], [1.12, 0.56, -1.45],
+  ];
+  const wheels = wheelPositions.map((position, index) =>
+    addWheel(car, position, index < 2 ? 0.46 : 0.49, black, wheelMetal));
+
+  car.userData.wheels = wheels;
+  car.userData.frontWheels = [wheels[0], wheels[1]];
+  return { length: 4.64, wheels };
+}
+
 function createCar(color: string, carId: string) {
   const car = new THREE.Group();
   const paint = material(color, 0.28, 0.46);
@@ -90,41 +169,42 @@ function createCar(color: string, carId: string) {
 
   const isTruck = carId === 'truck' || carId === 'suv';
   const isSuper = carId === 'supercar' || carId === 'sports';
+  const isExotic = carId === 'supercar';
   const length = isTruck ? 4.9 : isSuper ? 4.5 : 4.35;
   const height = isTruck ? 0.72 : isSuper ? 0.42 : 0.56;
-  addBox(car, [2.08, height, length], [0, 0.72, 0], paint);
-  addBox(car, [1.9, 0.18, length * 0.72], [0, 1.02, -0.08], paintDark);
+  let wheels: THREE.Object3D[] = [];
 
-  if (isTruck && carId === 'truck') {
-    addBox(car, [1.84, 1.08, 1.72], [0, 1.42, 0.67], paint);
-    addBox(car, [1.72, 0.74, 1.22], [0, 1.48, 0.72], glass);
-    addBox(car, [1.76, 0.18, 1.68], [0, 1.04, -1.48], black);
+  if (isExotic) {
+    const exotic = createSupercar(car, paint, paintDark, glass, black, chrome, headLight, redLight);
+    wheels = exotic.wheels;
   } else {
-    addBox(car, [1.72, isTruck ? 1.05 : 0.82, 1.82], [0, isTruck ? 1.43 : 1.28, -0.24], paint);
-    addBox(car, [1.58, isTruck ? 0.78 : 0.6, 1.52], [0, isTruck ? 1.5 : 1.34, -0.18], glass);
-  }
+    addBox(car, [2.08, height, length], [0, 0.72, 0], paint);
+    addBox(car, [1.9, 0.18, length * 0.72], [0, 1.02, -0.08], paintDark);
 
-  const wheelGeometry = new THREE.CylinderGeometry(isTruck ? 0.52 : 0.44, isTruck ? 0.52 : 0.44, 0.36, 18);
-  wheelGeometry.rotateZ(Math.PI / 2);
-  const wheelPositions: Array<[number, number, number]> = [
-    [-1.08, 0.5, 1.36], [1.08, 0.5, 1.36],
-    [-1.08, 0.5, -1.36], [1.08, 0.5, -1.36],
-  ];
-  const wheels: THREE.Mesh[] = [];
-  for (const position of wheelPositions) {
-    const wheel = mesh(wheelGeometry, black);
-    wheel.position.set(...position);
-    car.add(wheel);
-    wheels.push(wheel);
-  }
+    if (isTruck && carId === 'truck') {
+      addBox(car, [1.84, 1.08, 1.72], [0, 1.42, 0.67], paint);
+      addBox(car, [1.72, 0.74, 1.22], [0, 1.48, 0.72], glass);
+      addBox(car, [1.76, 0.18, 1.68], [0, 1.04, -1.48], black);
+    } else {
+      addBox(car, [1.72, isTruck ? 1.05 : 0.82, 1.82], [0, isTruck ? 1.43 : 1.28, -0.24], paint);
+      addBox(car, [1.58, isTruck ? 0.78 : 0.6, 1.52], [0, isTruck ? 1.5 : 1.34, -0.18], glass);
+    }
 
-  addBox(car, [0.48, 0.18, 0.12], [-0.64, 0.78, length / 2 + 0.04], headLight);
-  addBox(car, [0.48, 0.18, 0.12], [0.64, 0.78, length / 2 + 0.04], headLight);
+    const wheelPositions: Array<[number, number, number]> = [
+      [-1.08, 0.5, 1.36], [1.08, 0.5, 1.36],
+      [-1.08, 0.5, -1.36], [1.08, 0.5, -1.36],
+    ];
+    wheels = wheelPositions.map((position) =>
+      addWheel(car, position, isTruck ? 0.52 : 0.44, black, chrome));
+
+    addBox(car, [0.48, 0.18, 0.12], [-0.64, 0.78, length / 2 + 0.04], headLight);
+    addBox(car, [0.48, 0.18, 0.12], [0.64, 0.78, length / 2 + 0.04], headLight);
+  }
   const brakeLeft = addBox(car, [0.5, 0.18, 0.12], [-0.64, 0.76, -length / 2 - 0.04], redLight);
   const brakeRight = addBox(car, [0.5, 0.18, 0.12], [0.64, 0.76, -length / 2 - 0.04], redLight);
-  addBox(car, [0.72, 0.08, 0.1], [0, 0.66, -length / 2 - 0.08], chrome);
+  if (!isExotic) addBox(car, [0.72, 0.08, 0.1], [0, 0.66, -length / 2 - 0.08], chrome);
 
-  if (isSuper) {
+  if (isSuper && !isExotic) {
     addBox(car, [1.72, 0.08, 0.32], [0, 1.12, -length / 2 + 0.08], paintDark);
     addBox(car, [0.08, 0.34, 0.08], [-0.65, 0.94, -length / 2 + 0.08], black);
     addBox(car, [0.08, 0.34, 0.08], [0.65, 0.94, -length / 2 + 0.08], black);
@@ -385,6 +465,31 @@ export function create(options: DriveOptions) {
   addCity(scene, options.ramps);
   const playerCar = createCar(options.color, options.carId);
   scene.add(playerCar);
+  const checkpointGroup = new THREE.Group();
+  const checkpointRing = mesh(
+    new THREE.TorusGeometry(5.8, 0.3, 12, 42),
+    new THREE.MeshStandardMaterial({
+      color: 0x72e8f2,
+      emissive: 0x32b9cf,
+      emissiveIntensity: 2.2,
+      metalness: 0.35,
+      roughness: 0.2,
+      transparent: true,
+      opacity: 0.88,
+    }),
+    false,
+  );
+  checkpointGroup.add(checkpointRing);
+  const checkpointBeam = mesh(
+    new THREE.CylinderGeometry(2.4, 5.2, 0.08, 32),
+    new THREE.MeshBasicMaterial({ color: 0x62dce9, transparent: true, opacity: 0.24 }),
+    false,
+  );
+  checkpointBeam.position.y = -4.05;
+  checkpointGroup.add(checkpointBeam);
+  const checkpointGlow = new THREE.PointLight(0x57dfea, 24, 35, 2);
+  checkpointGroup.add(checkpointGlow);
+  scene.add(checkpointGroup);
   const trafficCars = options.traffic.map((state) => {
     const car = createTrafficCar(state);
     scene.add(car);
@@ -411,6 +516,8 @@ export function create(options: DriveOptions) {
     resize();
     playerCar.position.set(state.x, state.jumpY, state.z);
     playerCar.rotation.y = state.heading;
+    playerCar.rotation.z = -state.bodyRoll * 0.055;
+    playerCar.rotation.x = Math.min(0.035, Math.abs(state.speed) / 7000);
     wheelDistance += state.speed * 0.0009;
     for (const wheel of playerCar.userData.wheels as THREE.Mesh[]) {
       wheel.rotation.x = wheelDistance;
@@ -424,6 +531,15 @@ export function create(options: DriveOptions) {
     for (const flame of playerCar.userData.flames as THREE.Mesh[]) {
       flame.visible = state.boosting;
       flame.scale.y = 0.85 + Math.sin(performance.now() * 0.035) * 0.22;
+    }
+    if (state.checkpoint) {
+      checkpointGroup.visible = true;
+      checkpointGroup.position.set(state.checkpoint.x, 4.2, state.checkpoint.z);
+      const pulse = 1 + Math.sin(performance.now() * 0.005) * 0.06;
+      checkpointRing.scale.setScalar(pulse);
+      checkpointRing.rotation.z += 0.003;
+    } else {
+      checkpointGroup.visible = false;
     }
 
     trafficCars.forEach((car, index) => {
@@ -445,6 +561,7 @@ export function create(options: DriveOptions) {
     );
     target.set(state.x, state.jumpY + 0.9, state.z);
     camera.lookAt(target);
+    if (state.checkpoint) checkpointRing.lookAt(camera.position);
     const speedRatio = Math.min(1, Math.abs(state.speed) / 180);
     camera.fov = 58 + speedRatio * 9 + (state.boosting ? 5 : 0);
     camera.updateProjectionMatrix();

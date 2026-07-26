@@ -498,6 +498,25 @@
   .drive-car-card { min-width:150px; padding:9px 11px; border-radius:13px; }
   .drive-car-name { font-size:11px; font-weight:850; }
   .drive-car-spec { margin-top:2px; color:rgba(255,255,255,.58); font-size:8.5px; letter-spacing:.5px; text-transform:uppercase; }
+  .drive-objective {
+    position:absolute;
+    top:max(70px,calc(env(safe-area-inset-top) + 60px));
+    left:12px;
+    min-width:164px;
+    padding:9px 11px;
+    border:1px solid rgba(115,231,242,.2);
+    border-radius:13px;
+    color:#fff;
+    background:linear-gradient(135deg,rgba(8,24,31,.78),rgba(13,42,50,.65));
+    box-shadow:0 10px 28px rgba(0,0,0,.2);
+    backdrop-filter:blur(10px);
+    pointer-events:none;
+  }
+  .drive-objective-kicker { color:#79e7f1; font-size:7px; font-weight:900; letter-spacing:1.2px; text-transform:uppercase; }
+  .drive-objective-row { display:flex; align-items:baseline; justify-content:space-between; gap:14px; margin-top:3px; }
+  .drive-objective-title { font-size:11px; font-weight:850; }
+  .drive-objective-score { color:#f4d783; font:800 12px/1 var(--font-display); }
+  .drive-objective-meta { margin-top:3px; color:rgba(255,255,255,.58); font-size:8px; font-weight:750; letter-spacing:.3px; }
   .drive-top-actions { display:flex; gap:7px; pointer-events:auto; }
   .drive-close, .drive-camera { height:40px; display:grid; place-items:center; border-radius:13px; color:#fff; pointer-events:auto; cursor:pointer; }
   .drive-close { width:40px; font:700 18px/1 var(--font-body); }
@@ -554,6 +573,11 @@
   .drive-pedal.boost.active { color:#10252b; background:#77e7f0; box-shadow:0 0 24px rgba(87,222,239,.42); }
   .drive-toast { position:absolute; top:22%; left:50%; transform:translateX(-50%); padding:8px 12px; border-radius:999px; color:#1d2427; background:#f4d783; box-shadow:0 8px 24px rgba(0,0,0,.24); font-size:10px; font-weight:900; opacity:0; transition:opacity .2s ease; pointer-events:none; }
   .drive-toast.show { opacity:1; }
+  @media (max-width:430px) {
+    .drive-car-card { min-width:0; max-width:118px; }
+    .drive-camera { min-width:45px; padding:0 7px; }
+    .drive-center { display:none; }
+  }
   @media (min-width:700px) {
     .drive-controls { padding:0 34px; }
     .drive-control { width:66px; height:66px; }
@@ -5307,6 +5331,25 @@ function driveRamp(session, ramp) {
   }
 }
 
+function driveCheckpointMarker(session) {
+  const checkpoint=session.checkpoints?.[session.routeIndex];
+  if(!checkpoint)return;
+  const center=driveProject(session,{x:checkpoint.x,y:4.2,z:checkpoint.z});
+  const ground=driveProject(session,{x:checkpoint.x,y:.1,z:checkpoint.z});
+  if(!center||!ground||center.z>380)return;
+  const ctx=session.ctx,radius=Math.max(8,center.scale*5.8);
+  ctx.save();
+  ctx.strokeStyle=`rgba(107,232,242,${.68+Math.sin(performance.now()*.006)*.22})`;
+  ctx.lineWidth=Math.max(2,center.scale*.34);
+  ctx.shadowColor="rgba(87,225,239,.8)";
+  ctx.shadowBlur=14;
+  ctx.beginPath();ctx.arc(center.x,center.y,radius,0,Math.PI*2);ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.fillStyle="rgba(100,230,242,.14)";
+  ctx.beginPath();ctx.ellipse(ground.x,ground.y,radius*.8,radius*.2,0,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
 function driveRenderWorld(session) {
   const {ctx,canvas,player}=session, width=canvas.clientWidth, height=canvas.clientHeight;
   const sky=ctx.createLinearGradient(0,0,0,height*.64);
@@ -5374,6 +5417,7 @@ function driveRenderWorld(session) {
   lamps.map(l=>({...l,p:driveProject(session,{...l,y:0})})).filter(l=>l.p).sort((a,b)=>b.p.z-a.p.z).forEach(l=>driveLamp(session,l.x,l.z));
   session.traffic.map(car=>({car,p:driveProject(session,{x:car.x,y:0,z:car.z})})).filter(item=>item.p&&item.p.z<260).sort((a,b)=>b.p.z-a.p.z).forEach(item=>driveTrafficCar(session,item.car));
   session.ramps.forEach(r=>driveRamp(session,r));
+  driveCheckpointMarker(session);
   const speedRatio=Math.min(1,Math.max(0,(Math.abs(player.speed)-58)/95));
   if(speedRatio>0){
     const phase=performance.now()*.018*Math.max(.4,speedRatio),vanishX=width/2,vanishY=height*.35;
@@ -5426,11 +5470,16 @@ function driveUpdate(session, dt) {
   const {player,input,car}=session,spec=car.drive;
   const offRoad=driveGridDistance(player.x)>19&&driveGridDistance(player.z)>19;
   const forward=input.gas?1:0, brake=input.brake?1:0;
-  if(forward)player.speed+=spec.accel*dt*(1-Math.min(.72,Math.abs(player.speed)/spec.maxSpeed*.72));
-  else if(brake&&player.speed>0)player.speed-=48*dt;
-  else if(brake)player.speed=Math.max(-18,player.speed-12*dt);
+  const speedRatio=Math.min(1,Math.abs(player.speed)/spec.maxSpeed);
+  const traction=offRoad?.56:1;
+  if(forward){
+    const launchBoost=1.18-speedRatio*.32;
+    player.speed+=spec.accel*launchBoost*traction*dt*(1-Math.min(.78,speedRatio*.78));
+  }
+  else if(brake&&player.speed>0)player.speed-=Math.min(72,46+Math.abs(player.speed)*.18)*dt;
+  else if(brake)player.speed=Math.max(-20,player.speed-(11+Math.abs(player.speed)*.08)*dt);
   else {
-    const drag=offRoad?13:4.2;
+    const drag=(offRoad?14:3.2)+Math.abs(player.speed)*.012;
     player.speed-=Math.sign(player.speed)*Math.min(Math.abs(player.speed),drag*dt);
   }
   session.boosting=Boolean(input.boost&&input.gas&&session.nitro>0&&player.speed>8);
@@ -5444,15 +5493,38 @@ function driveUpdate(session, dt) {
   const activeMax=spec.maxSpeed*(session.boosting?1.16:1);
   player.speed=Math.max(-18,Math.min(activeMax,player.speed));
   const steerTarget=(input.left?1:0)-(input.right?1:0);
-  player.steer+=(steerTarget-player.steer)*Math.min(1,dt*9);
+  const steerResponse=7.5+spec.handling*1.35;
+  player.steer+=(steerTarget-player.steer)*Math.min(1,dt*steerResponse);
   const speedRatioForSteer=Math.min(1,Math.abs(player.speed)/spec.maxSpeed);
-  const grip=(.16+Math.min(.78,Math.abs(player.speed)/58))*(1-speedRatioForSteer*.24);
+  const lowSpeedAuthority=.2+Math.min(.8,Math.abs(player.speed)/42);
+  const highSpeedStability=1-speedRatioForSteer*.42;
+  const surfaceGrip=offRoad?.66:1;
+  const grip=lowSpeedAuthority*highSpeedStability*surfaceGrip;
   if(Math.abs(player.speed)>.6)player.heading+=player.steer*spec.handling*grip*dt*Math.sign(player.speed);
+  player.bodyRoll+=(player.steer*speedRatioForSteer-player.bodyRoll)*Math.min(1,dt*5.5);
   const worldSpeed=player.speed*.24;
   player.x+=Math.sin(player.heading)*worldSpeed*dt;
   player.z+=Math.cos(player.heading)*worldSpeed*dt;
   if(player.x>520)player.x=-520; else if(player.x< -520)player.x=520;
   if(player.z>520)player.z=-520; else if(player.z< -520)player.z=520;
+  const checkpoint=session.checkpoints[session.routeIndex];
+  if(checkpoint&&player.jumpY<3&&Math.hypot(player.x-checkpoint.x,player.z-checkpoint.z)<13){
+    const reward=250+Math.round(Math.abs(player.speed)*4);
+    session.score+=reward;
+    session.lastCheckpoint={x:checkpoint.x,z:checkpoint.z,heading:checkpoint.heading||player.heading};
+    session.routeIndex++;
+    if(session.routeIndex>=session.checkpoints.length){
+      session.routeIndex=0;session.lap++;
+      const lapSeconds=(performance.now()-session.lapStartedAt)/1000;
+      session.bestLap=Math.min(session.bestLap,lapSeconds);
+      session.lapStartedAt=performance.now();
+      session.score+=Math.max(500,Math.round(2400-lapSeconds*18));
+      driveToast(session,`LAP ${session.lap-1} · ${lapSeconds.toFixed(1)}s`);
+    }else{
+      driveToast(session,`CHECKPOINT · +${reward}`);
+    }
+    haptic("medium");
+  }
   for(const traffic of session.traffic){
     const trafficWorldSpeed=traffic.speed*.17*traffic.dir;
     if(traffic.axis==="z")traffic.z+=trafficWorldSpeed*dt;
@@ -5500,8 +5572,9 @@ function driveFrame(time) {
     session.webgl.render({
       x:session.player.x,z:session.player.z,heading:session.player.heading,steer:session.player.steer,
       jumpY:session.player.jumpY,speed:session.player.speed,brake:session.input.brake,boosting:session.boosting,
+      bodyRoll:session.player.bodyRoll,
       cameraYaw:session.camera.yaw,cameraPitch:session.camera.pitch,cameraDistance:session.camera.distance,
-      traffic:session.traffic
+      traffic:session.traffic,checkpoint:session.checkpoints[session.routeIndex]
     });
   }else{
     const dpr=Math.min(2,window.devicePixelRatio||1),w=session.canvas.clientWidth,h=session.canvas.clientHeight;
@@ -5515,6 +5588,10 @@ function driveFrame(time) {
   session.gearEl.textContent=session.player.speed<-.8?"R":Math.abs(session.player.speed)<1?"N":session.player.gear;
   session.rpmFill.style.width=`${Math.min(100,session.player.rpm/session.car.drive.redline*100)}%`;
   session.nitroFill.style.width=`${session.nitro}%`;
+  session.routeEl.textContent=`Checkpoint ${session.routeIndex+1}/${session.checkpoints.length} · Lap ${session.lap}`;
+  session.scoreEl.textContent=session.score.toLocaleString();
+  const activeCheckpoint=session.checkpoints[session.routeIndex];
+  session.distanceEl.textContent=`${Math.round(Math.hypot(session.player.x-activeCheckpoint.x,session.player.z-activeCheckpoint.z))}m to gate`;
   session.root.classList.toggle("boosting",session.boosting);
   session.raf=requestAnimationFrame(driveFrame);
 }
@@ -5537,7 +5614,8 @@ function openDriveGame(vehicleId) {
   const root=document.createElement("div");
   root.id="drive-game";
   root.innerHTML=`<canvas id="drive-canvas" aria-label="Wayfare Free Drive 3D world"></canvas>
-    <div class="drive-topbar"><div class="drive-car-card"><div class="drive-car-name">${car.name}</div><div class="drive-car-spec">${car.drive.maxSpeed} mph · ${car.drive.redline.toLocaleString()} rpm</div></div><div class="drive-top-actions"><button class="drive-camera drive-view" type="button" aria-label="Change driving camera">Chase</button><button class="drive-camera drive-center" type="button" aria-label="Center driving camera">Center</button><button class="drive-close" type="button" aria-label="Exit Free Drive">×</button></div></div>
+    <div class="drive-topbar"><div class="drive-car-card"><div class="drive-car-name">${car.name}</div><div class="drive-car-spec">${car.drive.maxSpeed} mph · ${car.drive.redline.toLocaleString()} rpm</div></div><div class="drive-top-actions"><button class="drive-camera drive-reset" type="button" aria-label="Reset car position">Reset</button><button class="drive-camera drive-view" type="button" aria-label="Change driving camera">Chase</button><button class="drive-camera drive-center" type="button" aria-label="Center driving camera">Center</button><button class="drive-close" type="button" aria-label="Exit Free Drive">×</button></div></div>
+    <div class="drive-objective"><div class="drive-objective-kicker">Street Run</div><div class="drive-objective-row"><span class="drive-objective-title drive-route">Checkpoint 1/10 · Lap 1</span><span class="drive-objective-score">0</span></div><div class="drive-objective-meta drive-distance">115m to gate</div></div>
     <div class="drive-camera-hint">Drag the world to orbit the camera</div>
     <div class="drive-toast"></div>
     <div class="drive-cluster"><div class="drive-speed-row"><span class="drive-speed">0</span><span class="drive-speed-unit">MPH</span></div><span class="drive-gear">N</span><div class="drive-rpm-label">RPM · ${car.drive.redline.toLocaleString()} redline</div><div class="drive-rpm-track"><div class="drive-rpm-fill"></div></div><div class="drive-nitro"><span class="drive-nitro-label">N₂O</span><div class="drive-nitro-track"><div class="drive-nitro-fill"></div></div></div></div>
@@ -5548,6 +5626,11 @@ function openDriveGame(vehicleId) {
   const ramps=[
     {x:0,z:70,heading:0},{x:120,z:-65,heading:Math.PI},{x:-120,z:180,heading:0},
     {x:180,z:120,heading:Math.PI/2},{x:-180,z:-120,heading:-Math.PI/2},{x:240,z:300,heading:Math.PI}
+  ];
+  const checkpoints=[
+    {x:0,z:115,heading:0},{x:120,z:120,heading:Math.PI/2},{x:235,z:120,heading:Math.PI/2},
+    {x:240,z:0,heading:Math.PI},{x:120,z:-120,heading:-Math.PI/2},{x:0,z:-120,heading:-Math.PI/2},
+    {x:-120,z:-120,heading:-Math.PI/2},{x:-120,z:0,heading:0},{x:-120,z:120,heading:Math.PI/2},{x:0,z:0,heading:0}
   ];
   const trafficColors=["#d46a4f","#527894","#d8b44c","#65705e","#b8b8b2","#7a5d85"];
   const traffic=Array.from({length:16},(_,i)=>{
@@ -5597,6 +5680,12 @@ function openDriveGame(vehicleId) {
   ["pointerup","pointercancel","lostpointercapture"].forEach(type=>root.addEventListener(type,endCameraDrag));
   root.addEventListener("dblclick",e=>{if(!(e.target instanceof Element)||!e.target.closest("button"))resetCamera();});
   root.querySelector(".drive-center").onclick=resetCamera;
+  root.querySelector(".drive-reset").onclick=()=>{
+    if(!driveSession)return;
+    const spawn=driveSession.lastCheckpoint||{x:0,z:0,heading:0};
+    Object.assign(driveSession.player,{x:spawn.x,z:spawn.z,heading:spawn.heading||0,speed:0,jumpY:0,jumpV:0,steer:0,bodyRoll:0});
+    driveToast(driveSession,"Car reset");haptic("medium");
+  };
   root.querySelector(".drive-view").onclick=()=>{applyCameraMode(camera.mode+1);driveToast(driveSession,cameraModes[camera.mode].name+" camera");};
   root.querySelectorAll("[data-drive-input]").forEach(button=>{
     const key=button.dataset.driveInput;
@@ -5606,9 +5695,9 @@ function openDriveGame(vehicleId) {
   });
   root.querySelector(".drive-close").onclick=closeDriveGame;
   driveSession={
-    root,canvas,ctx,webgl,car,input,ramps,traffic,keyDown,keyUp,camera,nitro:100,boosting:false,collisionCooldown:0,lastTime:performance.now(),raf:null,toastTimer:null,
-    toast:root.querySelector(".drive-toast"),speedEl:root.querySelector(".drive-speed"),gearEl:root.querySelector(".drive-gear"),rpmFill:root.querySelector(".drive-rpm-fill"),nitroFill:root.querySelector(".drive-nitro-fill"),
-    player:{x:0,z:0,heading:0,steer:0,speed:0,rpm:850,gear:1,jumpY:0,jumpV:0,rampCooldown:0,wasAirborne:false}
+    root,canvas,ctx,webgl,car,input,ramps,traffic,checkpoints,routeIndex:0,lap:1,score:0,bestLap:Infinity,lapStartedAt:performance.now(),lastCheckpoint:null,keyDown,keyUp,camera,nitro:100,boosting:false,collisionCooldown:0,lastTime:performance.now(),raf:null,toastTimer:null,
+    toast:root.querySelector(".drive-toast"),speedEl:root.querySelector(".drive-speed"),gearEl:root.querySelector(".drive-gear"),rpmFill:root.querySelector(".drive-rpm-fill"),nitroFill:root.querySelector(".drive-nitro-fill"),routeEl:root.querySelector(".drive-route"),scoreEl:root.querySelector(".drive-objective-score"),distanceEl:root.querySelector(".drive-distance"),
+    player:{x:0,z:0,heading:0,steer:0,bodyRoll:0,speed:0,rpm:850,gear:1,jumpY:0,jumpV:0,rampCooldown:0,wasAirborne:false}
   };
   haptic("medium");
   driveToast(driveSession,"Free Drive");
