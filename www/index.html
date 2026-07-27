@@ -1012,17 +1012,18 @@
 
   #header-right { display:flex; align-items:center; gap:7px; }
   #plus-btn, #settings-btn {
-    width: 32px; height: 32px; display:grid; place-items:center;
+    height: 32px; display:grid; place-items:center;
     font: inherit; font-size: 14px; font-weight: 700; line-height: 1;
     border-radius: 11px; cursor: pointer;
     transition: transform .16s ease, background .16s ease, border-color .16s ease;
   }
   #plus-btn {
+    min-width: 82px; padding: 0 10px;
     color: #a8925f; background: rgba(168,146,95,0.10);
     border: 1px solid rgba(168,146,95,0.35);
   }
   #plus-btn.owned { color: #6d5a2e; background: rgba(168,146,95,0.22); }
-  #settings-btn { color:var(--ink-dim); background:rgba(255,255,255,.46); border:1px solid var(--line); }
+  #settings-btn { width:32px; color:var(--ink-dim); background:rgba(255,255,255,.46); border:1px solid var(--line); }
   #plus-btn:active, #settings-btn:active { transform:scale(.92); }
   #char-age { margin-left:2px; padding:5px 8px; border-radius:999px; background:rgba(255,255,255,.42); }
   .paywall-sub { font-size: 13px; color: #6a6258; margin: 4px 0 12px; line-height: 1.45; }
@@ -1405,7 +1406,7 @@
     <div id="header-top">
       <div id="char-name">Sage Delgado</div>
       <div id="header-right">
-        <button id="plus-btn" title="Wayfare Plus" aria-label="Wayfare Plus">✦</button>
+        <button id="plus-btn" title="Wayfare Plus" aria-label="Open Wayfare Plus purchases">✦ Plus</button>
         <button id="settings-btn" title="Settings" aria-label="Open settings">⚙</button>
         <div id="char-age">Age 3</div>
       </div>
@@ -1673,6 +1674,8 @@ function openSettings() {
       <div class="settings-icon" aria-hidden="true">⚙</div>
       <div><div class="settings-title">Settings</div><div class="settings-sub">Make Wayfare feel at home on your device.</div></div>
     </div>
+    <div class="settings-label">Wayfare Plus</div>
+    <button class="panel-action" id="settings-plus" style="width:100%;margin-bottom:14px;">✦ View purchase options</button>
     <div class="settings-label">Appearance</div>
     <div class="appearance-options" role="group" aria-label="Appearance">
       <button class="theme-option" data-theme-option="system" aria-pressed="false"><span class="theme-glyph">◐</span><span>System</span></button>
@@ -1739,6 +1742,7 @@ function openSettings() {
     button.setAttribute("aria-pressed", String(active));
     button.onclick = () => setTextSizePreference(button.dataset.textSizeOption);
   });
+  document.getElementById("settings-plus").onclick = openPaywall;
   const hapticsToggle = document.getElementById("haptics-toggle");
   hapticsToggle.setAttribute("aria-checked", String(preferenceEnabled(HAPTICS_KEY, true)));
   hapticsToggle.onclick = () => {
