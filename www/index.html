@@ -1899,18 +1899,65 @@ function adsActive() { return ADS.enabled && !hasPlus() && !!admobPlugin(); }
 let _interstitialReady = false;
 let _ageUpsSinceAd = 0;
 let _adDue = false;
+let _adsInitialized = false;
+let _adEventsWired = false;
+let _interstitialPreparing = false;
+let _interstitialShowing = false;
+let _adRetryTimer = null;
+
+function scheduleInterstitialRetry() {
+  if (_adRetryTimer || !adsActive() || _interstitialReady) return;
+  _adRetryTimer = setTimeout(() => {
+    _adRetryTimer = null;
+    prepareInterstitial();
+  }, 30000);
+}
+
+function wireAdMobEvents(AdMob) {
+  // The plugin resolves prepareInterstitial before its native callbacks on
+  // some devices. These listeners keep the local state in sync and, most
+  // importantly, recover from a temporary no-fill or network failure.
+  if (_adEventsWired || !AdMob.addListener) return;
+  _adEventsWired = true;
+  AdMob.addListener("interstitialAdLoaded", () => {
+    _interstitialReady = true;
+  });
+  AdMob.addListener("interstitialAdFailedToLoad", () => {
+    _interstitialReady = false;
+    _interstitialPreparing = false;
+    scheduleInterstitialRetry();
+  });
+  AdMob.addListener("interstitialAdFailedToShow", () => {
+    _interstitialShowing = false;
+    _interstitialReady = false;
+    scheduleInterstitialRetry();
+  });
+  AdMob.addListener("interstitialAdDismissed", () => {
+    _interstitialShowing = false;
+    _interstitialReady = false;
+    prepareInterstitial();
+  });
+}
+
 async function prepareInterstitial() {
-  if (!adsActive()) return;
+  if (!adsActive() || _interstitialReady || _interstitialPreparing) return;
+  _interstitialPreparing = true;
   try {
     await admobPlugin().prepareInterstitial({
       adId: ADS.interstitialId,
       npa: true,
     });
     _interstitialReady = true;
-  } catch(e) { _interstitialReady = false; }
+  } catch(e) {
+    _interstitialReady = false;
+    scheduleInterstitialRetry();
+  } finally {
+    _interstitialPreparing = false;
+  }
 }
 async function initAds() {
-  if (!adsActive()) return;
+  if (!adsActive() || _adsInitialized) return;
+  _adsInitialized = true;
   const AdMob = admobPlugin();
   try {
     await AdMob.initialize({
@@ -1918,11 +1965,19 @@ async function initAds() {
       tagForUnderAgeOfConsent: false,
       maxAdContentRating: "Teen",
     });
+    wireAdMobEvents(AdMob);
     let consent = await AdMob.requestConsentInfo({ tagForUnderAgeOfConsent: false });
     if (!consent.canRequestAds && consent.isConsentFormAvailable) consent = await AdMob.showConsentForm();
-    if (!consent.canRequestAds) return;
+    if (!consent.canRequestAds) {
+      _adsInitialized = false;
+      return;
+    }
     await prepareInterstitial();
-  } catch(e) { /* ads must never break the game */ }
+  } catch(e) {
+    _adsInitialized = false;
+    // Initialization can fail when the app starts offline. Retry on the next
+    // foreground event instead of leaving the free tier permanently ad-free.
+  }
 }
 function noteCompletedAgeUpForAds() {
   if (!state || state.age < ADS.minimumAge) return;
@@ -1930,15 +1985,22 @@ function noteCompletedAgeUpForAds() {
   if (_ageUpsSinceAd >= ADS.ageUpsPerAd) _adDue = true;
 }
 async function maybeShowAgeUpInterstitial() {
-  if (!_adDue || !adsActive() || !_interstitialReady || !state || !state.alive || state.pendingChoice) return;
+  if (!_adDue || !adsActive() || !_interstitialReady || _interstitialShowing || !state || !state.alive || state.pendingChoice) return;
   const AdMob = admobPlugin();
   try {
+    _interstitialReady = false;
+    _interstitialShowing = true;
+    await AdMob.showInterstitial();
     _adDue = false;
     _ageUpsSinceAd = 0;
-    _interstitialReady = false;
-    await AdMob.showInterstitial();
+    _interstitialShowing = false;
     prepareInterstitial();
-  } catch(e) { prepareInterstitial(); }
+  } catch(e) {
+    // Keep the natural-break ad due. A failed show should not force the
+    // player through another five age-ups before we can try again.
+    _interstitialShowing = false;
+    scheduleInterstitialRetry();
+  }
 }
 async function showAdPrivacyOptions() {
   const AdMob = admobPlugin();
@@ -6476,6 +6538,16 @@ async function initMonetization() {
   await initAds();
 }
 initMonetization();
+document.addEventListener("resume", () => {
+  if (!_adsInitialized) initAds();
+  else prepareInterstitial();
+});
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    if (!_adsInitialized) initAds();
+    else prepareInterstitial();
+  }
+});
 document.getElementById("plus-btn").addEventListener("click", openPaywall);
 document.getElementById("settings-btn").addEventListener("click", openSettings);
 window.addEventListener("error", (e) => {
