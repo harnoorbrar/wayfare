@@ -150,6 +150,84 @@
   }
   #money-amt.negative { color: var(--bad); }
 
+  /* ---------- PENDING LIFE EVENT ---------- */
+  #life-event-banner {
+    flex: 0 0 auto;
+    width: calc(100% - 24px);
+    min-height: 64px;
+    margin: 10px 12px 0;
+    padding: 10px 11px;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 28px;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    background:
+      radial-gradient(circle at 92% 0%, rgba(255,255,255,.22), transparent 42%),
+      linear-gradient(135deg, #b94d2b, var(--accent));
+    border: 1px solid rgba(112,45,24,.18);
+    border-radius: 16px;
+    box-shadow: 0 9px 24px rgba(194,84,47,.24);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    animation: lifeEventArrive .34s cubic-bezier(.2,.85,.28,1);
+    z-index: 9;
+  }
+  #life-event-banner[hidden] { display: none; }
+  #life-event-banner:active { transform: scale(.985); }
+  #life-event-banner:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .life-event-banner-icon {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: rgba(255,255,255,.16);
+  }
+  .life-event-banner-icon svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .life-event-banner-copy { min-width: 0; }
+  .life-event-banner-label {
+    display: block;
+    margin-bottom: 2px;
+    color: rgba(255,255,255,.76);
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: .9px;
+    text-transform: uppercase;
+  }
+  .life-event-banner-text {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.3;
+  }
+  .life-event-banner-arrow {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,.16);
+    font-size: 21px;
+    line-height: 1;
+  }
+  @keyframes lifeEventArrive {
+    from { opacity: 0; transform: translateY(-8px) scale(.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
   /* ---------- MAIN SCROLL AREA ---------- */
   #main {
     flex: 1;
@@ -1426,6 +1504,7 @@
   html[data-text-size="large"] :is(.panel-sub,.rel-meta,.property-desc,.settings-sub) { font-size:13px; }
   html[data-text-size="large"] :is(.panel-action,.filter-chip,.chip,.settings-row-title) { font-size:13.5px; }
   html[data-text-size="large"] :is(.nav-label,.settings-row-sub) { font-size:10.5px; }
+  html[data-text-size="large"] .life-event-banner-text { font-size:13.5px; }
   html[data-reduce-motion="true"] *,
   html[data-reduce-motion="true"] *::before,
   html[data-reduce-motion="true"] *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; }
@@ -1442,6 +1521,11 @@
     background:radial-gradient(circle at 92% -4%, rgba(223,180,94,.10), transparent 30%), linear-gradient(180deg,#1d1a16 0%,var(--paper) 45%);
   }
   html[data-theme="dark"] #header { background:rgba(29,26,22,.93); border-bottom-color:rgba(255,255,255,.08); }
+  html[data-theme="dark"] #life-event-banner {
+    border-color:rgba(255,255,255,.09);
+    background:radial-gradient(circle at 92% 0%,rgba(255,255,255,.16),transparent 42%),linear-gradient(135deg,#8f3f28,#b85434);
+    box-shadow:0 10px 26px rgba(0,0,0,.3);
+  }
   html[data-theme="dark"] #main { background:linear-gradient(180deg,rgba(255,255,255,.018),transparent 140px); }
   html[data-theme="dark"] :is(.event-card,.panel-card,.floorplan-tile,.furniture-item,.property-card,.will-row) { background:#211e1a; border-color:var(--line); box-shadow:0 10px 24px rgba(0,0,0,.16); }
   html[data-theme="dark"] :is(.stat-pill,#settings-btn,#char-age,.theme-option) { background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.09); }
@@ -1516,6 +1600,12 @@
       <span id="money-amt" class="">$0</span>
     </div>
   </div>
+
+  <button id="life-event-banner" type="button" hidden aria-label="Open life event decision">
+    <span class="life-event-banner-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5 21 19H3L12 3.5Z"/><path d="M12 9v4.5M12 17h.01"/></svg></span>
+    <span class="life-event-banner-copy"><span class="life-event-banner-label">Decision needed</span><span class="life-event-banner-text"></span></span>
+    <span class="life-event-banner-arrow" aria-hidden="true">›</span>
+  </button>
 
   <div id="main"><div class="event-card"><div class="event-age">Age 3</div><div class="event-text">Sage Delgado got hooked on a cartoon about a dragon.</div><div><span class="event-delta delta-pos">Happiness +4</span></div></div><div class="event-card"><div class="event-age">Age 2</div><div class="event-text">Sage Delgado volunteered at a local shelter.</div><div><span class="event-delta delta-pos">Happiness +3</span></div></div><div class="event-card"><div class="event-age">Age 1</div><div class="event-text">Sage Delgado took their first wobbly steps.</div><div><span class="event-delta delta-pos">Happiness +3</span></div></div><div class="event-card"><div class="event-age">Age 0</div><div class="event-text">Sage Delgado was born today. A whole life, waiting to happen.</div></div></div>
 
@@ -3963,6 +4053,16 @@ function render() {
   moneyEl.textContent = fmtMoney(state.money);
   moneyEl.className = state.money < 0 ? "negative" : "";
 
+  const lifeEventBanner = document.getElementById("life-event-banner");
+  const hasPendingDecision = hasUsablePendingChoice(state.pendingChoice);
+  lifeEventBanner.hidden = !hasPendingDecision;
+  if (hasPendingDecision) {
+    const bannerText = state.pendingChoice.text.trim();
+    const spokenBannerText = /[.!?]$/.test(bannerText) ? bannerText : `${bannerText}.`;
+    lifeEventBanner.querySelector(".life-event-banner-text").textContent = bannerText;
+    lifeEventBanner.setAttribute("aria-label", `Decision needed: ${spokenBannerText} Open choices.`);
+  }
+
   // A life decision pauses aging, but it should not take the player out of
   // whatever they were managing. The choice remains on the Life tab until
   // resolved, while all other screens stay available.
@@ -4058,7 +4158,9 @@ function renderStory(main) {
 
   if (state.pendingChoice) {
     const card = document.createElement("div");
-    card.className = "event-card";
+    card.className = "event-card pending-choice-card";
+    card.id = "pending-life-choice";
+    card.tabIndex = -1;
     card.innerHTML = `<div class="event-age">Age ${state.age}</div><div class="event-text">${state.pendingChoice.text}</div>`;
     const btns = document.createElement("div");
     btns.className = "choice-btns";
@@ -7110,6 +7212,19 @@ function toast(msg) {
 }
 
 /* ---------------- WIRE UP ---------------- */
+function openPendingLifeChoice() {
+  if (!hasUsablePendingChoice(state.pendingChoice)) return;
+  state.activeTab = "story";
+  render();
+  requestAnimationFrame(() => {
+    const choiceCard = document.getElementById("pending-life-choice");
+    if (!choiceCard) return;
+    choiceCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    const firstChoice = choiceCard.querySelector(".choice-btn");
+    if (firstChoice) firstChoice.focus({ preventScroll: true });
+  });
+}
+
 document.addEventListener("click", e => {
   const btn = e.target.closest("button");
   if (btn && btn.id !== "ageup-btn") haptic("light");
@@ -7118,6 +7233,7 @@ document.addEventListener("click", e => {
 document.querySelectorAll(".nav-btn[data-tab]").forEach(b=>{
   b.addEventListener("click", ()=>{ state.activeTab = b.dataset.tab; render(); });
 });
+document.getElementById("life-event-banner").addEventListener("click", openPendingLifeChoice);
 function openMoreHub() {
   const destinations = [
     { tab:"activities", icon:"⚡", name:"Activities", detail:"Choose how to spend your focus" },
