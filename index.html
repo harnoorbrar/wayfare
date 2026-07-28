@@ -2434,6 +2434,9 @@ function repairProgressionState() {
     state.pendingChoice = null;
     repaired = true;
   }
+  try {
+    if (WayfareCore.careers.repair(state)) repaired = true;
+  } catch(e) {}
   if (!state.appearance || typeof state.appearance !== "object") {
     state.appearance = { ...DEFAULT_CHARACTER_APPEARANCE };
     repaired = true;
@@ -4021,6 +4024,11 @@ function buyFurniture(fid) {
 
 function applyForJob(jobId) {
   const job = JOBS.find(j=>j.id===jobId);
+  if (!job) { toast("That job is no longer available."); return; }
+  if (!WayfareCore.careers.canWork(state)) {
+    toast(`Careers unlock at age ${WayfareCore.careers.MIN_WORKING_AGE}.`);
+    return;
+  }
   if (!job.entry) { toast("That role is earned by promotion, not application."); return; }
   if (state.smarts < job.minSmarts) { toast(`Needs ${job.minSmarts} smarts.`); return; }
   if (!degreeMet(job)) { toast(`Needs ${degreeById(job.requiredDegree).name}.`); return; }
@@ -5377,6 +5385,15 @@ function renderJob(main) {
   title.textContent = "Career";
   main.appendChild(title);
 
+  if (!WayfareCore.careers.canWork(state)) {
+    const yearsUntilWork = WayfareCore.careers.MIN_WORKING_AGE - state.age;
+    const lockedCard = document.createElement("div");
+    lockedCard.className = "panel-card";
+    lockedCard.innerHTML = `<div class="panel-row"><div><div class="panel-title">The school years</div><div class="panel-sub">Full-time careers unlock at age ${WayfareCore.careers.MIN_WORKING_AGE}. Build your smarts and enjoy growing up first.</div></div><div style="font-weight:700;color:var(--accent);">${yearsUntilWork} year${yearsUntilWork===1?"":"s"}</div></div>`;
+    main.appendChild(lockedCard);
+    return;
+  }
+
   const cur = JOBS.find(j=>j.id===state.job) || JOBS.find(j=>j.id==="unemployed");
   const track = WayfareCore.careers.trackOf(state.job);
   const years = state.yearsAtJob || 0;
@@ -5483,6 +5500,7 @@ function renderJob(main) {
 }
 
 function renderCareerAdvisor(main) {
+  if (!WayfareCore.careers.canWork(state)) return;
   const qualified = JOBS
     .filter(job => job.id !== "unemployed" && job.id !== state.job && job.entry)
     .filter(job => state.smarts >= job.minSmarts && degreeMet(job))

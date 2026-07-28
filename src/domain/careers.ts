@@ -8,6 +8,9 @@ import type { GameState } from './state';
 import { Rng } from './rng';
 import { SKILL_MAX } from './skills';
 
+/** Wayfare's full-time career system begins with adulthood. */
+export const MIN_WORKING_AGE = 18;
+
 export interface LevelRequirements {
   minSmarts: number;
   degree: string | null;
@@ -72,6 +75,24 @@ export function nextLevel(levelId: string): CareerLevel | null {
   const entry = levelIndex.get(levelId);
   if (!entry) return null;
   return entry.track.levels[entry.i + 1] ?? null;
+}
+
+export function canWork(state: Pick<GameState, 'age'>): boolean {
+  return state.age >= MIN_WORKING_AGE;
+}
+
+/**
+ * Repairs saves created before working-age validation existed. Returns true
+ * when an impossible underage job was cleared so the caller can persist it.
+ */
+export function repairUnderageEmployment(
+  state: Pick<GameState, 'age' | 'job' | 'salary' | 'yearsAtJob'>,
+): boolean {
+  if (canWork(state) || !state.job || state.job === 'unemployed') return false;
+  state.job = 'unemployed';
+  state.salary = 0;
+  state.yearsAtJob = 0;
+  return true;
 }
 
 /** Flat list shaped like the legacy JOBS array, for the job board UI. */
@@ -145,6 +166,7 @@ function clampStat(v: number): number {
  */
 export function careerYearTick(state: GameState, rng: Rng): CareerTickResult {
   const result: CareerTickResult = { messages: [], promoted: false, terminated: false };
+  if (repairUnderageEmployment(state)) return result;
   const current = levelById(state.job);
   if (!current || state.job === 'unemployed' || !state.alive) return result;
 

@@ -13,10 +13,13 @@ import {
 } from './domain/save';
 import {
   careerYearTick as careerTickImpl,
+  canWork,
   eligibilityGap,
   legacyJobList,
   levelById,
+  MIN_WORKING_AGE,
   nextLevel,
+  repairUnderageEmployment,
   trackOf,
 } from './domain/careers';
 import { SKILLS, skillName } from './domain/skills';
@@ -148,6 +151,9 @@ export function careerYearTick(state: GameState) {
 }
 
 export const careers = {
+  MIN_WORKING_AGE,
+  canWork,
+  repair: repairUnderageEmployment,
   legacyJobList,
   levelById,
   nextLevel,

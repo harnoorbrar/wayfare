@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { CAREER_TRACKS } from '../data/careers';
 import {
+  canWork,
   careerYearTick,
   eligibilityGap,
   legacyJobList,
   levelById,
   nextLevel,
+  repairUnderageEmployment,
 } from './careers';
 import { SKILLS } from './skills';
 import { Rng } from './rng';
@@ -27,6 +29,7 @@ function worker(overrides: Partial<GameState> = {}): GameState {
     name: 'T', age: 30, smarts: 80, health: 100, happiness: 80, money: 0,
     job: 'engineer', salary: 1900, degrees: ['hs', 'deg_cs'],
     skills: {}, yearsAtJob: 0, alive: true,
+    ...overrides,
   } as GameState;
 }
 
@@ -128,6 +131,15 @@ describe('careerYearTick', () => {
     expect(s.yearsAtJob).toBe(0);
   });
 
+  it('repairs an impossible job held by a six-year-old', () => {
+    const child = worker({ age: 6, job: 'retail', salary: 480, yearsAtJob: 2 });
+    const out = careerYearTick(child, new Rng(9));
+    expect(out.messages).toEqual([]);
+    expect(child.job).toBe('unemployed');
+    expect(child.salary).toBe(0);
+    expect(child.yearsAtJob).toBe(0);
+  });
+
   it('termination resets job, salary, and tenure', () => {
     const s = worker();
     const rng = new Rng(5);
@@ -140,6 +152,22 @@ describe('careerYearTick', () => {
     expect(s.job).toBe('unemployed');
     expect(s.salary).toBe(0);
     expect(s.yearsAtJob).toBe(0);
+  });
+});
+
+describe('working-age rules', () => {
+  it('unlocks full-time careers at 18', () => {
+    expect(canWork(worker({ age: 6 }))).toBe(false);
+    expect(canWork(worker({ age: 17 }))).toBe(false);
+    expect(canWork(worker({ age: 18 }))).toBe(true);
+  });
+
+  it('leaves valid adult employment untouched', () => {
+    const adult = worker({ age: 18, job: 'retail', salary: 480, yearsAtJob: 1 });
+    expect(repairUnderageEmployment(adult)).toBe(false);
+    expect(adult.job).toBe('retail');
+    expect(adult.salary).toBe(480);
+    expect(adult.yearsAtJob).toBe(1);
   });
 });
 
