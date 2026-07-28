@@ -2437,6 +2437,21 @@ function repairProgressionState() {
   try {
     if (WayfareCore.careers.repair(state)) repaired = true;
   } catch(e) {}
+  // Earlier builds displayed a "Promoted!" result but only raised salary.
+  // Honor a recent promised promotion once, then rewrite the feed line so the
+  // migration cannot run again on the next launch.
+  try {
+    const legacyPromotion = Array.isArray(state.feed)
+      ? state.feed.slice(0, 8).find(item => item && item.text === "Promoted! The pay bump shows up next paycheck.")
+      : null;
+    if (legacyPromotion) {
+      const promotion = WayfareCore.careers.promote(state);
+      if (promotion.ok) {
+        legacyPromotion.text = `Promoted to ${promotion.title}! The title and pay are now official.`;
+        repaired = true;
+      }
+    }
+  } catch(e) {}
   if (!state.appearance || typeof state.appearance !== "object") {
     state.appearance = { ...DEFAULT_CHARACTER_APPEARANCE };
     repaired = true;
@@ -2929,13 +2944,20 @@ const EVENTS = [
       ]);
       return { text: `${s.name} ${r[0].charAt(0).toLowerCase()+r[0].slice(1)}`, deltas: r[1] };
   }},
-  { cond: s => s.age>=22 && s.age<=60 && WayfareCore.rng.next()<0.5, weight: 1.5, build: s => ({
-      text: `A promotion opportunity opened up at work. It means more hours.`,
-      choices: [
-        { label:"Go for it", deltas:[["happiness", rand(2,5)],["health", -3]], result:"Promoted! The pay bump shows up next paycheck.", flag:"promotion" },
-        { label:"Pass this time", deltas:[["happiness", 2]], result:"Stayed in the comfortable lane." },
-      ]
-  })},
+  { cond: s => {
+      if (s.age<22 || s.age>60 || s.job==="unemployed" || WayfareCore.rng.next()>=0.5) return false;
+      const next = WayfareCore.careers.nextLevel(s.job);
+      return !!next && WayfareCore.careers.eligibilityGap(s, next, s.yearsAtJob||0).ok;
+    }, weight: 1.5, build: s => {
+      const next = WayfareCore.careers.nextLevel(s.job);
+      return {
+        text: `Management offered ${s.name} a promotion to ${next.title}. It means more responsibility and better pay.`,
+        choices: [
+          { label:`Accept ${next.title}`, deltas:[["happiness", rand(2,5)],["health", -3]], result:"The promotion is official.", flag:"promotion" },
+          { label:"Pass this time", deltas:[["happiness", 2]], result:"Stayed in the comfortable lane." },
+        ]
+      };
+  }},
 
   // ---- relationships ----
   { cond: s => s.age>=18 && s.age<=55 && !s.partner, weight: 1.3, build: s => ({
@@ -3636,8 +3658,21 @@ function resolveChoice(choiceIndex) {
     toast(`You need ${fmtMoney(c._costGate)} for that choice.`);
     return;
   }
+  let choiceResult = c.result;
+  if (c.flag === "promotion") {
+    let promotion = null;
+    try { promotion = WayfareCore.careers.promote(state); } catch(e) {}
+    if (!promotion || !promotion.ok) {
+      state.pendingChoice = null;
+      log("The promotion opportunity is no longer available.");
+      saveGame();
+      render();
+      return;
+    }
+    choiceResult = `Promoted to ${promotion.title}! The new title and pay are effective immediately.`;
+  }
   (c.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
-  log(c.result, c.deltas);
+  log(choiceResult, c.deltas);
   if (c.ach) unlockAchievement(c.ach);
 
   // Chain events: queue any follow-up beat this choice scheduled (the
@@ -3652,13 +3687,6 @@ function resolveChoice(choiceIndex) {
     render();
     openUniversityMajorPicker();
     return;
-  }
-  if (c.flag === "promotion") {
-    if (state.job !== "unemployed" && state.salary > 0) {
-      const raise = Math.round(state.salary * (rand(10,20)/100));
-      state.salary += raise;
-      log(`${state.name} got a raise — now earning ${fmtMoney(state.salary)}/wk.`);
-    }
   }
   if (c.flag === "newPartner") {
     state.partner = pick(FIRST_NAMES);
@@ -5395,6 +5423,7 @@ function renderJob(main) {
   }
 
   const cur = JOBS.find(j=>j.id===state.job) || JOBS.find(j=>j.id==="unemployed");
+  const currentLevel = WayfareCore.careers.levelById(state.job);
   const track = WayfareCore.careers.trackOf(state.job);
   const years = state.yearsAtJob || 0;
   const card = document.createElement("div");
@@ -5416,11 +5445,15 @@ function renderJob(main) {
     if (gap.missingSmarts > 0) needs.push(`${gap.missingSmarts} more smarts`);
     if (gap.missingYears > 0) needs.push(`${gap.missingYears} more year${gap.missingYears===1?"":"s"} here`);
     gap.missingSkills.forEach(ms => needs.push(`${WayfareCore.skills.skillName(ms.id)} ${ms.have}/${ms.need}`));
+    const reviewChance = Math.round((currentLevel?.promotionChance || 0) * 100);
+    const promotionCopy = gap.ok
+      ? `Ready for promotion review. Age Up to trigger it automatically (${reviewChance}% chance each year), or accept a promotion offer when one appears.`
+      : `Age Up to build experience and job skills. Still needed: ${needs.join(" · ")}.`;
     const pathCard = document.createElement("div");
     pathCard.className = "panel-card";
     pathCard.innerHTML = `<div class="panel-row">
         <div><div class="panel-title">Next: ${next.title}</div>
-        <div class="panel-sub">${gap.ok ? "Qualified — promotion is a matter of time." : "Needs: " + needs.join(" · ")}</div></div>
+        <div class="panel-sub">${promotionCopy}</div></div>
         <div style="font-weight:700; color:var(--gold);">${fmtMoney(next.payWeek)}/wk</div>
       </div>`;
     main.appendChild(pathCard);

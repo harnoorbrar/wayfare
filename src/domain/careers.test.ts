@@ -7,6 +7,7 @@ import {
   legacyJobList,
   levelById,
   nextLevel,
+  promoteToNext,
   repairUnderageEmployment,
 } from './careers';
 import { SKILLS } from './skills';
@@ -111,6 +112,20 @@ describe('careerYearTick', () => {
     expect(s.salary).toBeGreaterThanOrEqual(2700);
   });
 
+  it('can promote into a terminal role whose own promotion chance is zero', () => {
+    const s = worker({
+      job: 'retail',
+      salary: 480,
+      smarts: 50,
+      skills: { charisma: 30, leadership: 20 },
+      yearsAtJob: 3,
+    });
+    const rng = new Rng(42);
+    for (let i = 0; i < 40 && s.job === 'retail'; i++) careerYearTick(s, rng);
+    expect(s.job).toBe('store_manager');
+    expect(s.salary).toBeGreaterThanOrEqual(950);
+  });
+
   it('never promotes past requirements that are not met', () => {
     const s = worker();
     s.smarts = 10; // far below senior_engineer's 65
@@ -189,5 +204,33 @@ describe('eligibilityGap', () => {
     s.smarts = 70;
     s.skills = { programming: 50 };
     expect(eligibilityGap(s, nextLevel('engineer')!, 3).ok).toBe(true);
+  });
+});
+
+describe('promoteToNext', () => {
+  it('changes the canonical job title, salary, and tenure together', () => {
+    const s = worker({
+      job: 'engineer',
+      salary: 2000,
+      smarts: 75,
+      skills: { programming: 50 },
+      yearsAtJob: 4,
+    });
+    const result = promoteToNext(s);
+    expect(result).toEqual({
+      ok: true,
+      fromTitle: 'Software Engineer',
+      title: 'Senior Software Engineer',
+      payWeek: 2700,
+    });
+    expect(s.job).toBe('senior_engineer');
+    expect(s.salary).toBe(2700);
+    expect(s.yearsAtJob).toBe(0);
+  });
+
+  it('refuses a promotion while requirements are missing', () => {
+    const s = worker({ job: 'engineer', smarts: 40, skills: {}, yearsAtJob: 1 });
+    expect(promoteToNext(s).ok).toBe(false);
+    expect(s.job).toBe('engineer');
   });
 });

@@ -58,6 +58,13 @@ export interface CareerTickResult {
   terminated: boolean;
 }
 
+export interface PromotionResult {
+  ok: boolean;
+  fromTitle?: string;
+  title?: string;
+  payWeek?: number;
+}
+
 const levelIndex = new Map<string, { track: CareerTrack; level: CareerLevel; i: number }>();
 for (const track of CAREER_TRACKS) {
   track.levels.forEach((level, i) => levelIndex.set(level.id, { track, level, i }));
@@ -155,6 +162,22 @@ export function eligibilityGap(state: GameState, level: CareerLevel, yearsServed
   return gap;
 }
 
+/**
+ * Move an eligible worker to the next level and keep title, salary, and tenure
+ * synchronized. Used by both yearly reviews and player-facing promotion offers.
+ */
+export function promoteToNext(state: GameState): PromotionResult {
+  const current = levelById(state.job);
+  const next = nextLevel(state.job);
+  if (!current || !next || !eligibilityGap(state, next, state.yearsAtJob ?? 0).ok) {
+    return { ok: false };
+  }
+  state.job = next.id;
+  state.salary = Math.max(next.payWeek, state.salary);
+  state.yearsAtJob = 0;
+  return { ok: true, fromTitle: current.title, title: next.title, payWeek: state.salary };
+}
+
 function clampStat(v: number): number {
   return Math.max(0, Math.min(100, v));
 }
@@ -203,13 +226,12 @@ export function careerYearTick(state: GameState, rng: Rng): CareerTickResult {
 
   // Promotion beats termination if both could fire this year.
   const next = nextLevel(state.job);
-  if (next && eligibilityGap(state, next, state.yearsAtJob as number).ok && rng.chance(next.promotionChance)) {
-    state.job = next.id;
-    state.salary = Math.max(next.payWeek, state.salary); // never demote pay
-    state.yearsAtJob = 0;
+  if (next && eligibilityGap(state, next, state.yearsAtJob as number).ok && rng.chance(current.promotionChance)) {
+    const promotion = promoteToNext(state);
+    if (!promotion.ok) return result;
     state.happiness = clampStat(state.happiness + rng.int(3, 6));
     result.promoted = true;
-    result.messages.push({ text: `Promoted to ${next.title}! The new office has a window.` });
+    result.messages.push({ text: `Promoted to ${promotion.title}! The new office has a window.` });
   } else if (rng.chance(current.terminationChance)) {
     const title = current.title;
     state.job = 'unemployed';

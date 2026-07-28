@@ -19,6 +19,7 @@ import {
   levelById,
   MIN_WORKING_AGE,
   nextLevel,
+  promoteToNext,
   repairUnderageEmployment,
   trackOf,
 } from './domain/careers';
@@ -157,6 +158,7 @@ export const careers = {
   legacyJobList,
   levelById,
   nextLevel,
+  promote: promoteToNext,
   trackOf,
   eligibilityGap,
 };
