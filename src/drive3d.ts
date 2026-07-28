@@ -35,6 +35,16 @@ type DriveOptions = {
   traffic: TrafficState[];
 };
 
+type CharacterPreviewOptions = {
+  canvas: HTMLCanvasElement;
+  skin: string;
+  hair: string;
+  hairStyle: 'crop' | 'waves' | 'curls' | 'long';
+  outfit: string;
+  outfitShadow: string;
+  pants: string;
+};
+
 const ROAD_SPACING = 120;
 const ROAD_WIDTH = 22;
 const WORLD_HALF = 540;
@@ -247,6 +257,210 @@ function createTrafficCar(state: TrafficState) {
     group.add(wheel);
   }
   return group;
+}
+
+/**
+ * Small real-time character portrait used by the New Life creator. The model
+ * is intentionally built from lightweight primitives so it loads instantly,
+ * remains original, and works without shipping a heavy external model.
+ */
+export function createCharacterPreview(options: CharacterPreviewOptions) {
+  const renderer = new THREE.WebGLRenderer({
+    canvas: options.canvas,
+    antialias: true,
+    alpha: true,
+    powerPreference: 'high-performance',
+  });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.12;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 30);
+  camera.position.set(0, 1.55, 6.2);
+  camera.lookAt(0, 1.45, 0);
+
+  scene.add(new THREE.HemisphereLight(0xfff4df, 0x57697a, 2.35));
+  const key = new THREE.DirectionalLight(0xffd7b3, 4.2);
+  key.position.set(-3, 5, 5);
+  key.castShadow = true;
+  key.shadow.mapSize.set(512, 512);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0x8dd7ff, 2.7);
+  rim.position.set(4, 3, -2);
+  scene.add(rim);
+
+  const character = new THREE.Group();
+  character.position.y = -0.15;
+  scene.add(character);
+
+  const skin = material(options.skin, 0.58, 0.01);
+  const skinBlush = material(new THREE.Color(options.skin).lerp(new THREE.Color(0xe7857c), 0.28), 0.7, 0);
+  const hair = material(options.hair, 0.72, 0.03);
+  const shirt = material(options.outfit, 0.66, 0.03);
+  const shirtShadow = material(options.outfitShadow, 0.75, 0.02);
+  const pants = material(options.pants, 0.78, 0.02);
+  const shoe = material(0x242629, 0.5, 0.08);
+  const eyeWhite = material(0xfffdf8, 0.26, 0);
+  const iris = material(0x292521, 0.22, 0.02);
+
+  const body = mesh(new THREE.SphereGeometry(0.72, 30, 22), shirt);
+  body.scale.set(0.9, 1.12, 0.66);
+  body.position.y = 0.92;
+  body.castShadow = true;
+  character.add(body);
+
+  const neck = mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.34, 18), skin);
+  neck.position.y = 1.61;
+  character.add(neck);
+
+  const head = mesh(new THREE.SphereGeometry(0.72, 36, 28), skin);
+  head.scale.set(0.94, 1.04, 0.9);
+  head.position.y = 2.08;
+  head.castShadow = true;
+  character.add(head);
+
+  for (const side of [-1, 1]) {
+    const ear = mesh(new THREE.SphereGeometry(0.14, 18, 14), skin);
+    ear.scale.set(0.65, 1, 0.55);
+    ear.position.set(side * 0.69, 2.08, 0);
+    character.add(ear);
+
+    const arm = mesh(new THREE.CapsuleGeometry(0.16, 0.62, 8, 16), side < 0 ? shirtShadow : shirt);
+    arm.position.set(side * 0.72, 0.93, 0);
+    arm.rotation.z = side * -0.12;
+    character.add(arm);
+
+    const hand = mesh(new THREE.SphereGeometry(0.18, 18, 14), skin);
+    hand.position.set(side * 0.78, 0.48, 0.03);
+    character.add(hand);
+
+    const leg = mesh(new THREE.CapsuleGeometry(0.21, 0.62, 8, 16), pants);
+    leg.position.set(side * 0.29, 0.08, 0);
+    character.add(leg);
+
+    const foot = mesh(new THREE.SphereGeometry(0.25, 18, 14), shoe);
+    foot.scale.set(1.05, 0.54, 1.45);
+    foot.position.set(side * 0.29, -0.39, 0.12);
+    character.add(foot);
+  }
+
+  const eyeGroups: THREE.Group[] = [];
+  for (const side of [-1, 1]) {
+    const eye = new THREE.Group();
+    const white = mesh(new THREE.SphereGeometry(0.145, 18, 14), eyeWhite, false);
+    white.scale.set(0.82, 1.08, 0.42);
+    const pupil = mesh(new THREE.SphereGeometry(0.067, 16, 12), iris, false);
+    pupil.position.z = 0.12;
+    pupil.position.x = side * -0.012;
+    eye.add(white, pupil);
+    eye.position.set(side * 0.25, 2.14, 0.63);
+    character.add(eye);
+    eyeGroups.push(eye);
+  }
+
+  const nose = mesh(new THREE.SphereGeometry(0.09, 16, 12), skin, false);
+  nose.scale.set(0.72, 0.82, 1);
+  nose.position.set(0, 1.99, 0.69);
+  character.add(nose);
+
+  for (const side of [-1, 1]) {
+    const cheek = mesh(new THREE.SphereGeometry(0.105, 16, 12), skinBlush, false);
+    cheek.scale.set(1.35, 0.46, 0.2);
+    cheek.position.set(side * 0.4, 1.92, 0.61);
+    character.add(cheek);
+  }
+
+  const smile = mesh(
+    new THREE.TorusGeometry(0.18, 0.022, 8, 24, Math.PI),
+    material(0x7d3c3a, 0.5, 0),
+    false,
+  );
+  smile.rotation.z = Math.PI;
+  smile.rotation.x = Math.PI / 2;
+  smile.position.set(0, 1.84, 0.675);
+  character.add(smile);
+
+  const addHairBall = (x: number, y: number, z: number, scale: [number, number, number]) => {
+    const piece = mesh(new THREE.SphereGeometry(0.38, 20, 16), hair);
+    piece.position.set(x, y, z);
+    piece.scale.set(...scale);
+    character.add(piece);
+    return piece;
+  };
+  if (options.hairStyle === 'curls') {
+    [
+      [-0.48, 2.55, 0.05], [-0.2, 2.72, 0.08], [0.12, 2.73, 0.08],
+      [0.43, 2.56, 0.05], [-0.58, 2.3, 0.02], [0.58, 2.31, 0.02],
+    ].forEach(([x, y, z]) => addHairBall(x, y, z, [0.78, 0.78, 0.72]));
+  } else {
+    const cap = addHairBall(0, 2.53, -0.02, [1.72, 0.72, 1.54]);
+    cap.rotation.x = -0.08;
+    if (options.hairStyle === 'waves') {
+      addHairBall(-0.43, 2.46, 0.27, [0.72, 0.58, 0.68]);
+      addHairBall(0.35, 2.52, 0.3, [0.88, 0.5, 0.66]);
+    }
+    if (options.hairStyle === 'long') {
+      const back = addHairBall(0, 2.12, -0.24, [1.55, 1.5, 0.82]);
+      back.renderOrder = -1;
+    }
+  }
+
+  const ground = mesh(
+    new THREE.CircleGeometry(1.34, 42),
+    new THREE.MeshStandardMaterial({ color: 0x4a392d, transparent: true, opacity: 0.16, roughness: 1 }),
+    false,
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.58;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  let disposed = false;
+  let frame = 0;
+  const startedAt = performance.now();
+
+  function resize() {
+    const width = Math.max(1, options.canvas.clientWidth);
+    const height = Math.max(1, options.canvas.clientHeight);
+    const ratio = renderer.getPixelRatio();
+    if (options.canvas.width !== Math.floor(width * ratio) || options.canvas.height !== Math.floor(height * ratio)) {
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    }
+  }
+
+  function draw(now: number) {
+    if (disposed) return;
+    resize();
+    const time = (now - startedAt) / 1000;
+    character.position.y = -0.15 + Math.sin(time * 1.8) * 0.025;
+    character.rotation.y = Math.sin(time * 0.72) * 0.13;
+    const blink = Math.sin(time * 0.83) > 0.985 ? 0.12 : 1;
+    eyeGroups.forEach((eye) => { eye.scale.y = blink; });
+    renderer.render(scene, camera);
+    frame = requestAnimationFrame(draw);
+  }
+  frame = requestAnimationFrame(draw);
+
+  function dispose() {
+    disposed = true;
+    cancelAnimationFrame(frame);
+    scene.traverse((object) => {
+      const objectMesh = object as THREE.Mesh;
+      objectMesh.geometry?.dispose();
+      const objectMaterial = objectMesh.material;
+      if (Array.isArray(objectMaterial)) objectMaterial.forEach((item) => item.dispose());
+      else objectMaterial?.dispose();
+    });
+    renderer.dispose();
+  }
+
+  return { dispose };
 }
 
 function createRamp(ramp: RampState) {

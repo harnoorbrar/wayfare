@@ -444,6 +444,24 @@
   .floorplan-icon { font-size: 26px; }
   .floorplan-name { font-size: 11.5px; font-weight: 700; }
   .floorplan-sub { font-size: 9.5px; color: #8a7d6b; }
+  .property-tour-feature { position:relative; overflow:hidden; margin-top:12px; padding:15px; border:1px solid rgba(111,143,112,.28); border-radius:16px; background:radial-gradient(circle at 92% 5%,rgba(255,235,177,.24),transparent 32%),linear-gradient(145deg,#43594b,#6e7961); color:#fff; box-shadow:0 10px 25px rgba(49,67,54,.16); }
+  .property-tour-kicker { color:#e9d393; font-size:9px; font-weight:850; letter-spacing:1px; text-transform:uppercase; }
+  .property-tour-title { margin-top:4px; font-family:var(--font-display); font-size:19px; font-weight:700; }
+  .property-tour-copy { max-width:290px; margin-top:4px; color:rgba(255,255,255,.72); font-size:10.5px; line-height:1.4; }
+  .property-tour-button { min-height:39px; margin-top:11px; padding:0 13px; color:#33443a; background:#f4e5b5; border:0; border-radius:11px; font:800 10.5px/1 var(--font-body); cursor:pointer; }
+  .property-tour-launch { width:100%; min-height:40px; margin:10px 0 8px; color:var(--ink); background:linear-gradient(135deg,rgba(74,124,89,.13),rgba(201,154,58,.11)); border:1px solid rgba(74,124,89,.24); border-radius:11px; font:inherit; font-size:11px; font-weight:800; cursor:pointer; }
+  .property-explorer-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+  .property-explorer-kicker { color:var(--accent); font-size:9px; font-weight:850; letter-spacing:1px; text-transform:uppercase; }
+  .property-explorer-title { margin-top:3px; font-family:var(--font-display); font-size:21px; font-weight:700; }
+  .property-explorer-meta { margin-top:3px; color:var(--ink-dim); font-size:10.5px; }
+  .property-explorer-price { flex:0 0 auto; color:var(--good); font-family:var(--font-display); font-size:15px; font-weight:700; text-align:right; }
+  .property-explorer-rooms { display:flex; gap:7px; overflow-x:auto; padding:1px 1px 9px; scrollbar-width:none; }
+  .property-explorer-rooms::-webkit-scrollbar { display:none; }
+  .property-explorer-room { flex:0 0 auto; min-height:34px; padding:7px 10px; color:var(--ink); background:rgba(255,255,255,.5); border:1px solid var(--line); border-radius:999px; font:inherit; font-size:10px; font-weight:750; cursor:pointer; }
+  .property-explorer-room.active { color:#fff; border-color:var(--accent); background:var(--accent); }
+  .property-explorer-stage { margin-bottom:12px; }
+  .property-explorer-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .property-explorer-actions .panel-action { min-height:42px; }
 
   /* ---------- FREE DRIVE ---------- */
   .drive-launch {
@@ -1130,6 +1148,28 @@
   .major-option-meta { display:block; margin-top:3px; color:var(--ink-dim); font-size:10px; line-height:1.35; }
   .major-option-status { padding:5px 7px; border-radius:999px; color:var(--good); background:rgba(74,124,89,.11); font-size:9px; font-weight:800; white-space:nowrap; }
   .major-option-status.locked { color:var(--bad); background:rgba(179,67,58,.10); }
+  .creator-head { text-align:center; margin-bottom:14px; }
+  .creator-kicker { color:var(--accent); font-size:9.5px; font-weight:850; letter-spacing:1.2px; text-transform:uppercase; }
+  .creator-title { margin-top:4px; font-family:var(--font-display); font-size:24px; font-weight:700; }
+  .creator-sub { max-width:310px; margin:5px auto 0; color:var(--ink-dim); font-size:11.5px; line-height:1.45; }
+  .creator-preview { width:148px; height:164px; display:grid; place-items:center; margin:0 auto 15px; overflow:hidden; border:1px solid rgba(194,84,47,.2); border-radius:38px; background:radial-gradient(circle at 50% 25%,#fff8e9,transparent 42%),linear-gradient(145deg,#ead9c3,#d7c5ad); box-shadow:0 14px 32px rgba(73,52,26,.14); }
+  .creator-preview svg { width:92px; height:104px; filter:drop-shadow(0 8px 7px rgba(43,36,32,.16)); }
+  .creator-preview canvas { width:100%; height:100%; display:block; }
+  .creator-name-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+  .creator-field { display:flex; flex-direction:column; gap:5px; }
+  .creator-field-label, .creator-option-label { color:var(--ink-dim); font-size:9.5px; font-weight:850; letter-spacing:.8px; text-transform:uppercase; }
+  .creator-field input { width:100%; min-height:43px; padding:9px 11px; color:var(--ink); background:rgba(255,255,255,.62); border:1px solid var(--line); border-radius:11px; font:inherit; font-size:13px; user-select:text; }
+  .creator-group { margin-bottom:13px; }
+  .creator-options { display:flex; flex-wrap:wrap; gap:8px; margin-top:7px; }
+  .creator-swatch { width:40px; height:40px; display:grid; place-items:center; padding:0; border:2px solid transparent; border-radius:13px; background:var(--swatch); box-shadow:inset 0 0 0 1px rgba(43,36,32,.13); cursor:pointer; }
+  .creator-swatch.active { border-color:var(--accent); box-shadow:0 0 0 2px var(--paper),0 0 0 4px rgba(194,84,47,.28); }
+  .creator-style { min-height:38px; padding:7px 11px; color:var(--ink); background:rgba(255,255,255,.52); border:1px solid var(--line); border-radius:11px; font:inherit; font-size:11px; font-weight:750; cursor:pointer; }
+  .creator-style.active { color:#fff; border-color:var(--accent); background:var(--accent); }
+  .creator-actions { display:grid; grid-template-columns:auto 1fr; gap:8px; margin-top:16px; }
+  .creator-actions .panel-action { min-height:46px; }
+  .creator-random { min-width:94px; }
+  #modal-overlay.creator-required { background:rgba(28,23,19,.7); backdrop-filter:blur(8px); }
+  #modal-overlay.creator-required #modal-sheet { max-height:calc(100dvh - env(safe-area-inset-top,0px) - 12px); }
   .career-advisor { margin:0 0 17px; padding:14px; overflow:hidden; border:1px solid rgba(74,124,89,.25); border-radius:16px; background:radial-gradient(circle at 100% 0%,rgba(74,124,89,.14),transparent 45%),rgba(255,255,255,.56); box-shadow:0 7px 20px rgba(43,36,32,.045); }
   .career-advisor-kicker { color:var(--good); font-size:9.5px; font-weight:850; letter-spacing:1px; text-transform:uppercase; }
   .career-advisor-title { margin-top:3px; font-family:var(--font-display); font-size:17px; font-weight:700; }
@@ -1289,7 +1329,7 @@
     box-shadow: 0 10px 24px rgba(194,84,47,.30), 0 2px 5px rgba(43,36,32,.16);
     z-index:2;
   }
-  #ageup-btn .ageup-icon { font-size:18px; line-height:1; transform:translateX(1px); }
+  #ageup-btn .ageup-icon { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   #ageup-btn:disabled { opacity:.52; box-shadow:none; cursor:default; }
   #ageup-btn:active:not(:disabled) { transform:scale(.94); }
   .more-hub-intro { margin-bottom:15px; color:var(--ink-dim); font-size:12px; line-height:1.45; }
@@ -1413,6 +1453,11 @@
   html[data-theme="dark"] .life-goal { background:#211e1a; border-color:var(--line); box-shadow:0 8px 20px rgba(0,0,0,.16); }
   html[data-theme="dark"] .ambition-card { background:radial-gradient(circle at 100% 0%,rgba(223,180,94,.12),transparent 43%),#211e1a; border-color:rgba(223,180,94,.24); }
   html[data-theme="dark"] .major-option { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.09); }
+  html[data-theme="dark"] .creator-preview { background:radial-gradient(circle at 50% 25%,rgba(255,239,205,.18),transparent 42%),linear-gradient(145deg,#332b23,#211d18); border-color:rgba(228,119,80,.24); }
+  html[data-theme="dark"] .creator-field input,
+  html[data-theme="dark"] .creator-style { background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.1); }
+  html[data-theme="dark"] .property-tour-launch,
+  html[data-theme="dark"] .property-explorer-room { background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.1); }
   html[data-theme="dark"] .career-advisor { background:radial-gradient(circle at 100% 0%,rgba(120,188,137,.12),transparent 45%),rgba(255,255,255,.035); border-color:rgba(120,188,137,.2); }
   html[data-theme="dark"] .career-advisor-role { background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.09); }
   html[data-theme="dark"] .ambition-icon, html[data-theme="dark"] .ambition-option-icon { color:var(--gold); background:rgba(223,180,94,.12); }
@@ -1478,7 +1523,7 @@
     <div id="nav-scroll" role="navigation" aria-label="Main game dashboard">
       <button class="nav-btn active" data-tab="story" aria-label="Life story"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h11a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3V4.5Z"/><path d="M8 4.5V20M11 8h5M11 12h5"/></svg></span><span class="nav-label">Life</span></button>
       <button class="nav-btn" data-tab="job" aria-label="Career"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M9 7V5h6v2M3 12h18M10 12v2h4v-2"/></svg></span><span class="nav-label">Career</span></button>
-      <button id="ageup-btn" aria-label="Advance one year"><span class="ageup-icon" aria-hidden="true">▶</span><span class="ageup-label">Age Up</span></button>
+      <button id="ageup-btn" aria-label="Advance one year"><svg class="ageup-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.2 8.1A8 8 0 1 0 20 12"/><path d="M19.2 4.8v3.7h-3.7"/><path d="M12 7.9v4.4l2.8 1.7"/></svg><span class="ageup-label">Age Up</span></button>
       <button class="nav-btn" data-tab="people" aria-label="Relationships"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 20v-1.5a4.5 4.5 0 0 0-4.5-4.5h-3A4.5 4.5 0 0 0 4 18.5V20"/><circle cx="10" cy="7" r="3"/><path d="M17 11a3 3 0 1 0 0-6M18 14a4 4 0 0 1 3 3.9V20"/></svg></span><span class="nav-label">People</span></button>
       <button class="nav-btn" id="more-btn" aria-label="More activities"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg></span><span class="nav-label">More</span></button>
     </div>
@@ -1713,6 +1758,8 @@ function openSettings() {
     </div>
     <div class="settings-label">Wayfare Plus</div>
     <button class="panel-action" id="settings-plus" style="width:100%;margin-bottom:14px;">✦ View purchase options</button>
+    <div class="settings-label">Character</div>
+    <button class="panel-action secondary" id="settings-character" style="width:100%;min-height:44px;margin-bottom:14px;">Customize name &amp; appearance</button>
     <div class="settings-label">Appearance</div>
     <div class="appearance-options" role="group" aria-label="Appearance">
       <button class="theme-option" data-theme-option="system" aria-pressed="false"><span class="theme-glyph">◐</span><span>System</span></button>
@@ -1780,6 +1827,7 @@ function openSettings() {
     button.onclick = () => setTextSizePreference(button.dataset.textSizeOption);
   });
   document.getElementById("settings-plus").onclick = openPaywall;
+  document.getElementById("settings-character").onclick = () => openCharacterCreator(true);
   const hapticsToggle = document.getElementById("haptics-toggle");
   hapticsToggle.setAttribute("aria-checked", String(preferenceEnabled(HAPTICS_KEY, true)));
   hapticsToggle.onclick = () => {
@@ -2291,6 +2339,16 @@ function repairProgressionState() {
     state.pendingChoice = null;
     repaired = true;
   }
+  if (!state.appearance || typeof state.appearance !== "object") {
+    state.appearance = { ...DEFAULT_CHARACTER_APPEARANCE };
+    repaired = true;
+  } else {
+    const normalizedAppearance = characterAppearance(state);
+    if (JSON.stringify(normalizedAppearance) !== JSON.stringify(state.appearance)) {
+      state.appearance = normalizedAppearance;
+      repaired = true;
+    }
+  }
   return repaired;
 }
 
@@ -2453,11 +2511,218 @@ function makeStartingFamily() {
   return fam;
 }
 
+const CHARACTER_SKINS = [
+  { id:"porcelain", color:"#f2c9a5" },
+  { id:"warm", color:"#dca173" },
+  { id:"golden", color:"#bd7b50" },
+  { id:"deep", color:"#845132" },
+  { id:"ebony", color:"#4b2d22" },
+];
+const CHARACTER_HAIR_COLORS = [
+  { id:"espresso", color:"#2b211d" },
+  { id:"chestnut", color:"#68432c" },
+  { id:"auburn", color:"#9a4f32" },
+  { id:"honey", color:"#c99b52" },
+  { id:"silver", color:"#b8b4ae" },
+];
+const CHARACTER_HAIR_STYLES = [
+  { id:"crop", label:"Crop" },
+  { id:"waves", label:"Waves" },
+  { id:"curls", label:"Curls" },
+  { id:"long", label:"Long" },
+];
+const CHARACTER_OUTFITS = [
+  { id:"coral", color:"#dc6748", shadow:"#a94431", pants:"#273d53" },
+  { id:"sage", color:"#668b69", shadow:"#46634a", pants:"#313c3b" },
+  { id:"ocean", color:"#477eaa", shadow:"#315a7b", pants:"#262f45" },
+  { id:"plum", color:"#825b86", shadow:"#5f4063", pants:"#353044" },
+  { id:"gold", color:"#c5903f", shadow:"#92692d", pants:"#44382d" },
+];
+const DEFAULT_CHARACTER_APPEARANCE = {
+  skin:"warm", hairColor:"chestnut", hairStyle:"waves", outfit:"coral"
+};
+let activeCharacterPreview3D = null;
+
+function characterAppearance(source=state) {
+  const appearance = source && source.appearance ? source.appearance : {};
+  const valid = (items, id, fallback) => items.some(item => item.id === id) ? id : fallback;
+  return {
+    skin: valid(CHARACTER_SKINS, appearance.skin, DEFAULT_CHARACTER_APPEARANCE.skin),
+    hairColor: valid(CHARACTER_HAIR_COLORS, appearance.hairColor, DEFAULT_CHARACTER_APPEARANCE.hairColor),
+    hairStyle: valid(CHARACTER_HAIR_STYLES, appearance.hairStyle, DEFAULT_CHARACTER_APPEARANCE.hairStyle),
+    outfit: valid(CHARACTER_OUTFITS, appearance.outfit, DEFAULT_CHARACTER_APPEARANCE.outfit),
+  };
+}
+
+function characterPalette(source=state) {
+  const appearance = characterAppearance(source);
+  return {
+    appearance,
+    skin: CHARACTER_SKINS.find(item => item.id === appearance.skin).color,
+    hair: CHARACTER_HAIR_COLORS.find(item => item.id === appearance.hairColor).color,
+    outfit: CHARACTER_OUTFITS.find(item => item.id === appearance.outfit),
+  };
+}
+
+function characterHairSvg(style, color, x, y, radius) {
+  if (style === "long") {
+    return `<path d="M${x-radius} ${y+radius*.25}Q${x-radius*.9} ${y-radius*1.2} ${x} ${y-radius*1.15}Q${x+radius*.9} ${y-radius*1.2} ${x+radius} ${y+radius*.25}L${x+radius*.76} ${y+radius*1.28}L${x+radius*.35} ${y+radius*.65}Q${x} ${y-radius*.4} ${x-radius*.35} ${y+radius*.65}L${x-radius*.76} ${y+radius*1.28}Z" fill="${color}"/>`;
+  }
+  if (style === "curls") {
+    return `<g fill="${color}"><circle cx="${x-radius*.72}" cy="${y-radius*.6}" r="${radius*.5}"/><circle cx="${x-radius*.25}" cy="${y-radius*.9}" r="${radius*.52}"/><circle cx="${x+radius*.28}" cy="${y-radius*.88}" r="${radius*.52}"/><circle cx="${x+radius*.72}" cy="${y-radius*.55}" r="${radius*.48}"/></g>`;
+  }
+  if (style === "waves") {
+    return `<path d="M${x-radius} ${y}Q${x-radius*.92} ${y-radius*1.2} ${x-radius*.22} ${y-radius*1.05}Q${x+radius*.25} ${y-radius*1.36} ${x+radius*.92} ${y-radius*.48}Q${x+radius*.6} ${y-radius*.74} ${x+radius*.2} ${y-radius*.48}Q${x-radius*.18} ${y-radius*.86} ${x-radius*.52} ${y-radius*.4}Q${x-radius*.78} ${y-radius*.58} ${x-radius} ${y}Z" fill="${color}"/>`;
+  }
+  return `<path d="M${x-radius} ${y-radius*.02}Q${x-radius*.72} ${y-radius*1.1} ${x} ${y-radius*1.08}Q${x+radius*.75} ${y-radius*1.05} ${x+radius} ${y-radius*.05}Q${x+radius*.28} ${y-radius*.48} ${x-radius} ${y-radius*.02}Z" fill="${color}"/>`;
+}
+
+function characterPreviewSvg(appearance) {
+  const palette = characterPalette({ appearance });
+  return `<svg viewBox="0 0 120 136" aria-label="Character preview">
+    <ellipse cx="60" cy="126" rx="35" ry="7" fill="rgba(43,36,32,.14)"/>
+    <path d="M34 82Q60 70 86 82L91 120H29Z" fill="${palette.outfit.shadow}"/>
+    <path d="M42 79Q60 72 78 79L80 119H40Z" fill="${palette.outfit.color}"/>
+    <path d="M43 117H57L55 132H39ZM63 117H77L81 132H65Z" fill="${palette.outfit.pants}"/>
+    <rect x="52" y="68" width="16" height="15" rx="7" fill="${palette.skin}"/>
+    <circle cx="60" cy="51" r="25" fill="${palette.skin}"/>
+    ${characterHairSvg(palette.appearance.hairStyle, palette.hair, 60, 42, 25)}
+    <circle cx="51" cy="53" r="2" fill="#292522"/><circle cx="69" cy="53" r="2" fill="#292522"/>
+    <path d="M54 63Q60 68 66 63" fill="none" stroke="#8e5144" stroke-width="2" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function cleanCharacterName(value, fallback) {
+  const cleaned = String(value || "").replace(/[^A-Za-zÀ-ÖØ-öø-ÿ' -]/g, "").replace(/\s+/g, " ").trim().slice(0, 24);
+  return cleaned || fallback;
+}
+
+function openCharacterCreator(editExisting=false) {
+  const existingName = editExisting && state ? String(state.name || "").trim().split(/\s+/) : [];
+  const draft = {
+    firstName: existingName.length ? existingName[0] : pick(FIRST_NAMES),
+    lastName: existingName.length > 1 ? existingName.slice(1).join(" ") : pick(LAST_NAMES),
+    appearance: editExisting ? characterAppearance(state) : { ...DEFAULT_CHARACTER_APPEARANCE },
+  };
+  const sheet = document.getElementById("modal-sheet");
+  const overlay = document.getElementById("modal-overlay");
+
+  const renderCreator = () => {
+    activeCharacterPreview3D?.dispose?.();
+    activeCharacterPreview3D = null;
+    sheet.innerHTML = `<div class="creator-head"><div class="creator-kicker">${editExisting ? "Your character" : "A new life begins"}</div><div class="creator-title">${editExisting ? "Customize your look" : "Create your character"}</div><div class="creator-sub">${editExisting ? "Update your name and appearance without changing your progress." : "Choose the face of this story. You can shape everything else through the life you live."}</div></div>
+      <div class="creator-preview"></div>
+      <div class="creator-name-grid">
+        <label class="creator-field"><span class="creator-field-label">First name</span><input class="creator-first" maxlength="24" autocomplete="off" value="${draft.firstName}"></label>
+        <label class="creator-field"><span class="creator-field-label">Last name</span><input class="creator-last" maxlength="24" autocomplete="off" value="${draft.lastName}"></label>
+      </div>
+      <div class="creator-group"><div class="creator-option-label">Skin tone</div><div class="creator-options creator-skins"></div></div>
+      <div class="creator-group"><div class="creator-option-label">Hair style</div><div class="creator-options creator-hair-styles"></div></div>
+      <div class="creator-group"><div class="creator-option-label">Hair color</div><div class="creator-options creator-hair-colors"></div></div>
+      <div class="creator-group"><div class="creator-option-label">Outfit</div><div class="creator-options creator-outfits"></div></div>
+      <div class="creator-actions"><button class="panel-action secondary creator-random" type="button">Randomize</button><button class="panel-action creator-start" type="button">${editExisting ? "Save Character" : "Begin This Life"}</button></div>`;
+
+    const preview = sheet.querySelector(".creator-preview");
+    const palette = characterPalette({ appearance:draft.appearance });
+    preview.innerHTML = `<canvas aria-label="Animated 3D character preview"></canvas>`;
+    try {
+      activeCharacterPreview3D = window.WayfareDrive3D?.createCharacterPreview?.({
+        canvas:preview.querySelector("canvas"),
+        skin:palette.skin,
+        hair:palette.hair,
+        hairStyle:palette.appearance.hairStyle,
+        outfit:palette.outfit.color,
+        outfitShadow:palette.outfit.shadow,
+        pants:palette.outfit.pants,
+      }) || null;
+    } catch(error) {
+      activeCharacterPreview3D = null;
+      preview.innerHTML = characterPreviewSvg(draft.appearance);
+    }
+    const firstInput = sheet.querySelector(".creator-first");
+    const lastInput = sheet.querySelector(".creator-last");
+    firstInput.addEventListener("input", () => { draft.firstName = firstInput.value; });
+    lastInput.addEventListener("input", () => { draft.lastName = lastInput.value; });
+
+    const addSwatches = (selector, items, key) => {
+      const container = sheet.querySelector(selector);
+      items.forEach(item => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "creator-swatch" + (draft.appearance[key] === item.id ? " active" : "");
+        button.style.setProperty("--swatch", item.color);
+        button.setAttribute("aria-label", item.id);
+        button.onclick = () => {
+          draft.firstName = firstInput.value;
+          draft.lastName = lastInput.value;
+          draft.appearance[key] = item.id;
+          renderCreator();
+        };
+        container.appendChild(button);
+      });
+    };
+    addSwatches(".creator-skins", CHARACTER_SKINS, "skin");
+    addSwatches(".creator-hair-colors", CHARACTER_HAIR_COLORS, "hairColor");
+    addSwatches(".creator-outfits", CHARACTER_OUTFITS, "outfit");
+
+    const styleContainer = sheet.querySelector(".creator-hair-styles");
+    CHARACTER_HAIR_STYLES.forEach(item => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "creator-style" + (draft.appearance.hairStyle === item.id ? " active" : "");
+      button.textContent = item.label;
+      button.onclick = () => {
+        draft.firstName = firstInput.value;
+        draft.lastName = lastInput.value;
+        draft.appearance.hairStyle = item.id;
+        renderCreator();
+      };
+      styleContainer.appendChild(button);
+    });
+
+    sheet.querySelector(".creator-random").onclick = () => {
+      draft.firstName = pick(FIRST_NAMES);
+      draft.lastName = pick(LAST_NAMES);
+      draft.appearance = {
+        skin: pick(CHARACTER_SKINS).id,
+        hairColor: pick(CHARACTER_HAIR_COLORS).id,
+        hairStyle: pick(CHARACTER_HAIR_STYLES).id,
+        outfit: pick(CHARACTER_OUTFITS).id,
+      };
+      renderCreator();
+    };
+    sheet.querySelector(".creator-start").onclick = () => {
+      const firstName = cleanCharacterName(firstInput.value, pick(FIRST_NAMES));
+      const lastName = cleanCharacterName(lastInput.value, pick(LAST_NAMES));
+      if (editExisting) {
+        state.name = `${firstName} ${lastName}`;
+        state.appearance = characterAppearance({ appearance:{ ...draft.appearance } });
+        saveGame();
+        render();
+        toast("Character updated.");
+      } else {
+        startNewLife({ name:`${firstName} ${lastName}`, appearance:{ ...draft.appearance } });
+        overlay.classList.remove("creator-required");
+      }
+      closeModal();
+    };
+  };
+
+  renderCreator();
+  overlay.classList.add("show");
+  if (!editExisting) overlay.classList.add("creator-required");
+}
+
 function newGame() {
+  openCharacterCreator();
+}
+
+function startNewLife(profile) {
   WayfareCore.reseed(); // fresh RNG seed per life; persisted with the save
   const startingFamily = makeStartingFamily();
   state = {
-    name: pick(FIRST_NAMES) + " " + pick(LAST_NAMES),
+    name: profile.name,
+    appearance: characterAppearance(profile),
     age: 0,
     money: 0,
     health: 100,
@@ -3018,6 +3283,19 @@ function ageUp() {
   state.age++;
   haptic("medium");
 
+  // High school is a universal life milestone. Players can still use the
+  // Education tab early, but turning 18 should never leave a life blocked
+  // from trade school, university, or degree-gated careers.
+  if (state.age === 18 && !hasDegree("hs")) {
+    let studyingHighSchool = false;
+    try { studyingHighSchool = WayfareCore.education.current(state)?.programId === "hs"; } catch(e) {}
+    if (!studyingHighSchool) {
+      state.degrees = state.degrees || [];
+      state.degrees.push("hs");
+      log(`${state.name} graduated high school.`);
+    }
+  }
+
   // A university application made at 17 carries the chosen major into the
   // first adult year. Enroll before the education tick so year one, tuition,
   // skills, and grades all begin at age 18.
@@ -3502,6 +3780,7 @@ function continueAsChild(childIndex) {
   const inheritedVehicles = state.vehicles;
   const inheritedBusinesses = state.businesses;
   const inheritedPets = state.pets || [];
+  const inheritedAppearance = characterAppearance(state);
   const carriedRelId = state.nextRelId;
   const survivingPartnerName = state.partner;
 
@@ -3520,6 +3799,7 @@ function continueAsChild(childIndex) {
 
   state = {
     name: kid.name,
+    appearance: inheritedAppearance,
     age: kid.age,
     money: inheritance,
     health: 100,
@@ -4097,6 +4377,11 @@ function renderHome(main) {
     btn.textContent = "Browse Properties";
     btn.onclick = openPropertyModal;
     main.appendChild(btn);
+    const tour = document.createElement("section");
+    tour.className = "property-tour-feature";
+    tour.innerHTML = `<div class="property-tour-kicker">Featured 3D tour</div><div class="property-tour-title">Hillside Estate</div><div class="property-tour-copy">Walk through its marble interiors and look out over the hills before spending a dollar.</div><button class="property-tour-button" type="button">Explore in 3D</button>`;
+    tour.querySelector("button").onclick = () => openPropertyExplorer("estate");
+    main.appendChild(tour);
     return;
   }
 
@@ -4564,20 +4849,22 @@ function clampRoom3DPosition(x, y) {
   };
 }
 
-function renderRoom3DSVG(prop, roomType, roomIndex) {
+function renderRoom3DSVG(prop, roomType, roomIndex, preview=false) {
   const theme = property3DTheme(prop);
   const wallColor = theme.wall;
   const floorColor = theme.floor;
   const roomDef = ROOM_TYPES[roomType];
-  const placed = state.placedFurniture[roomIndex] || {};
+  const placed = preview ? {} : (state.placedFurniture[roomIndex] || {});
   const scenery = ROOM_SCENERY[roomType] || ROOM_SCENERY.default;
   const leftWall = room3DShade(wallColor, -8);
   const rightWall = room3DShade(wallColor, 10);
   const floorLight = room3DShade(floorColor, 14);
   const floorDark = room3DShade(floorColor, -18);
   const trim = room3DShade(wallColor, -30);
-  const playerPosition = clampRoom3DPosition(room3DPosition(roomIndex).x, room3DPosition(roomIndex).y);
-  setRoom3DPosition(roomIndex, playerPosition);
+  const playerPosition = preview
+    ? { x:231, y:296 }
+    : clampRoom3DPosition(room3DPosition(roomIndex).x, room3DPosition(roomIndex).y);
+  if (!preview) setRoom3DPosition(roomIndex, playerPosition);
   const playerOffsetX = playerPosition.x - 231;
   const playerOffsetY = playerPosition.y - 296;
 
@@ -4628,6 +4915,7 @@ function renderRoom3DSVG(prop, roomType, roomIndex) {
       : "";
 
   const playerName = String(state.name || "You").replace(/[&<>"']/g, "");
+  const playerPalette = characterPalette(state);
   const windowColor = scenery.frosted ? scenery.window : theme.window;
   const windowTreatment = scenery.frosted
     ? `<path d="M76 86 L147 124 M67 104 L137 141" stroke="#fff" stroke-width="4" opacity=".38"/>`
@@ -4694,11 +4982,12 @@ function renderRoom3DSVG(prop, roomType, roomIndex) {
     <g id="room-player" transform="translate(${playerOffsetX} ${playerOffsetY})" aria-label="${playerName}">
       <g>
         <ellipse cx="230" cy="296" rx="22" ry="9" fill="#241d17" opacity=".18"/>
-        <polygon points="217,262 231,254 245,262 231,270" fill="#ed7651"/>
-        <polygon points="217,262 231,270 231,292 217,284" fill="#bd4f35"/>
-        <polygon points="231,270 245,262 245,284 231,292" fill="#d75e3f"/>
-        <circle cx="231" cy="247" r="12" fill="#f1c27d"/>
-        <path d="M219 246 Q220 231 232 233 Q245 234 243 248 Q235 239 219 246" fill="#503422"/>
+        <polygon points="217,262 231,254 245,262 231,270" fill="${playerPalette.outfit.color}"/>
+        <polygon points="217,262 231,270 231,292 217,284" fill="${playerPalette.outfit.shadow}"/>
+        <polygon points="231,270 245,262 245,284 231,292" fill="${playerPalette.outfit.color}"/>
+        <path d="M218 283L231 292L231 298L216 291ZM231 292L245 283L246 291L231 298Z" fill="${playerPalette.outfit.pants}"/>
+        <circle cx="231" cy="247" r="12" fill="${playerPalette.skin}"/>
+        ${characterHairSvg(playerPalette.appearance.hairStyle, playerPalette.hair, 231, 244, 12)}
         <circle cx="227" cy="247" r="1.4" fill="#2c2927"/><circle cx="235" cy="247" r="1.4" fill="#2c2927"/>
       </g>
     </g>
@@ -4866,6 +5155,7 @@ function renderRoomSVG(prop, roomType, roomIndex) {
   const floorColor = ["#c9b691","#bfa97f","#b39a6c","#a68a59","#977a49","#856838","#d4af37","#0f1620"][prop.tier-1] || "#c9b691";
   const roomDef = ROOM_TYPES[roomType];
   const placed = (state.placedFurniture[roomIndex]) || {};
+  const playerPalette = characterPalette(state);
   const scenery = ROOM_SCENERY[roomType] || ROOM_SCENERY.default;
 
   let furniture = "";
@@ -4940,17 +5230,15 @@ function renderRoomSVG(prop, roomType, roomIndex) {
     <rect x="${dx+dw-14}" y="${dy+dh/2-3}" width="6" height="6" fill="${wallLight}"/>`;
 
   const avatar = `
-    <rect x="${ax}" y="${ay - 7}" width="14" height="7" fill="#5b3a24"/>
-    <rect x="${ax}" y="${ay}" width="4" height="8" fill="#5b3a24"/>
-    <rect x="${ax + 10}" y="${ay}" width="4" height="8" fill="#5b3a24"/>
-    <rect x="${ax + 2}" y="${ay}" width="10" height="10" fill="#f1c27d"/>
+    <rect x="${ax + 2}" y="${ay}" width="10" height="10" fill="${playerPalette.skin}"/>
+    ${characterHairSvg(playerPalette.appearance.hairStyle, playerPalette.hair, ax + 7, ay + 2, 7)}
     <rect x="${ax + 4}" y="${ay + 3}" width="2" height="2" fill="#2c2c2c"/>
     <rect x="${ax + 8}" y="${ay + 3}" width="2" height="2" fill="#2c2c2c"/>
-    <rect x="${ax - 4}" y="${ay + 10}" width="22" height="16" fill="#e74c3c"/>
-    <rect x="${ax - 6}" y="${ay + 12}" width="4" height="10" fill="#c0392b"/>
-    <rect x="${ax + 16}" y="${ay + 12}" width="4" height="10" fill="#c0392b"/>
-    <rect x="${ax - 4}" y="${ay + 26}" width="8" height="14" fill="#2c3e50"/>
-    <rect x="${ax + 10}" y="${ay + 26}" width="8" height="14" fill="#2c3e50"/>
+    <rect x="${ax - 4}" y="${ay + 10}" width="22" height="16" fill="${playerPalette.outfit.color}"/>
+    <rect x="${ax - 6}" y="${ay + 12}" width="4" height="10" fill="${playerPalette.outfit.shadow}"/>
+    <rect x="${ax + 16}" y="${ay + 12}" width="4" height="10" fill="${playerPalette.outfit.shadow}"/>
+    <rect x="${ax - 4}" y="${ay + 26}" width="8" height="14" fill="${playerPalette.outfit.pants}"/>
+    <rect x="${ax + 10}" y="${ay + 26}" width="8" height="14" fill="${playerPalette.outfit.pants}"/>
     <rect x="${ax - 6}" y="${ay + 38}" width="10" height="5" fill="#1a1a1a"/>
     <rect x="${ax + 8}" y="${ay + 38}" width="10" height="5" fill="#1a1a1a"/>`;
 
@@ -6541,17 +6829,101 @@ function openPropertyModal() {
         <div class="price-opt"><div class="price-opt-label">Finance</div><div class="price-opt-val">${fmtMoney(down)} dn</div></div>
         <div class="price-opt"><div class="price-opt-label">Buy</div><div class="price-opt-val">${fmtMoney(p.buyPrice)}</div></div>
       </div>
+      <button class="property-tour-launch" data-act="tour">Explore in 3D</button>
       <div style="display:flex; gap:6px;">
         <button class="panel-action secondary" style="flex:1;" data-act="rent">Rent</button>
         <button class="panel-action secondary" style="flex:1;" data-act="finance">Finance</button>
         <button class="panel-action" style="flex:1;" data-act="buy">Buy</button>
       </div>
     `;
+    card.querySelector('[data-act="tour"]').onclick = ()=>openPropertyExplorer(p.id);
     card.querySelector('[data-act="rent"]').onclick = ()=>openFurnitureStep(p.id,"rent");
     card.querySelector('[data-act="finance"]').onclick = ()=>openFurnitureStep(p.id,"finance");
     card.querySelector('[data-act="buy"]').onclick = ()=>openFurnitureStep(p.id,"buy");
     sheet.appendChild(card);
   });
+  document.getElementById("modal-overlay").classList.add("show");
+}
+
+function setupPropertyPreviewControls(stage) {
+  const wrap = stage.querySelector("#room-canvas-wrap");
+  if (!wrap) return;
+  let tiltX = 0;
+  let tiltY = 0;
+  let startX = 0;
+  let startY = 0;
+  let startTiltX = 0;
+  let startTiltY = 0;
+  let pointerId = null;
+  const apply = () => {
+    wrap.style.setProperty("--room-tilt-x", `${tiltX}deg`);
+    wrap.style.setProperty("--room-tilt-y", `${tiltY}deg`);
+  };
+  wrap.addEventListener("pointerdown", event => {
+    if (event.target.closest("button")) return;
+    pointerId = event.pointerId;
+    startX = event.clientX;
+    startY = event.clientY;
+    startTiltX = tiltX;
+    startTiltY = tiltY;
+    wrap.setPointerCapture?.(event.pointerId);
+    wrap.classList.add("dragging", "interacted");
+  });
+  wrap.addEventListener("pointermove", event => {
+    if (pointerId !== event.pointerId) return;
+    tiltY = Math.max(-8, Math.min(8, startTiltY + (event.clientX - startX) * .035));
+    tiltX = Math.max(-5, Math.min(5, startTiltX - (event.clientY - startY) * .025));
+    apply();
+  });
+  const end = event => {
+    if (pointerId !== null && event.pointerId !== undefined && event.pointerId !== pointerId) return;
+    pointerId = null;
+    wrap.classList.remove("dragging");
+  };
+  wrap.addEventListener("pointerup", end);
+  wrap.addEventListener("pointercancel", end);
+  wrap.addEventListener("lostpointercapture", end);
+  stage.querySelector(".room-reset")?.addEventListener("click", () => {
+    tiltX = 0;
+    tiltY = 0;
+    apply();
+  });
+}
+
+function openPropertyExplorer(propId, roomIndex=0) {
+  const prop = PROPERTIES.find(property => property.id === propId);
+  if (!prop) return;
+  const layout = roomLayoutFor(prop.roomCount);
+  const safeIndex = Math.max(0, Math.min(layout.length - 1, roomIndex));
+  const roomType = layout[safeIndex];
+  const roomDef = ROOM_TYPES[roomType];
+  const sheet = document.getElementById("modal-sheet");
+  sheet.innerHTML = `<div class="property-explorer-head">
+      <div><div class="property-explorer-kicker">3D Property Explorer</div><div class="property-explorer-title">${prop.name}</div><div class="property-explorer-meta">Tier ${prop.tier} · ${layout.length} rooms · ${property3DMaterialLabel(prop)}</div></div>
+      <div class="property-explorer-price">${fmtMoney(prop.buyPrice)}<div class="property-explorer-meta">${fmtMoney(prop.rentWeek)}/wk rent</div></div>
+    </div>
+    <div class="property-explorer-rooms"></div>
+    <div class="property-explorer-stage" id="room-stage">
+      <div id="room-canvas-wrap" tabindex="0" aria-label="3D tour of ${roomDef.name}. Drag to look around.">
+        ${renderRoom3DSVG(prop, roomType, safeIndex, true)}
+        <div class="room-3d-toolbar"><button class="room-3d-button room-reset" type="button">Reset</button></div>
+        <div class="room-3d-hint">Drag to look around</div>
+      </div>
+      <div id="room-label-bar"><div><div id="room-name">${roomDef.name}</div><div id="room-tier">${prop.name} · Preview</div></div></div>
+    </div>
+    <div class="property-explorer-actions"><button class="panel-action secondary explorer-back" type="button">Back to Listings</button><button class="panel-action explorer-select" type="button">Rent This Property</button></div>`;
+
+  const rooms = sheet.querySelector(".property-explorer-rooms");
+  layout.forEach((type, index) => {
+    const button = document.createElement("button");
+    button.className = "property-explorer-room" + (index === safeIndex ? " active" : "");
+    button.textContent = ROOM_TYPES[type].name;
+    button.onclick = () => openPropertyExplorer(prop.id, index);
+    rooms.appendChild(button);
+  });
+  sheet.querySelector(".explorer-back").onclick = openPropertyModal;
+  sheet.querySelector(".explorer-select").onclick = () => openFurnitureStep(prop.id, "rent");
+  setupPropertyPreviewControls(sheet.querySelector(".property-explorer-stage"));
   document.getElementById("modal-overlay").classList.add("show");
 }
 
@@ -6595,7 +6967,9 @@ function openFurnitureStep(propId, mode) {
 }
 
 function closeModal() {
-  document.getElementById("modal-overlay").classList.remove("show");
+  activeCharacterPreview3D?.dispose?.();
+  activeCharacterPreview3D = null;
+  document.getElementById("modal-overlay").classList.remove("show", "creator-required");
 }
 
 function openAchievementsModal() {
@@ -6774,7 +7148,7 @@ document.getElementById("ageup-btn").addEventListener("click", () => {
   try { ageUp(); } catch(e) { console.error(e); openErrorModal(e); }
 });
 document.getElementById("modal-overlay").addEventListener("click", e=>{
-  if (e.target.id === "modal-overlay") closeModal();
+  if (e.target.id === "modal-overlay" && !e.currentTarget.classList.contains("creator-required")) closeModal();
 });
 function useTimeMachine() {
   if (!_preAgeSnapshot || state.timeMachineUsed) return;
