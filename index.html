@@ -454,16 +454,17 @@
     border: 1px solid rgba(66,105,116,.28);
     border-radius: 18px;
     background:
-      radial-gradient(circle at 88% 12%, rgba(99,184,207,.25), transparent 34%),
-      linear-gradient(145deg,#17262d,#263a42);
-    box-shadow: 0 14px 30px rgba(28,45,51,.18);
+      radial-gradient(circle at 88% 12%, rgba(111,220,237,.32), transparent 34%),
+      radial-gradient(circle at 15% 100%, rgba(239,184,95,.17), transparent 37%),
+      linear-gradient(145deg,#101e28,#29434c);
+    box-shadow: 0 16px 34px rgba(28,45,51,.22), inset 0 1px 0 rgba(255,255,255,.08);
     color: #f6f3eb;
   }
   .drive-launch::after { content:""; position:absolute; right:-24px; bottom:-42px; width:130px; height:90px; border:18px solid rgba(255,255,255,.055); border-radius:50%; transform:rotate(-15deg); }
   .drive-launch-kicker { color:#9fd6e3; font-size:9px; font-weight:850; letter-spacing:1.2px; text-transform:uppercase; }
   .drive-launch-title { margin-top:5px; font-family:var(--font-display); font-size:22px; font-weight:700; }
   .drive-launch-copy { max-width:280px; margin-top:5px; color:rgba(255,255,255,.68); font-size:11px; line-height:1.45; }
-  .drive-launch-button { position:relative; z-index:1; min-height:42px; margin-top:13px; padding:0 16px; color:#17262d; background:#f5e5b5; border:0; border-radius:12px; font:800 11px/1 var(--font-body); cursor:pointer; }
+  .drive-launch-button { position:relative; z-index:1; min-height:42px; margin-top:13px; padding:0 16px; color:#17262d; background:linear-gradient(135deg,#fff0be,#eacb7c); border:0; border-radius:12px; box-shadow:0 6px 16px rgba(0,0,0,.18); font:800 11px/1 var(--font-body); cursor:pointer; }
   .drive-launch-button:disabled { opacity:.46; cursor:default; }
   #drive-game {
     position:fixed;
@@ -471,11 +472,13 @@
     inset:0;
     overflow:hidden;
     color:#fff;
-    background:#0b151b;
+    background:#071016;
     user-select:none;
     touch-action:none;
   }
   #drive-canvas { width:100%; height:100%; display:block; cursor:grab; touch-action:none; -webkit-user-select:none; user-select:none; }
+  #drive-game::before { content:""; position:absolute; z-index:1; inset:0; pointer-events:none; background:radial-gradient(ellipse at center,transparent 38%,rgba(2,8,12,.18) 100%),linear-gradient(180deg,rgba(5,20,29,.12),transparent 28%,rgba(1,7,10,.22)); }
+  #drive-game > :not(#drive-canvas) { z-index:2; }
   #drive-game.camera-dragging #drive-canvas { cursor:grabbing; }
   #drive-game.boosting #drive-canvas { filter:saturate(1.12) contrast(1.04); }
   .drive-topbar {
@@ -490,10 +493,10 @@
     pointer-events:none;
   }
   .drive-car-card, .drive-close, .drive-camera {
-    border:1px solid rgba(255,255,255,.14);
-    background:rgba(10,18,23,.7);
-    box-shadow:0 8px 24px rgba(0,0,0,.24);
-    backdrop-filter:blur(10px);
+    border:1px solid rgba(182,231,238,.18);
+    background:linear-gradient(135deg,rgba(8,22,30,.82),rgba(12,35,43,.62));
+    box-shadow:0 9px 26px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(14px) saturate(1.15);
   }
   .drive-car-card { min-width:150px; padding:9px 11px; border-radius:13px; }
   .drive-car-name { font-size:11px; font-weight:850; }
@@ -504,18 +507,18 @@
     left:12px;
     min-width:164px;
     padding:9px 11px;
-    border:1px solid rgba(115,231,242,.2);
+    border:1px solid rgba(115,231,242,.3);
     border-radius:13px;
     color:#fff;
     background:linear-gradient(135deg,rgba(8,24,31,.78),rgba(13,42,50,.65));
-    box-shadow:0 10px 28px rgba(0,0,0,.2);
-    backdrop-filter:blur(10px);
+    box-shadow:0 10px 28px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter:blur(14px) saturate(1.15);
     pointer-events:none;
   }
   .drive-objective-kicker { color:#79e7f1; font-size:7px; font-weight:900; letter-spacing:1.2px; text-transform:uppercase; }
   .drive-objective-row { display:flex; align-items:baseline; justify-content:space-between; gap:14px; margin-top:3px; }
   .drive-objective-title { font-size:11px; font-weight:850; }
-  .drive-objective-score { color:#f4d783; font:800 12px/1 var(--font-display); }
+  .drive-objective-score { color:#ffe29a; text-shadow:0 0 12px rgba(244,215,131,.38); font:800 12px/1 var(--font-display); }
   .drive-objective-meta { margin-top:3px; color:rgba(255,255,255,.58); font-size:8px; font-weight:750; letter-spacing:.3px; }
   .drive-top-actions { display:flex; gap:7px; pointer-events:auto; }
   .drive-close, .drive-camera { height:40px; display:grid; place-items:center; border-radius:13px; color:#fff; pointer-events:auto; cursor:pointer; }
@@ -532,15 +535,15 @@
     transform:translateX(-50%);
     padding:10px 12px;
     text-align:center;
-    border:1px solid rgba(255,255,255,.15);
+    border:1px solid rgba(183,231,237,.2);
     border-radius:18px 18px 12px 12px;
-    background:linear-gradient(180deg,rgba(9,15,19,.76),rgba(4,8,10,.9));
-    box-shadow:0 10px 30px rgba(0,0,0,.32);
-    backdrop-filter:blur(10px);
+    background:linear-gradient(180deg,rgba(10,28,36,.82),rgba(3,10,14,.94));
+    box-shadow:0 10px 30px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(14px) saturate(1.15);
     pointer-events:none;
   }
   .drive-speed-row { display:flex; align-items:baseline; justify-content:center; gap:4px; }
-  .drive-speed { font:700 32px/.9 var(--font-display); letter-spacing:-1px; }
+  .drive-speed { color:#f8fbf8; text-shadow:0 2px 10px rgba(93,218,235,.25); font:700 32px/.9 var(--font-display); letter-spacing:-1px; }
   .drive-speed-unit { color:rgba(255,255,255,.55); font-size:8px; font-weight:800; letter-spacing:.8px; }
   .drive-gear { position:absolute; top:10px; right:12px; color:#f4d783; font-size:15px; font-weight:900; }
   .drive-rpm-label { margin-top:7px; color:rgba(255,255,255,.52); font-size:7.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
@@ -558,15 +561,15 @@
     display:grid;
     place-items:center;
     color:#fff;
-    background:rgba(12,20,25,.55);
-    border:1px solid rgba(255,255,255,.18);
+    background:linear-gradient(145deg,rgba(15,35,43,.78),rgba(6,15,20,.72));
+    border:1px solid rgba(199,237,241,.2);
     border-radius:50%;
     box-shadow:0 8px 22px rgba(0,0,0,.22);
-    backdrop-filter:blur(8px);
+    backdrop-filter:blur(12px) saturate(1.1);
     font:900 20px/1 var(--font-body);
     touch-action:none;
   }
-  .drive-control.active { color:#172126; background:#f4d783; transform:scale(.94); }
+  .drive-control.active { color:#172126; background:linear-gradient(135deg,#fff0ad,#e8bd63); box-shadow:0 0 22px rgba(244,215,131,.28); transform:scale(.94); }
   .drive-pedal { width:61px; height:76px; border-radius:19px; font-size:10px; letter-spacing:.5px; }
   .drive-pedal.brake { background:rgba(91,31,28,.58); }
   .drive-pedal.boost { position:absolute; right:27px; bottom:88px; width:52px; height:52px; border-radius:50%; color:#8feaf3; border-color:rgba(102,221,237,.34); background:rgba(20,78,94,.55); }
@@ -1076,6 +1079,18 @@
   .story-hero-kicker { color: var(--accent); font-size: 9.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
   .story-hero-title { margin-top: 4px; font-family: var(--font-display); font-size: 22px; font-weight: 650; letter-spacing: -.25px; }
   .story-hero-copy { margin-top: 4px; color: var(--ink-dim); font-size: 12.5px; line-height: 1.45; }
+  .life-snapshot { margin:0 0 18px; }
+  .life-snapshot-label { display:flex; align-items:center; gap:8px; margin:0 2px 9px; color:var(--ink-dim); font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+  .life-snapshot-label::after { content:""; flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }
+  .life-snapshot-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .life-snapshot-item { min-height:82px; padding:11px; display:flex; flex-direction:column; align-items:flex-start; justify-content:space-between; color:var(--ink); background:rgba(255,255,255,.56); border:1px solid var(--line); border-radius:14px; box-shadow:0 5px 16px rgba(43,36,32,.035); font:inherit; text-align:left; cursor:pointer; transition:transform .16s ease,background .16s ease,border-color .16s ease; }
+  .life-snapshot-item:active { transform:scale(.975); background:var(--paper-dim); }
+  .life-snapshot-icon { width:27px; height:27px; display:grid; place-items:center; border-radius:9px; color:var(--accent); background:rgba(194,84,47,.10); font-size:14px; }
+  .life-snapshot-item:nth-child(2) .life-snapshot-icon { color:#74591f; background:rgba(201,154,58,.13); }
+  .life-snapshot-item:nth-child(3) .life-snapshot-icon { color:#326b79; background:rgba(73,154,173,.12); }
+  .life-snapshot-item:nth-child(4) .life-snapshot-icon { color:var(--good); background:rgba(74,124,89,.12); }
+  .life-snapshot-title { margin-top:7px; font-size:12px; font-weight:800; line-height:1.2; }
+  .life-snapshot-detail { display:block; margin-top:2px; color:var(--ink-dim); font-size:9.5px; font-weight:650; line-height:1.25; }
   .life-goals { margin:0 0 18px; }
   .life-goals-label { display:flex; align-items:center; gap:8px; margin:0 2px 9px; color:var(--ink-dim); font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
   .life-goals-label::after { content:""; flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }
@@ -1107,6 +1122,24 @@
   .ambition-option-name { display:block; font-size:13px; font-weight:800; }
   .ambition-option-detail { display:block; margin-top:3px; color:var(--ink-dim); font-size:10px; line-height:1.35; }
   .ambition-option-arrow { color:var(--ink-dim); font-size:18px; }
+  .major-picker-intro { margin:0 1px 13px; color:var(--ink-dim); font-size:11.5px; line-height:1.45; }
+  .major-option { width:100%; min-height:82px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; padding:12px; margin-bottom:8px; color:var(--ink); background:rgba(255,255,255,.56); border:1px solid var(--line); border-radius:14px; font:inherit; text-align:left; cursor:pointer; transition:transform .16s ease,background .16s ease,border-color .16s ease; }
+  .major-option:active:not(:disabled) { transform:scale(.985); background:var(--paper-dim); }
+  .major-option:disabled { opacity:.5; cursor:default; }
+  .major-option-name { display:block; font-size:13px; font-weight:800; }
+  .major-option-meta { display:block; margin-top:3px; color:var(--ink-dim); font-size:10px; line-height:1.35; }
+  .major-option-status { padding:5px 7px; border-radius:999px; color:var(--good); background:rgba(74,124,89,.11); font-size:9px; font-weight:800; white-space:nowrap; }
+  .major-option-status.locked { color:var(--bad); background:rgba(179,67,58,.10); }
+  .career-advisor { margin:0 0 17px; padding:14px; overflow:hidden; border:1px solid rgba(74,124,89,.25); border-radius:16px; background:radial-gradient(circle at 100% 0%,rgba(74,124,89,.14),transparent 45%),rgba(255,255,255,.56); box-shadow:0 7px 20px rgba(43,36,32,.045); }
+  .career-advisor-kicker { color:var(--good); font-size:9.5px; font-weight:850; letter-spacing:1px; text-transform:uppercase; }
+  .career-advisor-title { margin-top:3px; font-family:var(--font-display); font-size:17px; font-weight:700; }
+  .career-advisor-copy { margin-top:3px; color:var(--ink-dim); font-size:10.5px; line-height:1.4; }
+  .career-advisor-list { display:grid; gap:7px; margin-top:11px; }
+  .career-advisor-role { width:100%; min-height:48px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:10px; padding:9px 10px; color:var(--ink); background:rgba(255,255,255,.58); border:1px solid var(--line); border-radius:11px; font:inherit; text-align:left; cursor:pointer; transition:transform .16s ease,background .16s ease; }
+  .career-advisor-role:active { transform:scale(.985); background:var(--paper-dim); }
+  .career-advisor-role-name { display:block; font-size:11.5px; font-weight:800; }
+  .career-advisor-role-meta { display:block; margin-top:2px; color:var(--ink-dim); font-size:9.5px; }
+  .career-advisor-pay { color:var(--good); font-size:10.5px; font-weight:850; white-space:nowrap; }
   .story-timeline-label { display:flex; align-items:center; gap:8px; margin: 1px 2px 9px; color:var(--ink-dim); font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
   .story-timeline-label::after { content:""; flex:1; height:1px; background:linear-gradient(90deg, var(--line), transparent); }
   .story-screen .event-card { margin-left: 12px; }
@@ -1376,8 +1409,12 @@
   html[data-theme="dark"] :is(.choice-btn,.price-opt,.will-total-bar,.chip) { background:var(--paper-dim); }
   html[data-theme="dark"] :is(.panel-action.secondary,.filter-chip) { background:rgba(255,255,255,.035); }
   html[data-theme="dark"] .story-hero { border-color:rgba(228,119,80,.25); background:radial-gradient(circle at 100% 0%,rgba(223,180,94,.12),transparent 36%),linear-gradient(135deg,#25211c,#1d1a16); box-shadow:0 10px 26px rgba(0,0,0,.2); }
+  html[data-theme="dark"] .life-snapshot-item { background:rgba(255,255,255,.035); border-color:rgba(255,255,255,.09); box-shadow:0 8px 20px rgba(0,0,0,.14); }
   html[data-theme="dark"] .life-goal { background:#211e1a; border-color:var(--line); box-shadow:0 8px 20px rgba(0,0,0,.16); }
   html[data-theme="dark"] .ambition-card { background:radial-gradient(circle at 100% 0%,rgba(223,180,94,.12),transparent 43%),#211e1a; border-color:rgba(223,180,94,.24); }
+  html[data-theme="dark"] .major-option { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.09); }
+  html[data-theme="dark"] .career-advisor { background:radial-gradient(circle at 100% 0%,rgba(120,188,137,.12),transparent 45%),rgba(255,255,255,.035); border-color:rgba(120,188,137,.2); }
+  html[data-theme="dark"] .career-advisor-role { background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.09); }
   html[data-theme="dark"] .ambition-icon, html[data-theme="dark"] .ambition-option-icon { color:var(--gold); background:rgba(223,180,94,.12); }
   html[data-theme="dark"] .ambition-option { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.09); }
   html[data-theme="dark"] .story-screen .event-card.latest-event { background:linear-gradient(135deg,#27221d,#211d19); border-color:rgba(228,119,80,.34); }
@@ -2507,7 +2544,7 @@ const EVENTS = [
   { cond: s => s.age===17, weight: 5, build: s => ({
       text: `Graduation is coming. ${s.name} has to decide what's next.`,
       choices: [
-        { label:"Apply to university", deltas:[["smarts", rand(4,8)]], result:"Acceptance letter came in the mail. A new chapter begins.", flag:"college" },
+        { label:"Apply to university", deltas:[["smarts", rand(4,8)]], result:"The applications are in. Now comes the big question: what will you study?", flag:"college" },
         { label:"Go straight to work", deltas:[["happiness", 2]], result:"Skipped the dorms, jumped right into a paycheck.", flag:"work" },
       ]
   })},
@@ -2981,6 +3018,22 @@ function ageUp() {
   state.age++;
   haptic("medium");
 
+  // A university application made at 17 carries the chosen major into the
+  // first adult year. Enroll before the education tick so year one, tuition,
+  // skills, and grades all begin at age 18.
+  if (state.age >= 18 && state.collegeFlag && state.universityMajor) {
+    try {
+      const enrollment = WayfareCore.education.enroll(state, state.universityMajor);
+      if (enrollment.ok) {
+        const program = WayfareCore.education.programById(state.universityMajor);
+        log(`${state.name} moved into a dorm and began ${program ? program.name : "their university program"}${enrollment.scholarship > 0 ? ` on a ${Math.round(enrollment.scholarship * 100)}% scholarship` : ""}.`);
+        delete state.collegeFlag;
+        delete state.universityMajor;
+        haptic("heavy");
+      }
+    } catch(e) {}
+  }
+
   // world economy advances first: this year's growth, inflation, rates,
   // housing, markets, shocks and elections are set before any player-facing
   // system reads them (domain layer)
@@ -3212,7 +3265,13 @@ function resolveChoice(choiceIndex) {
     try { WayfareCore.events.resolveSchedule(state, { schedule: c._schedule }); } catch(e) {}
   }
 
-  if (c.flag === "college") state.collegeFlag = true;
+  if (c.flag === "college") {
+    state.pendingChoice = null;
+    saveGame();
+    render();
+    openUniversityMajorPicker();
+    return;
+  }
   if (c.flag === "promotion") {
     if (state.job !== "unemployed" && state.salary > 0) {
       const raise = Math.round(state.salary * (rand(10,20)/100));
@@ -3624,12 +3683,9 @@ function render() {
   moneyEl.textContent = fmtMoney(state.money);
   moneyEl.className = state.money < 0 ? "negative" : "";
 
-  // a pending life choice always takes over the screen, no matter which tab
-  // the player was on when it fired -- otherwise the Age Up button vanishes
-  // (see below) with no way to see or resolve the choice that's blocking it.
-  if (state.pendingChoice && state.activeTab !== "story") {
-    state.activeTab = "story";
-  }
+  // A life decision pauses aging, but it should not take the player out of
+  // whatever they were managing. The choice remains on the Life tab until
+  // resolved, while all other screens stay available.
 
   document.querySelectorAll(".nav-btn[data-tab]").forEach(b=>{
     b.classList.toggle("active", b.dataset.tab === state.activeTab);
@@ -3671,6 +3727,7 @@ function renderStory(main) {
   chapter.innerHTML = `<div class="story-hero-kicker">Age ${state.age} · ${lifeStage}</div><div class="story-hero-title">${role}</div><div class="story-hero-copy">Every choice leaves a mark. Your newest moments appear first in the timeline below.</div>`;
   main.appendChild(chapter);
 
+  renderLifeSnapshot(main, currentJob);
   renderAmbitionSummary(main);
 
   const goals = buildLifeGoals();
@@ -3749,6 +3806,47 @@ function renderStory(main) {
     card.innerHTML = `<div class="event-age">Age ${item.age}</div><div class="event-text">${item.text}</div>${deltaHtml?`<div>${deltaHtml}</div>`:""}`;
     main.appendChild(card);
   });
+}
+
+function renderLifeSnapshot(main, currentJob) {
+  const focusRemaining = (() => {
+    try { return WayfareCore.activities.focusRemaining(state); } catch(e) { return 0; }
+  })();
+  const relationships = state.relationships || [];
+  const netWorth = computeNetWorth(state);
+  const jobTitle = currentJob && currentJob.id !== "unemployed" ? currentJob.title : "Open to possibilities";
+  const jobDetail = currentJob && currentJob.id !== "unemployed" ? fmtMoney(state.salary || 0) + "/wk" : "Explore careers";
+  const relationshipDetail = relationships.length
+    ? `${relationships.length} ${relationships.length === 1 ? "connection" : "connections"}${state.partner ? " · partnered" : ""}`
+    : "Meet someone new";
+  const focusDetail = state.age < 4
+    ? "Unlocks at age 4"
+    : focusRemaining > 0
+      ? `${focusRemaining} ${focusRemaining === 1 ? "choice" : "choices"} this year`
+      : "Ready next year";
+  const snapshots = [
+    { icon:"&#128188;", title:jobTitle, detail:jobDetail, tab:"job", label:"Career" },
+    { icon:"&#10024;", title:"Your focus", detail:focusDetail, tab:"activities", label:"Activities" },
+    { icon:"&#9825;", title:"Your people", detail:relationshipDetail, tab:"people", label:"Relationships" },
+    { icon:"&#9670;", title:fmtMoney(netWorth), detail:"Estimated net worth", tab:"bank", label:"Finances" },
+  ];
+  const section = document.createElement("section");
+  section.className = "life-snapshot";
+  const label = document.createElement("div");
+  label.className = "life-snapshot-label";
+  label.textContent = "At a glance";
+  const grid = document.createElement("div");
+  grid.className = "life-snapshot-grid";
+  snapshots.forEach(snapshot => {
+    const button = document.createElement("button");
+    button.className = "life-snapshot-item";
+    button.setAttribute("aria-label", `${snapshot.label}: ${snapshot.title}. ${snapshot.detail}`);
+    button.innerHTML = `<span class="life-snapshot-icon" aria-hidden="true">${snapshot.icon}</span><span><span class="life-snapshot-title">${snapshot.title}</span><span class="life-snapshot-detail">${snapshot.detail}</span></span>`;
+    button.onclick = () => { state.activeTab = snapshot.tab; render(); };
+    grid.appendChild(button);
+  });
+  section.append(label, grid);
+  main.appendChild(section);
 }
 
 function formatAmbitionMetric(snapshot) {
@@ -4888,6 +4986,8 @@ function renderJob(main) {
     </div>`;
   main.appendChild(card);
 
+  renderCareerAdvisor(main);
+
   // Career path: what's next on the ladder, and what's still missing
   const next = WayfareCore.careers.nextLevel(state.job);
   if (next) {
@@ -4978,6 +5078,32 @@ function renderJob(main) {
     c.appendChild(btn);
     main.appendChild(c);
   });
+}
+
+function renderCareerAdvisor(main) {
+  const qualified = JOBS
+    .filter(job => job.id !== "unemployed" && job.id !== state.job && job.entry)
+    .filter(job => state.smarts >= job.minSmarts && degreeMet(job))
+    .sort((a, b) => b.payWeek - a.payWeek)
+    .slice(0, 3);
+  if (!qualified.length) return;
+
+  const advisor = document.createElement("section");
+  advisor.className = "career-advisor";
+  const hasJob = state.job !== "unemployed";
+  advisor.innerHTML = `<div class="career-advisor-kicker">Career advisor</div><div class="career-advisor-title">${hasJob ? "You have options" : "Roles you can land now"}</div><div class="career-advisor-copy">Based on your education and current strengths, these are your strongest openings.</div>`;
+  const list = document.createElement("div");
+  list.className = "career-advisor-list";
+  qualified.forEach(job => {
+    const role = document.createElement("button");
+    role.className = "career-advisor-role";
+    role.setAttribute("aria-label", `Apply for ${job.title}, ${fmtMoney(job.payWeek)} per week`);
+    role.innerHTML = `<span><span class="career-advisor-role-name">${job.title}</span><span class="career-advisor-role-meta">${job.category}</span></span><span class="career-advisor-pay">${fmtMoney(job.payWeek)}/wk</span>`;
+    role.onclick = () => applyForJob(job.id);
+    list.appendChild(role);
+  });
+  advisor.appendChild(list);
+  main.appendChild(advisor);
 }
 
 function renderPeople(main) {
@@ -6204,6 +6330,48 @@ function renderBusiness(main) {
     c.appendChild(btn);
     main.appendChild(c);
   });
+}
+
+function openUniversityMajorPicker() {
+  const sheet = document.getElementById("modal-sheet");
+  sheet.innerHTML = `<div class="settings-head"><div class="settings-icon">&#127891;</div><div><div class="settings-title">Choose a major</div><div class="settings-sub">Your university application</div></div></div><div class="major-picker-intro">Your major shapes the skills you build, the degree you earn, and the careers you can pursue. Admission is based on your current smarts.</div>`;
+
+  const majors = DEGREES.filter(degree => degree.tier === "University");
+  majors.forEach(degree => {
+    const program = WayfareCore.education.programById(degree.id);
+    const minSmarts = program ? program.minSmarts : degree.smarts;
+    const eligible = state.smarts >= minSmarts;
+    const years = program ? program.years : 4;
+    const button = document.createElement("button");
+    button.className = "major-option";
+    button.disabled = !eligible;
+    button.innerHTML = `<span><span class="major-option-name">${degree.name}</span><span class="major-option-meta">${degree.field || "University"} · ${years} years · ${fmtMoney(degree.cost)} tuition${program && program.skills.length ? ` · Builds ${program.skills.join(", ")}` : ""}</span></span><span class="major-option-status${eligible ? "" : " locked"}">${eligible ? "Apply" : `Needs ${minSmarts}`}</span>`;
+    button.onclick = () => {
+      state.degrees = state.degrees || [];
+      if (!state.degrees.includes("hs")) {
+        state.degrees.push("hs");
+        log(`${state.name} graduated high school.`);
+      }
+      state.universityMajor = degree.id;
+      state.collegeFlag = true;
+      log(`${state.name} applied to university for ${degree.name}.`);
+      saveGame();
+      closeModal();
+      render();
+      haptic("medium");
+      toast(`${degree.name} selected.`);
+    };
+    sheet.appendChild(button);
+  });
+
+  const later = document.createElement("button");
+  later.className = "panel-action secondary";
+  later.style.width = "100%";
+  later.style.marginTop = "3px";
+  later.textContent = "Decide later";
+  later.onclick = closeModal;
+  sheet.appendChild(later);
+  document.getElementById("modal-overlay").classList.add("show");
 }
 
 function renderEducation(main) {

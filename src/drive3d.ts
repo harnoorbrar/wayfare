@@ -279,17 +279,24 @@ function addCity(scene: THREE.Scene, ramps: RampState[]) {
   const world = new THREE.Group();
   scene.add(world);
 
-  const ground = mesh(new THREE.PlaneGeometry(1200, 1200), material(0x48614d, 0.98, 0));
+  const ground = mesh(new THREE.PlaneGeometry(1200, 1200), material(0x344b42, 0.98, 0));
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   world.add(ground);
 
-  const asphalt = material(0x30363a, 0.96, 0.03);
+  const asphalt = material(0x242b31, 0.93, 0.04);
+  const roadEdge = material(0x151b20, 0.88, 0.06);
   for (let n = -4; n <= 4; n++) {
+    const xEdge = mesh(new THREE.BoxGeometry(ROAD_WIDTH + 1.5, 0.055, 1080), roadEdge);
+    xEdge.position.set(n * ROAD_SPACING, 0.018, 0);
+    world.add(xEdge);
     const xRoad = mesh(new THREE.BoxGeometry(ROAD_WIDTH, 0.08, 1080), asphalt);
     xRoad.position.set(n * ROAD_SPACING, 0.04, 0);
     xRoad.receiveShadow = true;
     world.add(xRoad);
+    const zEdge = mesh(new THREE.BoxGeometry(1080, 0.055, ROAD_WIDTH + 1.5), roadEdge);
+    zEdge.position.set(0, 0.018, n * ROAD_SPACING);
+    world.add(zEdge);
     const zRoad = mesh(new THREE.BoxGeometry(1080, 0.08, ROAD_WIDTH), asphalt);
     zRoad.position.set(0, 0.04, n * ROAD_SPACING);
     zRoad.receiveShadow = true;
@@ -315,8 +322,26 @@ function addCity(scene: THREE.Scene, ramps: RampState[]) {
   }
   world.add(zDashes, xDashes);
 
-  const buildingPalette = [0x707879, 0x786f68, 0x63737a, 0x78745f, 0x665f70];
-  const sidewalkSurface = material(0x858a87, 0.94, 0);
+  const buildingPalette = [0x55646d, 0x645f68, 0x455c68, 0x6b6658, 0x514d67];
+  const sidewalkSurface = material(0x717b7d, 0.9, 0.03);
+  const plazaSurface = material(0x4b5859, 0.94, 0.02);
+  const treeTrunk = material(0x4d3428, 0.94, 0);
+  const treeLeaf = material(0x315d4c, 0.92, 0.02);
+  const parkGrass = material(0x3f7056, 0.96, 0);
+  const windowSurface = new THREE.MeshStandardMaterial({
+    color: 0xffc96c,
+    emissive: 0xe69a43,
+    emissiveIntensity: 1.25,
+    roughness: 0.42,
+    metalness: 0.08,
+  });
+  const coolWindowSurface = new THREE.MeshStandardMaterial({
+    color: 0x8dd8ec,
+    emissive: 0x3e94b5,
+    emissiveIntensity: 0.72,
+    roughness: 0.3,
+    metalness: 0.22,
+  });
   for (let gx = -5; gx < 4; gx++) {
     for (let gz = -5; gz < 4; gz++) {
       const centerX = gx * ROAD_SPACING + ROAD_SPACING / 2;
@@ -327,6 +352,29 @@ function addCity(scene: THREE.Scene, ramps: RampState[]) {
       world.add(sidewalk);
 
       const seed = seeded(gx, gz);
+      const isPark = seed % 9 === 0;
+      if (isPark) {
+        const park = mesh(new THREE.BoxGeometry(74, 0.18, 74), parkGrass);
+        park.position.set(centerX, 0.31, centerZ);
+        world.add(park);
+        const path = mesh(new THREE.BoxGeometry(64, 0.04, 3.2), plazaSurface, false);
+        path.position.set(centerX, 0.43, centerZ);
+        world.add(path);
+        for (let treeIndex = 0; treeIndex < 9; treeIndex++) {
+          const treeSeed = seeded(gx * 13 + treeIndex, gz * 17 - treeIndex);
+          const tree = new THREE.Group();
+          const x = centerX - 28 + (treeSeed % 56);
+          const z = centerZ - 28 + ((treeSeed >> 7) % 56);
+          const trunk = mesh(new THREE.CylinderGeometry(0.32, 0.46, 4.2, 7), treeTrunk);
+          trunk.position.y = 2.35;
+          const crown = mesh(new THREE.ConeGeometry(2.7 + (treeSeed % 9) * 0.12, 6.5, 9), treeLeaf);
+          crown.position.y = 6.3;
+          tree.add(trunk, crown);
+          tree.position.set(x, 0.3, z);
+          world.add(tree);
+        }
+        continue;
+      }
       const width = 45 + seed % 26;
       const depth = 43 + (seed >> 4) % 28;
       const height = 18 + (seed >> 8) % 52;
@@ -339,6 +387,14 @@ function addCity(scene: THREE.Scene, ramps: RampState[]) {
       tower.receiveShadow = true;
       world.add(tower);
 
+      const inset = mesh(
+        new THREE.BoxGeometry(Math.max(18, width * 0.54), Math.max(8, height * 0.34), Math.max(16, depth * 0.56)),
+        material(buildingPalette[(seed >> 5) % buildingPalette.length], 0.62, 0.16),
+      );
+      inset.position.set(centerX + (seed % 2 ? -width * 0.12 : width * 0.12), height + height * 0.17, centerZ);
+      inset.castShadow = true;
+      world.add(inset);
+
       const roof = mesh(
         new THREE.BoxGeometry(width + 1, 0.5, depth + 1),
         material(0x41484a, 0.86, 0.05),
@@ -346,18 +402,26 @@ function addCity(scene: THREE.Scene, ramps: RampState[]) {
       roof.position.set(centerX, height + 0.55, centerZ);
       world.add(roof);
 
-      const windowSurface = new THREE.MeshStandardMaterial({
-        color: 0xf0c46d,
-        emissive: 0xe5a94d,
-        emissiveIntensity: 0.75,
-      });
-      for (let floor = 5; floor < height - 2; floor += 6) {
-        for (const side of [-1, 1]) {
-          const window = mesh(new THREE.PlaneGeometry(2.8, 2.2), windowSurface, false);
-          window.position.set(centerX + side * (width / 2 + 0.02), floor, centerZ);
-          window.rotation.y = side > 0 ? Math.PI / 2 : -Math.PI / 2;
-          world.add(window);
+      const floors = Math.max(2, Math.floor((height - 7) / 6));
+      const rows = Math.max(3, Math.floor(width / 8));
+      const frontWindows = new THREE.InstancedMesh(new THREE.PlaneGeometry(2.8, 2.1), seed % 3 === 0 ? coolWindowSurface : windowSurface, floors * rows * 2);
+      let windowIndex = 0;
+      for (const side of [-1, 1]) {
+        for (let floor = 0; floor < floors; floor++) {
+          for (let row = 0; row < rows; row++) {
+            const offsetX = -width * 0.37 + row * (width * 0.74 / Math.max(1, rows - 1));
+            matrix.makeTranslation(centerX + side * (width / 2 + 0.04), 5 + floor * 6, centerZ + offsetX);
+            matrix.multiply(new THREE.Matrix4().makeRotationY(side > 0 ? Math.PI / 2 : -Math.PI / 2));
+            frontWindows.setMatrixAt(windowIndex++, matrix);
+          }
         }
+      }
+      world.add(frontWindows);
+
+      if (seed % 4 === 0) {
+        const sign = mesh(new THREE.BoxGeometry(Math.min(22, width * 0.38), 2.4, 0.18), new THREE.MeshBasicMaterial({ color: seed % 8 === 0 ? 0x60deef : 0xf1b75c }), false);
+        sign.position.set(centerX, Math.min(height * 0.58, 28), centerZ - depth / 2 - 0.14);
+        world.add(sign);
       }
     }
   }
