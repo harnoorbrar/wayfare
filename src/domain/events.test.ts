@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { EVENTS } from '../data/events';
 import {
+  choiceAffordable,
   drawEvent,
   ensureEvents,
   pendingCount,
@@ -18,6 +19,26 @@ function life(overrides: Partial<GameState> = {}): GameState {
 }
 
 describe('event data integrity', () => {
+  it('uses unique, non-empty ids and playable choices', () => {
+    const ids = EVENTS.map((e) => e.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(EVENTS.length).toBeGreaterThanOrEqual(25);
+    for (const event of EVENTS) {
+      expect(event.id.trim()).not.toBe('');
+      expect(event.text.trim()).not.toBe('');
+      expect(event.choices.length).toBeGreaterThan(0);
+      for (const choice of event.choices) {
+        expect(choice.label.trim()).not.toBe('');
+        expect(choice.result.trim()).not.toBe('');
+        if (choice.costGate !== undefined) expect(choice.costGate).toBeGreaterThan(0);
+        for (const effect of choice.effects ?? []) {
+          expect(['money', 'happiness', 'health', 'smarts', 'looks']).toContain(effect.stat);
+          expect(Number.isFinite(effect.amount)).toBe(true);
+        }
+      }
+    }
+  });
+
   it('every scheduled target id exists', () => {
     const ids = new Set(EVENTS.map((e) => e.id));
     for (const e of EVENTS) {
@@ -104,6 +125,62 @@ describe('drawEvent', () => {
       return ids;
     };
     expect(run()).toEqual(run());
+  });
+
+  it('only draws context-specific events when their required life feature exists', () => {
+    const plain = life({
+      age: 35,
+      property: null,
+      vehicles: [],
+      children: [],
+      pets: [],
+      partner: null,
+    });
+    const rng = new Rng(44);
+    const seen = new Set<string>();
+    for (let i = 0; i < 250; i++) {
+      plain.age = 35 + (i % 3);
+      const ev = drawEvent(plain, rng);
+      if (ev) seen.add(ev.id);
+    }
+    expect(seen.has('home_repair')).toBe(false);
+    expect(seen.has('road_trip')).toBe(false);
+    expect(seen.has('child_big_day')).toBe(false);
+    expect(seen.has('pet_emergency')).toBe(false);
+    expect(seen.has('partner_care')).toBe(false);
+  });
+
+  it('provides event variety across major life stages', () => {
+    const stages = [
+      life({ age: 5, job: 'unemployed', money: 0 }),
+      life({ age: 16, job: 'unemployed', money: 100 }),
+      life({ age: 35, vehicles: [{}], property: 'studio', children: [{}], pets: [{}], partner: 'A' }),
+      life({ age: 70, job: 'unemployed', partner: 'A' }),
+    ];
+    const rng = new Rng(71);
+    const seenByStage = stages.map((state) => {
+      const seen = new Set<string>();
+      for (let year = 0; year < 20; year++) {
+        state.age += year % 2;
+        const event = drawEvent(state, rng);
+        if (event) seen.add(event.id);
+      }
+      return seen;
+    });
+    expect(seenByStage[0].size).toBeGreaterThanOrEqual(1);
+    expect(seenByStage[1].size).toBeGreaterThanOrEqual(3);
+    expect(seenByStage[2].size).toBeGreaterThanOrEqual(6);
+    expect(seenByStage[3].size).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('choice affordability', () => {
+  it('allows free choices and enforces cost gates', () => {
+    const s = life({ money: 999 });
+    expect(choiceAffordable(s, { label: 'Free', result: 'Done' })).toBe(true);
+    expect(choiceAffordable(s, { label: 'Trip', result: 'Done', costGate: 1000 })).toBe(false);
+    s.money = 1000;
+    expect(choiceAffordable(s, { label: 'Trip', result: 'Done', costGate: 1000 })).toBe(true);
   });
 });
 

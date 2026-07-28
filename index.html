@@ -293,6 +293,11 @@
     color: var(--ink);
   }
   .choice-btn:active { background: var(--accent-dim); }
+  .choice-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    background: var(--paper-dim);
+  }
 
   /* ---------- HOME / ROOM VIEW ---------- */
   #room-stage {
@@ -1357,7 +1362,7 @@
     background: rgba(232,223,208,.72);
     transition: transform .16s ease, background .16s ease, border-color .16s ease;
   }
-  .choice-btn:active { transform: scale(.985); background: var(--accent-dim); }
+  .choice-btn:active:not(:disabled) { transform: scale(.985); background: var(--accent-dim); }
   .panel-action {
     min-height: 36px;
     border-radius: 9px;
@@ -3589,6 +3594,7 @@ function ageUp() {
         deltas: (c.effects||[]).map(e => [e.stat, e.amount]),
         result: c.result,
         _schedule: c.schedule || null,
+        _costGate: c.costGate,
       })),
     };
     log(domainEvent.text);
@@ -3623,6 +3629,10 @@ function resolveChoice(choiceIndex) {
     return;
   }
   const c = state.pendingChoice.choices[choiceIndex];
+  if (c._costGate !== undefined && state.money < c._costGate) {
+    toast(`You need ${fmtMoney(c._costGate)} for that choice.`);
+    return;
+  }
   (c.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
   log(c.result, c.deltas);
   if (c.ach) unlockAchievement(c.ach);
@@ -4168,6 +4178,8 @@ function renderStory(main) {
       const b = document.createElement("button");
       b.className = "choice-btn";
       b.textContent = c.label;
+      b.disabled = c._costGate !== undefined && state.money < c._costGate;
+      if (b.disabled) b.title = `Requires ${fmtMoney(c._costGate)}`;
       b.onclick = () => { try { resolveChoice(i); } catch(e) { console.error(e); openErrorModal(e); } };
       btns.appendChild(b);
     });

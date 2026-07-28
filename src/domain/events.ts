@@ -56,6 +56,10 @@ function meetsRequirements(state: GameState, def: EventDef): boolean {
   if (r.maxAge !== undefined && state.age > r.maxAge) return false;
   if (r.hasPartner && !state.partner) return false;
   if (r.employed && (!state.job || state.job === 'unemployed')) return false;
+  if (r.hasChildren && (!Array.isArray(state.children) || state.children.length === 0)) return false;
+  if (r.hasProperty && !state.property) return false;
+  if (r.hasVehicle && (!Array.isArray(state.vehicles) || state.vehicles.length === 0)) return false;
+  if (r.hasPet && (!Array.isArray(state.pets) || state.pets.length === 0)) return false;
   if (r.minMoney !== undefined && state.money < r.minMoney) return false;
   return true;
 }
