@@ -545,6 +545,265 @@
   .property-explorer-stage { margin-bottom:12px; }
   .property-explorer-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   .property-explorer-actions .panel-action { min-height:42px; }
+  #property-tour-3d {
+    position:fixed;
+    z-index:1100;
+    inset:0;
+    overflow:hidden;
+    color:#fff;
+    background:#15212a;
+    user-select:none;
+    touch-action:none;
+    animation:propertyTourEnter .32s cubic-bezier(.2,.8,.2,1);
+  }
+  #property-tour-3d [hidden] { display:none !important; }
+  #property-tour-canvas {
+    width:100%;
+    height:100%;
+    display:block;
+    cursor:grab;
+    touch-action:none;
+    transition:opacity .18s ease,filter .35s ease;
+  }
+  #property-tour-canvas:active { cursor:grabbing; }
+  #property-tour-canvas.switching { opacity:.45; filter:blur(5px); }
+  #property-tour-canvas:focus-visible { outline:2px solid #f4d783; outline-offset:-4px; }
+  .property-tour-vignette {
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background:
+      radial-gradient(ellipse at center,transparent 42%,rgba(5,10,14,.28) 100%),
+      linear-gradient(180deg,rgba(4,10,15,.42),transparent 26%,transparent 62%,rgba(4,9,13,.62));
+  }
+  .property-tour-topbar {
+    position:absolute;
+    z-index:2;
+    top:max(12px,env(safe-area-inset-top));
+    left:12px;
+    right:12px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+    pointer-events:none;
+  }
+  .property-tour-glass {
+    border:1px solid rgba(255,255,255,.16);
+    background:linear-gradient(135deg,rgba(10,22,29,.84),rgba(18,39,44,.58));
+    box-shadow:0 12px 32px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(16px) saturate(1.2);
+    -webkit-backdrop-filter:blur(16px) saturate(1.2);
+  }
+  .property-tour-identity { max-width:min(66vw,360px); padding:10px 12px; border-radius:15px; }
+  .property-tour-eyebrow { color:#f4d783; font-size:8px; font-weight:900; letter-spacing:1.2px; text-transform:uppercase; }
+  .property-tour-name { margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:700 16px/1.2 var(--font-display); }
+  .property-tour-spec { margin-top:3px; color:rgba(255,255,255,.62); font-size:8.5px; font-weight:700; letter-spacing:.25px; }
+  .property-tour-tools { display:flex; gap:7px; pointer-events:auto; }
+  .property-tour-tool {
+    min-width:42px;
+    height:42px;
+    display:grid;
+    place-items:center;
+    padding:0 10px;
+    color:#fff;
+    border-radius:13px;
+    font:800 9px/1 var(--font-body);
+    cursor:pointer;
+  }
+  .property-tour-close { font-size:19px; }
+  .property-tour-tool.active {
+    color:#27322d;
+    border-color:#f4d783;
+    background:linear-gradient(135deg,#fff1bb,#dfbd63);
+    box-shadow:0 7px 20px rgba(235,199,99,.22);
+  }
+  .property-tour-hint {
+    position:absolute;
+    z-index:2;
+    top:max(80px,calc(env(safe-area-inset-top) + 68px));
+    left:50%;
+    transform:translateX(-50%);
+    padding:7px 11px;
+    border:1px solid rgba(255,255,255,.13);
+    border-radius:999px;
+    color:rgba(255,255,255,.78);
+    background:rgba(7,16,22,.54);
+    backdrop-filter:blur(10px);
+    font-size:8.5px;
+    font-weight:800;
+    letter-spacing:.35px;
+    white-space:nowrap;
+    pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  #property-tour-3d.explored .property-tour-hint { opacity:0; }
+  .property-tour-discovery {
+    position:absolute;
+    z-index:3;
+    top:27%;
+    left:50%;
+    max-width:calc(100% - 36px);
+    transform:translate(-50%,-8px);
+    padding:9px 13px;
+    border-radius:999px;
+    color:#26312f;
+    background:linear-gradient(135deg,#fff3c5,#e9cb72);
+    box-shadow:0 10px 30px rgba(0,0,0,.28),0 0 26px rgba(255,222,123,.25);
+    font-size:10px;
+    font-weight:900;
+    text-align:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .22s ease,transform .22s ease;
+  }
+  .property-tour-discovery.show { opacity:1; transform:translate(-50%,0); }
+  .property-tour-arcade-launch {
+    position:absolute;
+    z-index:3;
+    right:20px;
+    bottom:max(184px,calc(env(safe-area-inset-bottom) + 172px));
+    min-height:42px;
+    padding:0 15px;
+    color:#17272d;
+    border:1px solid rgba(255,255,255,.65);
+    border-radius:999px;
+    background:linear-gradient(135deg,#a7f0e6,#f4d783);
+    box-shadow:0 10px 28px rgba(0,0,0,.28),0 0 24px rgba(130,231,219,.2);
+    font:900 10px/1 var(--font-body);
+    cursor:pointer;
+    animation:propertyArcadePulse 2.2s ease-in-out infinite;
+  }
+  .property-tour-arcade {
+    position:absolute;
+    z-index:6;
+    inset:0;
+    display:grid;
+    place-items:center;
+    padding:18px;
+    background:rgba(3,9,15,.72);
+    backdrop-filter:blur(12px) saturate(1.15);
+  }
+  .property-arcade-panel {
+    width:min(100%,440px);
+    max-height:min(82vh,620px);
+    overflow:auto;
+    padding:18px;
+    color:#fff;
+    border:1px solid rgba(157,235,226,.22);
+    border-radius:23px;
+    background:
+      radial-gradient(circle at 90% 0,rgba(102,223,210,.2),transparent 34%),
+      linear-gradient(145deg,rgba(12,28,38,.98),rgba(22,36,50,.98));
+    box-shadow:0 26px 70px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .property-arcade-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+  .property-arcade-kicker { color:#9fe6dd; font-size:8px; font-weight:950; letter-spacing:1.2px; text-transform:uppercase; }
+  .property-arcade-title { margin-top:4px; font:700 24px/1.05 var(--font-display); }
+  .property-arcade-sub { margin-top:6px; color:rgba(255,255,255,.6); font-size:10px; line-height:1.4; }
+  .property-arcade-close { width:38px; height:38px; flex:0 0 auto; color:#fff; border:1px solid rgba(255,255,255,.14); border-radius:12px; background:rgba(255,255,255,.07); font-size:18px; cursor:pointer; }
+  .property-arcade-menu { display:grid; gap:9px; margin-top:16px; }
+  .property-arcade-game {
+    display:grid;
+    grid-template-columns:44px 1fr auto;
+    align-items:center;
+    gap:11px;
+    min-height:66px;
+    padding:10px 12px;
+    color:#fff;
+    text-align:left;
+    border:1px solid rgba(255,255,255,.11);
+    border-radius:16px;
+    background:rgba(255,255,255,.055);
+    cursor:pointer;
+  }
+  .property-arcade-game:hover { background:rgba(255,255,255,.09); }
+  .property-arcade-game-icon { display:grid; place-items:center; width:42px; height:42px; border-radius:13px; background:linear-gradient(135deg,rgba(159,230,221,.22),rgba(244,215,131,.16)); font-size:22px; }
+  .property-arcade-game strong { display:block; font:700 14px/1.1 var(--font-display); }
+  .property-arcade-game small { display:block; margin-top:4px; color:rgba(255,255,255,.54); font-size:9px; }
+  .property-arcade-game-arrow { color:#f4d783; font-size:18px; }
+  .property-arcade-stage { margin-top:16px; }
+  .property-arcade-scorebar { display:flex; justify-content:space-between; gap:8px; margin-bottom:10px; color:#f4d783; font-size:10px; font-weight:900; }
+  .property-arcade-arena { position:relative; height:245px; overflow:hidden; border:1px solid rgba(255,255,255,.1); border-radius:17px; background:radial-gradient(circle at center,rgba(84,189,193,.14),transparent 55%),rgba(2,10,17,.48); }
+  .property-arcade-target { position:absolute; width:52px; height:52px; display:grid; place-items:center; border:2px solid #fff0b8; border-radius:50%; color:#26342f; background:linear-gradient(135deg,#fff1b9,#8ce3d8); box-shadow:0 0 24px rgba(149,231,218,.36); font-size:22px; cursor:pointer; transition:left .12s ease,top .12s ease,transform .08s ease; }
+  .property-arcade-target:active { transform:scale(.86); }
+  .property-memory-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+  .property-memory-card { aspect-ratio:1.25; color:transparent; border:1px solid rgba(255,255,255,.14); border-radius:15px; background:linear-gradient(145deg,#243e4a,#172630); font-size:25px; cursor:pointer; transition:transform .18s ease,background .18s ease; }
+  .property-memory-card.revealed,.property-memory-card.matched { color:#fff; transform:rotateY(180deg); background:linear-gradient(135deg,rgba(159,230,221,.28),rgba(244,215,131,.22)); }
+  .property-power-meter { position:relative; height:28px; margin:22px 0 16px; overflow:hidden; border-radius:999px; background:linear-gradient(90deg,#d86a75,#f3cb68 25%,#8ce3d8 50%,#f3cb68 75%,#d86a75); }
+  .property-power-needle { position:absolute; top:-3px; bottom:-3px; width:5px; margin-left:-2px; border-radius:99px; background:#fff; box-shadow:0 0 12px #fff; }
+  .property-arcade-main,.property-arcade-back { width:100%; min-height:44px; margin-top:11px; border-radius:13px; font:900 10px/1 var(--font-body); cursor:pointer; }
+  .property-arcade-main { color:#24322e; border:0; background:linear-gradient(135deg,#fff0b8,#e3bf61); }
+  .property-arcade-back { color:#fff; border:1px solid rgba(255,255,255,.13); background:rgba(255,255,255,.06); }
+  .property-arcade-result { padding:22px 12px; text-align:center; }
+  .property-arcade-result strong { display:block; color:#f4d783; font:700 28px/1 var(--font-display); }
+  .property-arcade-result span { display:block; margin-top:8px; color:rgba(255,255,255,.65); font-size:11px; }
+  .property-tour-bottom {
+    position:absolute;
+    z-index:2;
+    left:12px;
+    right:12px;
+    bottom:max(12px,env(safe-area-inset-bottom));
+    padding:12px;
+    border-radius:19px;
+    pointer-events:auto;
+  }
+  .property-tour-room-head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; }
+  .property-tour-room-kicker { color:#9fe6dd; font-size:8px; font-weight:900; letter-spacing:1px; text-transform:uppercase; }
+  .property-tour-progress { color:rgba(255,255,255,.54); letter-spacing:.2px; text-transform:none; }
+  .property-tour-progress span { color:#f4d783; }
+  .property-tour-room-name { margin-top:3px; font:700 19px/1.05 var(--font-display); }
+  .property-tour-room-price { color:#f4d783; font:700 14px/1 var(--font-display); white-space:nowrap; }
+  .property-tour-room-price span { display:block; margin-top:4px; color:rgba(255,255,255,.55); font:750 8px/1 var(--font-body); text-align:right; }
+  .property-tour-room-tabs {
+    display:flex;
+    gap:7px;
+    margin:11px -1px 10px;
+    padding:1px 1px 3px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .property-tour-room-tabs::-webkit-scrollbar { display:none; }
+  .property-tour-room-tab {
+    flex:0 0 auto;
+    min-height:34px;
+    padding:7px 10px;
+    color:rgba(255,255,255,.68);
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:999px;
+    font:750 9.5px/1 var(--font-body);
+    cursor:pointer;
+    transition:transform .16s ease,color .16s ease,background .16s ease;
+  }
+  .property-tour-room-tab.active { color:#25332e; border-color:#f4d783; background:#f4d783; box-shadow:0 5px 15px rgba(244,215,131,.2); }
+  .property-tour-room-tab.discovered:not(.active)::after { content:" ✓"; color:#9fe6dd; font-weight:950; }
+  .property-tour-room-tab:active { transform:scale(.96); }
+  .property-tour-actions { display:grid; grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr); gap:8px; }
+  .property-tour-action {
+    min-height:42px;
+    border-radius:12px;
+    font:800 10px/1 var(--font-body);
+    cursor:pointer;
+  }
+  .property-tour-action.secondary { color:#fff; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); }
+  .property-tour-action.primary { color:#2e352f; background:linear-gradient(135deg,#fff0b8,#e3bf61); border:0; box-shadow:0 7px 18px rgba(232,194,94,.18); }
+  .property-tour-sparkles { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .property-tour-sparkles i { position:absolute; width:3px; height:3px; border-radius:50%; background:#fff3bd; box-shadow:0 0 9px #ffe28b; animation:propertySparkle 3.2s ease-in-out infinite; }
+  .property-tour-sparkles i:nth-child(1){left:14%;top:32%;animation-delay:.2s}.property-tour-sparkles i:nth-child(2){left:76%;top:25%;animation-delay:1.2s}.property-tour-sparkles i:nth-child(3){left:83%;top:52%;animation-delay:2.1s}.property-tour-sparkles i:nth-child(4){left:25%;top:57%;animation-delay:1.7s}
+  @keyframes propertyTourEnter { from{opacity:0;transform:scale(1.02)} to{opacity:1;transform:scale(1)} }
+  @keyframes propertySparkle { 0%,100%{opacity:.15;transform:scale(.5)} 50%{opacity:.85;transform:scale(1.6)} }
+  @keyframes propertyArcadePulse { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+  @media (min-width:700px) {
+    .property-tour-topbar,.property-tour-bottom { left:max(20px,calc((100vw - 920px)/2)); right:max(20px,calc((100vw - 920px)/2)); }
+    .property-tour-bottom { padding:15px; }
+  }
+  @media (max-width:430px) {
+    .property-tour-identity { max-width:150px; }
+    .property-tour-spec { max-width:138px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .property-tour-tools { gap:5px; }
+    .property-tour-tool { min-width:38px; height:38px; padding:0 7px; font-size:8px; }
+  }
 
   /* ---------- FREE DRIVE ---------- */
   .drive-launch {
@@ -7055,41 +7314,367 @@ function setupPropertyPreviewControls(stage) {
   });
 }
 
+let activePropertyTour3D = null;
+let activePropertyArcadeCleanup = null;
+
+function closePropertyExplorer() {
+  activePropertyArcadeCleanup?.();
+  activePropertyArcadeCleanup = null;
+  activePropertyTour3D?.dispose?.();
+  activePropertyTour3D = null;
+  document.getElementById("property-tour-3d")?.remove();
+}
+
 function openPropertyExplorer(propId, roomIndex=0) {
   const prop = PROPERTIES.find(property => property.id === propId);
   if (!prop) return;
-  const layout = roomLayoutFor(prop.roomCount);
-  const safeIndex = Math.max(0, Math.min(layout.length - 1, roomIndex));
-  const roomType = layout[safeIndex];
-  const roomDef = ROOM_TYPES[roomType];
-  const sheet = document.getElementById("modal-sheet");
-  sheet.innerHTML = `<div class="property-explorer-head">
-      <div><div class="property-explorer-kicker">3D Property Explorer</div><div class="property-explorer-title">${prop.name}</div><div class="property-explorer-meta">Tier ${prop.tier} · ${layout.length} rooms · ${property3DMaterialLabel(prop)}</div></div>
-      <div class="property-explorer-price">${fmtMoney(prop.buyPrice)}<div class="property-explorer-meta">${fmtMoney(prop.rentWeek)}/wk rent</div></div>
-    </div>
-    <div class="property-explorer-rooms"></div>
-    <div class="property-explorer-stage" id="room-stage">
-      <div id="room-canvas-wrap" tabindex="0" aria-label="3D tour of ${roomDef.name}. Drag to look around.">
-        ${renderRoom3DSVG(prop, roomType, safeIndex, true)}
-        <div class="room-3d-toolbar"><button class="room-3d-button room-reset" type="button">Reset</button></div>
-        <div class="room-3d-hint">Drag to look around</div>
-      </div>
-      <div id="room-label-bar"><div><div id="room-name">${roomDef.name}</div><div id="room-tier">${prop.name} · Preview</div></div></div>
-    </div>
-    <div class="property-explorer-actions"><button class="panel-action secondary explorer-back" type="button">Back to Listings</button><button class="panel-action explorer-select" type="button">Rent This Property</button></div>`;
+  closePropertyExplorer();
+  document.getElementById("modal-overlay").classList.remove("show");
 
-  const rooms = sheet.querySelector(".property-explorer-rooms");
+  const layout = roomLayoutFor(prop.roomCount);
+  let activeIndex = Math.max(0, Math.min(layout.length - 1, roomIndex));
+  const root = document.createElement("section");
+  root.id = "property-tour-3d";
+  root.setAttribute("aria-label", `Interactive 3D tour of ${prop.name}`);
+  root.innerHTML = `
+    <canvas id="property-tour-canvas" tabindex="0" aria-label="Interactive 3D room. Drag to orbit, scroll to zoom, and tap glowing points to discover details."></canvas>
+    <div class="property-tour-vignette"></div>
+    <div class="property-tour-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="property-tour-topbar">
+      <div class="property-tour-identity property-tour-glass">
+        <div class="property-tour-eyebrow">Live 3D property tour</div>
+        <div class="property-tour-name">${prop.name}</div>
+        <div class="property-tour-spec">Tier ${prop.tier} · ${layout.length} rooms · ${property3DMaterialLabel(prop)}</div>
+      </div>
+      <div class="property-tour-tools">
+        <button class="property-tour-tool property-tour-glass property-tour-view" type="button" aria-label="Enter immersive walkthrough mode">Walk</button>
+        <button class="property-tour-tool property-tour-glass property-tour-light" type="button" aria-label="Switch to evening lighting">Night</button>
+        <button class="property-tour-tool property-tour-glass property-tour-reset" type="button" aria-label="Reset 3D camera">Reset</button>
+        <button class="property-tour-tool property-tour-glass property-tour-close" type="button" aria-label="Close 3D property tour">×</button>
+      </div>
+    </div>
+    <div class="property-tour-hint">Drag to orbit · scroll to zoom · tap the glowing detail</div>
+    <div class="property-tour-discovery" role="status" aria-live="polite"></div>
+    <button class="property-tour-arcade-launch" type="button" hidden>🕹 Play Arcade</button>
+    <div class="property-tour-arcade" hidden>
+      <div class="property-arcade-panel" role="dialog" aria-modal="true" aria-label="Game room arcade">
+        <div class="property-arcade-head">
+          <div><div class="property-arcade-kicker">Game room arcade</div><div class="property-arcade-title">Choose a game</div><div class="property-arcade-sub">Three quick challenges. Your best scores last for this tour.</div></div>
+          <button class="property-arcade-close" type="button" aria-label="Close arcade">×</button>
+        </div>
+        <div class="property-arcade-menu"></div>
+        <div class="property-arcade-stage" hidden></div>
+      </div>
+    </div>
+    <div class="property-tour-bottom property-tour-glass">
+      <div class="property-tour-room-head">
+        <div><div class="property-tour-room-kicker">Now exploring <span class="property-tour-progress">· <span>0</span>/${layout.length} found</span></div><div class="property-tour-room-name"></div></div>
+        <div class="property-tour-room-price">${fmtMoney(prop.buyPrice)}<span>${fmtMoney(prop.rentWeek)}/wk rent</span></div>
+      </div>
+      <div class="property-tour-room-tabs" role="tablist" aria-label="Property rooms"></div>
+      <div class="property-tour-actions">
+        <button class="property-tour-action secondary property-tour-back" type="button">All Properties</button>
+        <button class="property-tour-action primary property-tour-select" type="button">Rent This Property</button>
+      </div>
+    </div>`;
+  document.body.appendChild(root);
+
+  const canvas = root.querySelector("#property-tour-canvas");
+  const roomName = root.querySelector(".property-tour-room-name");
+  const tabList = root.querySelector(".property-tour-room-tabs");
+  const discovery = root.querySelector(".property-tour-discovery");
+  const progress = root.querySelector(".property-tour-progress span");
+  const arcadeLaunch = root.querySelector(".property-tour-arcade-launch");
+  const arcade = root.querySelector(".property-tour-arcade");
+  const arcadeMenu = root.querySelector(".property-arcade-menu");
+  const arcadeStage = root.querySelector(".property-arcade-stage");
+  const arcadeTitle = root.querySelector(".property-arcade-title");
+  const arcadeSub = root.querySelector(".property-arcade-sub");
+  const discoveredRooms = new Set();
+  const arcadeScores = { target:0, memory:0, power:0 };
+  const arcadeTimers = new Set();
+  let currentArcadeGame = "target";
+  let discoveryTimer = null;
+  let night = false;
+  let walkthrough = false;
+
+  const clearArcadeTimers = () => {
+    arcadeTimers.forEach(timer => {
+      clearInterval(timer);
+      clearTimeout(timer);
+    });
+    arcadeTimers.clear();
+  };
+
+  const showArcadeResult = (score, message) => {
+    clearArcadeTimers();
+    arcadeStage.innerHTML = `
+      <div class="property-arcade-result"><strong>${score} points</strong><span>${message}</span></div>
+      <button class="property-arcade-main" type="button">Play Again</button>
+      <button class="property-arcade-back" type="button">Choose Another Game</button>`;
+    arcadeStage.querySelector(".property-arcade-main").onclick = () => startArcadeGame(currentArcadeGame);
+    arcadeStage.querySelector(".property-arcade-back").onclick = renderArcadeMenu;
+    haptic("success");
+  };
+
+  const startTargetRush = () => {
+    let score = 0;
+    const endsAt = Date.now() + 10000;
+    arcadeStage.innerHTML = `
+      <div class="property-arcade-scorebar"><span class="arcade-live-score">Score 0</span><span class="arcade-live-time">10.0s</span></div>
+      <div class="property-arcade-arena"><button class="property-arcade-target" type="button" aria-label="Arcade target">⚡</button></div>
+      <button class="property-arcade-back" type="button">Leave Game</button>`;
+    const target = arcadeStage.querySelector(".property-arcade-target");
+    const scoreLabel = arcadeStage.querySelector(".arcade-live-score");
+    const timeLabel = arcadeStage.querySelector(".arcade-live-time");
+    const moveTarget = () => {
+      target.style.left = `${5 + Math.random() * 78}%`;
+      target.style.top = `${6 + Math.random() * 70}%`;
+    };
+    target.onclick = () => {
+      score += 1;
+      scoreLabel.textContent = `Score ${score}`;
+      moveTarget();
+      haptic("light");
+    };
+    moveTarget();
+    const timer = setInterval(() => {
+      const remaining = Math.max(0, endsAt - Date.now());
+      timeLabel.textContent = `${(remaining / 1000).toFixed(1)}s`;
+      if (remaining > 0) return;
+      arcadeScores.target = Math.max(arcadeScores.target, score * 100);
+      showArcadeResult(score * 100, score >= 12 ? "Lightning reflexes!" : "Your high score is waiting for another run.");
+    }, 80);
+    arcadeTimers.add(timer);
+    arcadeStage.querySelector(".property-arcade-back").onclick = renderArcadeMenu;
+  };
+
+  const startMemoryMatch = () => {
+    const symbols = ["🚗","🚗","🏠","🏠","💎","💎"].sort(() => Math.random() - .5);
+    let first = null;
+    let locked = false;
+    let moves = 0;
+    let matches = 0;
+    arcadeStage.innerHTML = `
+      <div class="property-arcade-scorebar"><span class="arcade-memory-moves">Moves 0</span><span>Match all 3 pairs</span></div>
+      <div class="property-memory-grid">${symbols.map((symbol,index) => `<button class="property-memory-card" type="button" data-index="${index}" data-symbol="${symbol}" aria-label="Hidden memory card">?</button>`).join("")}</div>
+      <button class="property-arcade-back" type="button">Leave Game</button>`;
+    const cards = [...arcadeStage.querySelectorAll(".property-memory-card")];
+    cards.forEach(card => {
+      card.onclick = () => {
+        if (locked || card.classList.contains("revealed") || card.classList.contains("matched")) return;
+        card.textContent = card.dataset.symbol;
+        card.classList.add("revealed");
+        haptic("light");
+        if (!first) {
+          first = card;
+          return;
+        }
+        moves += 1;
+        arcadeStage.querySelector(".arcade-memory-moves").textContent = `Moves ${moves}`;
+        if (first.dataset.symbol === card.dataset.symbol) {
+          first.classList.add("matched");
+          card.classList.add("matched");
+          first = null;
+          matches += 1;
+          if (matches === 3) {
+            const score = Math.max(300, 1400 - moves * 100);
+            arcadeScores.memory = Math.max(arcadeScores.memory, score);
+            const timer = setTimeout(() => showArcadeResult(score, `All pairs matched in ${moves} moves.`), 350);
+            arcadeTimers.add(timer);
+          }
+          return;
+        }
+        locked = true;
+        const previous = first;
+        first = null;
+        const timer = setTimeout(() => {
+          previous.classList.remove("revealed");
+          card.classList.remove("revealed");
+          previous.textContent = "?";
+          card.textContent = "?";
+          locked = false;
+          arcadeTimers.delete(timer);
+        }, 650);
+        arcadeTimers.add(timer);
+      };
+    });
+    arcadeStage.querySelector(".property-arcade-back").onclick = renderArcadeMenu;
+  };
+
+  const startPowerStop = () => {
+    let value = 0;
+    let direction = 1;
+    arcadeStage.innerHTML = `
+      <div class="property-arcade-scorebar"><span>Power Stop</span><span>Hit the center</span></div>
+      <div class="property-power-meter"><i class="property-power-needle"></i></div>
+      <button class="property-arcade-main" type="button">STOP!</button>
+      <button class="property-arcade-back" type="button">Leave Game</button>`;
+    const needle = arcadeStage.querySelector(".property-power-needle");
+    const timer = setInterval(() => {
+      value += direction * 2.8;
+      if (value >= 100 || value <= 0) direction *= -1;
+      value = Math.max(0, Math.min(100, value));
+      needle.style.left = `${value}%`;
+    }, 24);
+    arcadeTimers.add(timer);
+    arcadeStage.querySelector(".property-arcade-main").onclick = () => {
+      const score = Math.max(0, Math.round(1000 - Math.abs(50 - value) * 20));
+      arcadeScores.power = Math.max(arcadeScores.power, score);
+      showArcadeResult(score, score >= 900 ? "Perfect timing!" : "Aim for the glowing center.");
+    };
+    arcadeStage.querySelector(".property-arcade-back").onclick = renderArcadeMenu;
+  };
+
+  const startArcadeGame = game => {
+    clearArcadeTimers();
+    currentArcadeGame = game;
+    arcadeMenu.hidden = true;
+    arcadeStage.hidden = false;
+    const titles = { target:"Target Rush", memory:"Memory Match", power:"Power Stop" };
+    arcadeTitle.textContent = titles[game];
+    arcadeSub.textContent = "Set a new high score before returning to the tour.";
+    if (game === "memory") startMemoryMatch();
+    else if (game === "power") startPowerStop();
+    else startTargetRush();
+  };
+
+  function renderArcadeMenu() {
+    clearArcadeTimers();
+    arcadeTitle.textContent = "Choose a game";
+    arcadeSub.textContent = "Three quick challenges. Your best scores last for this tour.";
+    arcadeStage.hidden = true;
+    arcadeMenu.hidden = false;
+    const games = [
+      ["target","⚡","Target Rush","Tap fast for 10 seconds"],
+      ["memory","🧠","Memory Match","Find all three hidden pairs"],
+      ["power","🎯","Power Stop","Stop the meter in the center"],
+    ];
+    arcadeMenu.innerHTML = games.map(([id,icon,name,copy]) => `
+      <button class="property-arcade-game" type="button" data-game="${id}">
+        <span class="property-arcade-game-icon">${icon}</span>
+        <span><strong>${name}</strong><small>${copy}${arcadeScores[id] ? ` · Best ${arcadeScores[id]}` : ""}</small></span>
+        <span class="property-arcade-game-arrow">›</span>
+      </button>`).join("");
+    arcadeMenu.querySelectorAll("[data-game]").forEach(button => {
+      button.onclick = () => startArcadeGame(button.dataset.game);
+    });
+  }
+
+  const closeArcade = () => {
+    clearArcadeTimers();
+    arcade.hidden = true;
+    canvas.focus({ preventScroll:true });
+  };
+  activePropertyArcadeCleanup = closeArcade;
+  arcadeLaunch.onclick = () => {
+    renderArcadeMenu();
+    arcade.hidden = false;
+    arcade.querySelector(".property-arcade-close").focus();
+    haptic("medium");
+  };
+  arcade.querySelector(".property-arcade-close").onclick = closeArcade;
+  arcade.addEventListener("click", event => {
+    if (event.target === arcade) closeArcade();
+  });
+
+  const revealDetail = label => {
+    discovery.textContent = `✦ ${label}`;
+    discovery.classList.add("show");
+    root.classList.add("explored");
+    haptic("light");
+    clearTimeout(discoveryTimer);
+    discoveryTimer = setTimeout(() => discovery.classList.remove("show"), 2200);
+  };
+
+  activePropertyTour3D = WayfareDrive3D.createPropertyTour({
+    canvas,
+    propertyId: prop.id,
+    roomType: layout[activeIndex],
+    roomIndex: activeIndex,
+    onHotspot: label => {
+      discoveredRooms.add(activeIndex);
+      progress.textContent = discoveredRooms.size;
+      tabList.children[activeIndex]?.classList.add("discovered");
+      revealDetail(`${label} · detail ${discoveredRooms.size} of ${layout.length}`);
+    },
+  });
+
+  const selectRoom = index => {
+    activeIndex = index;
+    const type = layout[index];
+    arcadeLaunch.hidden = type !== "game";
+    if (type !== "game" && !arcade.hidden) closeArcade();
+    roomName.textContent = ROOM_TYPES[type].name;
+    tabList.querySelectorAll(".property-tour-room-tab").forEach((button, buttonIndex) => {
+      button.classList.toggle("active", buttonIndex === index);
+      button.setAttribute("aria-selected", buttonIndex === index ? "true" : "false");
+    });
+    canvas.classList.add("switching");
+    setTimeout(() => {
+      activePropertyTour3D?.setRoom?.(type, index);
+      canvas.classList.remove("switching");
+    }, 130);
+    haptic("light");
+  };
+
   layout.forEach((type, index) => {
     const button = document.createElement("button");
-    button.className = "property-explorer-room" + (index === safeIndex ? " active" : "");
+    button.className = "property-tour-room-tab" + (index === activeIndex ? " active" : "");
+    button.type = "button";
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", index === activeIndex ? "true" : "false");
     button.textContent = ROOM_TYPES[type].name;
-    button.onclick = () => openPropertyExplorer(prop.id, index);
-    rooms.appendChild(button);
+    button.onclick = () => selectRoom(index);
+    tabList.appendChild(button);
   });
-  sheet.querySelector(".explorer-back").onclick = openPropertyModal;
-  sheet.querySelector(".explorer-select").onclick = () => openFurnitureStep(prop.id, "rent");
-  setupPropertyPreviewControls(sheet.querySelector(".property-explorer-stage"));
-  document.getElementById("modal-overlay").classList.add("show");
+  roomName.textContent = ROOM_TYPES[layout[activeIndex]].name;
+  arcadeLaunch.hidden = layout[activeIndex] !== "game";
+
+  root.querySelector(".property-tour-reset").onclick = () => {
+    activePropertyTour3D?.reset?.();
+    revealDetail("Camera returned to the designer's view");
+  };
+  root.querySelector(".property-tour-view").onclick = event => {
+    walkthrough = !walkthrough;
+    canvas.classList.add("switching");
+    setTimeout(() => {
+      activePropertyTour3D?.setViewMode?.(walkthrough ? "walkthrough" : "overview");
+      canvas.classList.remove("switching");
+    }, 130);
+    event.currentTarget.textContent = walkthrough ? "View" : "Walk";
+    event.currentTarget.classList.toggle("active", walkthrough);
+    event.currentTarget.setAttribute("aria-label", walkthrough ? "Return to property overview" : "Enter immersive walkthrough mode");
+    revealDetail(walkthrough ? "Walkthrough mode · move closer and look around" : "Full property overview restored");
+  };
+  root.querySelector(".property-tour-light").onclick = event => {
+    night = !night;
+    activePropertyTour3D?.setNight?.(night);
+    event.currentTarget.textContent = night ? "Day" : "Night";
+    event.currentTarget.setAttribute("aria-label", night ? "Switch to daylight" : "Switch to evening lighting");
+    revealDetail(night ? "Evening ambience on" : "Natural daylight restored");
+  };
+  root.querySelector(".property-tour-close").onclick = () => {
+    closePropertyExplorer();
+    openPropertyModal();
+  };
+  root.querySelector(".property-tour-back").onclick = () => {
+    closePropertyExplorer();
+    openPropertyModal();
+  };
+  root.querySelector(".property-tour-select").onclick = () => {
+    closePropertyExplorer();
+    document.getElementById("modal-overlay").classList.add("show");
+    openFurnitureStep(prop.id, "rent");
+  };
+  root.addEventListener("keydown", event => {
+    if (event.key !== "Escape") return;
+    closePropertyExplorer();
+    openPropertyModal();
+  });
+
+  canvas.addEventListener("pointerdown", () => root.classList.add("explored"), { once:true });
+  canvas.focus({ preventScroll:true });
 }
 
 function openFurnitureStep(propId, mode) {
@@ -7132,6 +7717,7 @@ function openFurnitureStep(propId, mode) {
 }
 
 function closeModal() {
+  closePropertyExplorer();
   activeCharacterPreview3D?.dispose?.();
   activeCharacterPreview3D = null;
   document.getElementById("modal-overlay").classList.remove("show", "creator-required");

@@ -862,3 +862,499 @@ export function create(options: DriveOptions) {
 
   return { render, dispose };
 }
+
+type PropertyTourOptions = {
+  canvas: HTMLCanvasElement;
+  propertyId: string;
+  roomType: string;
+  roomIndex: number;
+  onHotspot?: (label: string) => void;
+};
+
+type PropertyPalette = {
+  wall: number;
+  floor: number;
+  accent: number;
+  metal: number;
+  sky: number;
+  luxury: boolean;
+};
+
+const PROPERTY_PALETTES: Record<string, PropertyPalette> = {
+  studio: { wall: 0xe8daca, floor: 0x9f7659, accent: 0xbe6848, metal: 0x7c8588, sky: 0x92b8ca, luxury: false },
+  onebed: { wall: 0xe0e5d8, floor: 0xae8e68, accent: 0x789271, metal: 0x8d9694, sky: 0xa7c8c3, luxury: false },
+  twobed: { wall: 0xeadfce, floor: 0xb78c63, accent: 0xc27b55, metal: 0x858e92, sky: 0x8db4c8, luxury: false },
+  townhouse: { wall: 0xdfd2c2, floor: 0x966846, accent: 0x8f503d, metal: 0x7a8180, sky: 0x91b89a, luxury: false },
+  house: { wall: 0xe7e0d2, floor: 0xa57749, accent: 0x587c57, metal: 0x7f8987, sky: 0x8ec5db, luxury: false },
+  estate: { wall: 0xf1ede5, floor: 0xe4e0d8, accent: 0xb58a3e, metal: 0xc7ad6b, sky: 0x82aac0, luxury: true },
+  oceanmansion: { wall: 0xeaf2f1, floor: 0xe7e7e2, accent: 0x2b899f, metal: 0xbda66d, sky: 0x4eb9d5, luxury: true },
+  privateisland: { wall: 0x393d42, floor: 0x24292f, accent: 0xd2ae58, metal: 0xd0b66c, sky: 0x3bc1d1, luxury: true },
+};
+
+function propertyPalette(id: string): PropertyPalette {
+  return PROPERTY_PALETTES[id] || PROPERTY_PALETTES.studio;
+}
+
+function disposeObject(root: THREE.Object3D) {
+  root.traverse((object) => {
+    const objectMesh = object as THREE.Mesh;
+    objectMesh.geometry?.dispose();
+    const objectMaterial = objectMesh.material;
+    if (Array.isArray(objectMaterial)) objectMaterial.forEach((item) => item.dispose());
+    else objectMaterial?.dispose();
+  });
+}
+
+/**
+ * Interactive real-time property diorama. Rooms use lightweight original
+ * primitives, so tours load instantly without external model downloads.
+ */
+export function createPropertyTour(options: PropertyTourOptions) {
+  const palette = propertyPalette(options.propertyId);
+  const renderer = new THREE.WebGLRenderer({
+    canvas: options.canvas,
+    antialias: true,
+    alpha: false,
+    powerPreference: 'high-performance',
+  });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(palette.sky);
+  scene.fog = new THREE.Fog(palette.sky, 14, 27);
+  const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 60);
+  const target = new THREE.Vector3(0, 1.25, 0);
+  let yaw = 0.72;
+  let pitch = 0.43;
+  let distance = 13.4;
+  let night = false;
+  let viewMode: 'overview' | 'walkthrough' = 'overview';
+  let disposed = false;
+  let frame = 0;
+  let roomRoot = new THREE.Group();
+  let hotspots: THREE.Mesh[] = [];
+  let roomType = options.roomType;
+  let pointerId: number | null = null;
+  let pointerX = 0;
+  let pointerY = 0;
+  let moved = false;
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+
+  const hemisphere = new THREE.HemisphereLight(0xfff1d7, 0x476070, 2.1);
+  scene.add(hemisphere);
+  const sun = new THREE.DirectionalLight(0xffdfb8, 4.2);
+  sun.position.set(-5, 9, 7);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -8;
+  sun.shadow.camera.right = 8;
+  sun.shadow.camera.top = 8;
+  sun.shadow.camera.bottom = -8;
+  scene.add(sun);
+  const warmLamp = new THREE.PointLight(0xffc676, 18, 14, 2);
+  warmLamp.position.set(2.8, 3.2, 1.6);
+  scene.add(warmLamp);
+
+  const distantGround = mesh(
+    new THREE.CircleGeometry(24, 64),
+    new THREE.MeshStandardMaterial({ color: 0x30483e, roughness: 1 }),
+  );
+  distantGround.rotation.x = -Math.PI / 2;
+  distantGround.position.y = -0.28;
+  scene.add(distantGround);
+  for (let n = 0; n < 18; n++) {
+    const angle = (n / 18) * Math.PI * 2;
+    const radius = 12 + (n % 3) * 1.8;
+    const trunk = mesh(new THREE.CylinderGeometry(0.1, 0.14, 1.4, 7), material(0x65452f, 1, 0));
+    trunk.position.set(Math.cos(angle) * radius, 0.42, Math.sin(angle) * radius);
+    scene.add(trunk);
+    const crown = mesh(new THREE.SphereGeometry(0.66 + (n % 2) * 0.16, 10, 8), material(n % 2 ? 0x477559 : 0x3b684e, 1, 0));
+    crown.position.set(trunk.position.x, 1.35, trunk.position.z);
+    scene.add(crown);
+  }
+
+  const roomBox = (
+    parent: THREE.Object3D,
+    size: [number, number, number],
+    position: [number, number, number],
+    surface: THREE.Material,
+  ) => addBox(parent, size, position, surface);
+
+  const hotspot = (parent: THREE.Object3D, label: string, position: [number, number, number]) => {
+    const glow = new THREE.MeshStandardMaterial({
+      color: 0xffe29a,
+      emissive: palette.accent,
+      emissiveIntensity: 2.5,
+      metalness: 0.15,
+      roughness: 0.2,
+      transparent: true,
+      opacity: 0.92,
+    });
+    const orb = mesh(new THREE.SphereGeometry(0.13, 18, 14), glow, false);
+    orb.position.set(...position);
+    orb.userData.label = label;
+    orb.userData.baseY = position[1];
+    const ring = mesh(
+      new THREE.TorusGeometry(0.24, 0.026, 8, 28),
+      new THREE.MeshBasicMaterial({ color: 0xffefb9, transparent: true, opacity: 0.78 }),
+      false,
+    );
+    ring.rotation.x = Math.PI / 2;
+    orb.add(ring);
+    parent.add(orb);
+    hotspots.push(orb);
+  };
+
+  const addPlant = (parent: THREE.Object3D, x: number, z: number) => {
+    roomBox(parent, [0.52, 0.5, 0.52], [x, 0.25, z], material(0xaa6f49, 0.9, 0));
+    for (const [dx, dz, rotation] of [[-0.18, 0, -0.35], [0.18, 0.04, 0.35], [0, -0.12, 0]] as const) {
+      const leaf = mesh(new THREE.SphereGeometry(0.34, 12, 9), material(0x4e8c61, 0.92, 0));
+      leaf.scale.set(0.55, 1.5, 0.42);
+      leaf.position.set(x + dx, 0.82, z + dz);
+      leaf.rotation.z = rotation;
+      parent.add(leaf);
+    }
+  };
+
+  const addSofa = (parent: THREE.Object3D, x: number, z: number, rotation = 0) => {
+    const group = new THREE.Group();
+    const fabric = material(palette.luxury ? 0xd8cbb5 : palette.accent, 0.86, 0.02);
+    roomBox(group, [3.2, 0.55, 1.15], [0, 0.48, 0], fabric);
+    roomBox(group, [3.2, 1.05, 0.34], [0, 1.02, -0.45], fabric);
+    roomBox(group, [0.34, 0.78, 1.12], [-1.48, 0.66, 0], fabric);
+    roomBox(group, [0.34, 0.78, 1.12], [1.48, 0.66, 0], fabric);
+    group.position.set(x, 0, z);
+    group.rotation.y = rotation;
+    parent.add(group);
+    return group;
+  };
+
+  const addBed = (parent: THREE.Object3D) => {
+    const frame = material(palette.luxury ? 0x8f6c35 : 0x74513e, 0.75, palette.luxury ? 0.18 : 0.02);
+    roomBox(parent, [3.4, 0.38, 4.2], [0.8, 0.38, -0.35], frame);
+    roomBox(parent, [3.15, 0.48, 3.78], [0.8, 0.72, -0.22], material(0xf5f0e7, 0.92, 0));
+    roomBox(parent, [3.45, 1.65, 0.3], [0.8, 1.15, -2.15], frame);
+    roomBox(parent, [1.25, 0.22, 0.72], [0.03, 1.03, -1.48], material(0xe0d5c5, 0.95, 0));
+    roomBox(parent, [1.25, 0.22, 0.72], [1.57, 1.03, -1.48], material(0xe0d5c5, 0.95, 0));
+    hotspot(parent, 'Cloud-soft designer bedding', [0.8, 1.32, 0.45]);
+  };
+
+  const addDining = (parent: THREE.Object3D) => {
+    const wood = material(palette.luxury ? 0x9f783b : 0x7a5338, 0.66, palette.luxury ? 0.24 : 0.03);
+    roomBox(parent, [3.8, 0.22, 1.75], [0.4, 1.25, 0], wood);
+    for (const x of [-1.2, 2]) for (const z of [-0.55, 0.55]) {
+      roomBox(parent, [0.16, 1.2, 0.16], [x, 0.62, z], wood);
+    }
+    for (const z of [-1.28, 1.28]) for (const x of [-0.75, 0.45, 1.65]) {
+      roomBox(parent, [0.68, 0.18, 0.68], [x, 0.75, z], material(0x9a7358, 0.82, 0.02));
+      roomBox(parent, [0.68, 0.85, 0.18], [x, 1.18, z + (z < 0 ? -0.25 : 0.25)], material(0x9a7358, 0.82, 0.02));
+    }
+    hotspot(parent, 'Dinner party ready', [0.4, 1.55, 0]);
+  };
+
+  const addKitchen = (parent: THREE.Object3D) => {
+    const cabinet = material(palette.luxury ? 0x6f685e : 0x7e8b72, 0.75, 0.04);
+    const counter = new THREE.MeshStandardMaterial({
+      color: palette.luxury ? 0xf4f2eb : 0xd8c6aa,
+      roughness: 0.28,
+      metalness: palette.luxury ? 0.16 : 0.02,
+    });
+    for (const x of [-2.8, -1.55, -0.3, 0.95, 2.2]) {
+      roomBox(parent, [1.12, 1.35, 0.72], [x, 0.68, -2.5], cabinet);
+      roomBox(parent, [1.17, 0.12, 0.82], [x, 1.4, -2.46], counter);
+    }
+    roomBox(parent, [3.8, 1.05, 1.45], [0.4, 0.55, 0.18], cabinet);
+    roomBox(parent, [4.05, 0.16, 1.65], [0.4, 1.15, 0.18], counter);
+    for (const x of [-0.75, 0.4, 1.55]) {
+      const stool = mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.14, 18), material(0x9b704d, 0.76, 0.02));
+      stool.position.set(x, 0.73, 1.35);
+      parent.add(stool);
+      roomBox(parent, [0.09, 0.68, 0.09], [x, 0.35, 1.35], material(0x494b4b, 0.5, 0.55));
+    }
+    hotspot(parent, palette.luxury ? 'Waterfall marble island' : 'Chef-friendly island', [0.4, 1.48, 0.18]);
+  };
+
+  const addOffice = (parent: THREE.Object3D) => {
+    const wood = material(0x765039, 0.72, 0.03);
+    roomBox(parent, [3.2, 0.22, 1.35], [0.65, 1.22, -0.7], wood);
+    for (const x of [-0.65, 1.95]) roomBox(parent, [0.16, 1.2, 0.16], [x, 0.62, -0.7], wood);
+    roomBox(parent, [1.25, 0.72, 0.12], [0.65, 1.72, -0.85], material(0x222a30, 0.25, 0.25));
+    roomBox(parent, [0.45, 0.08, 0.32], [0.65, 1.33, -0.6], material(0x3e4548, 0.42, 0.35));
+    for (const x of [-2.85, 2.9]) {
+      roomBox(parent, [1.1, 3, 0.52], [x, 1.5, -2.45], material(0x6e503c, 0.8, 0.02));
+      for (const y of [0.65, 1.35, 2.05, 2.72]) roomBox(parent, [0.95, 0.1, 0.55], [x, y, -2.42], material(0xb48a58, 0.7, 0.02));
+    }
+    hotspot(parent, 'A workspace with a view', [0.65, 2.18, -0.82]);
+  };
+
+  const addBathroom = (parent: THREE.Object3D) => {
+    const porcelain = material(0xf6f7f4, 0.23, 0.02);
+    const tub = mesh(new THREE.CapsuleGeometry(0.78, 2.2, 12, 24), porcelain);
+    tub.rotation.z = Math.PI / 2;
+    tub.rotation.y = Math.PI / 2;
+    tub.scale.set(1, 0.48, 1.28);
+    tub.position.set(1.65, 0.48, -0.65);
+    parent.add(tub);
+    roomBox(parent, [2.7, 0.95, 0.78], [-1.75, 0.5, -2.45], material(palette.luxury ? 0xe9e7e0 : 0xa9b8b1, 0.35, 0.08));
+    roomBox(parent, [2.9, 0.12, 0.88], [-1.75, 1.02, -2.45], porcelain);
+    const mirror = mesh(new THREE.CircleGeometry(0.82, 32), new THREE.MeshStandardMaterial({ color: 0xa8d0d8, metalness: 0.65, roughness: 0.1 }), false);
+    mirror.position.set(-1.75, 2.2, -2.82);
+    parent.add(mirror);
+    hotspot(parent, palette.luxury ? 'Private spa bath' : 'Deep soaking tub', [1.65, 1.1, -0.65]);
+  };
+
+  const addGameRoom = (parent: THREE.Object3D) => {
+    for (const x of [-2.2, -0.7, 0.8, 2.3]) {
+      roomBox(parent, [1.05, 2.05, 0.8], [x, 1.02, -2.35], material(0x272d35, 0.45, 0.18));
+      roomBox(parent, [0.72, 0.78, 0.04], [x, 1.42, -1.93], new THREE.MeshStandardMaterial({ color: x < 0 ? 0x61d9ec : 0xee6c9d, emissive: x < 0 ? 0x1687a0 : 0xa72c63, emissiveIntensity: 1.4 }));
+    }
+    roomBox(parent, [3.8, 0.22, 2], [0.25, 1.05, 0.2], material(0x6a4735, 0.72, 0.02));
+    hotspot(parent, 'Four-player arcade wall', [0.1, 2.25, -2.05]);
+  };
+
+  const addGarden = (parent: THREE.Object3D) => {
+    const water = mesh(
+      new THREE.BoxGeometry(4.8, 0.18, 2.5),
+      new THREE.MeshStandardMaterial({ color: 0x58bed0, transparent: true, opacity: 0.84, roughness: 0.16, metalness: 0.05 }),
+    );
+    water.position.set(0.7, 0.1, -0.25);
+    parent.add(water);
+    for (const x of [-3.6, 3.6]) for (const z of [-2.5, 2.5]) addPlant(parent, x, z);
+    addSofa(parent, -1.2, 2.25, Math.PI);
+    hotspot(parent, 'Heated sunset pool', [0.7, 0.62, -0.25]);
+  };
+
+  function addShell(parent: THREE.Object3D, type: string) {
+    const wallSurface = material(palette.wall, 0.9, 0.01);
+    const floorSurface = new THREE.MeshStandardMaterial({
+      color: palette.floor,
+      roughness: palette.luxury ? 0.3 : 0.74,
+      metalness: palette.luxury ? 0.14 : 0.02,
+    });
+    roomBox(parent, [9.2, 0.26, 7.2], [0, -0.13, 0], floorSurface);
+    roomBox(parent, [9.2, 4.6, 0.22], [0, 2.17, -3.5], wallSurface);
+    roomBox(parent, [0.22, 4.6, 7.2], [-4.5, 2.17, 0], wallSurface);
+    const rightHalf = type === 'garden' ? 1.1 : 2.6;
+    roomBox(parent, [0.22, 4.6, rightHalf], [4.5, 2.17, -2.3], wallSurface);
+    roomBox(parent, [0.22, 4.6, rightHalf], [4.5, 2.17, 2.3], wallSurface);
+    const glass = new THREE.MeshStandardMaterial({
+      color: palette.sky,
+      emissive: palette.sky,
+      emissiveIntensity: 0.18,
+      transparent: true,
+      opacity: 0.62,
+      roughness: 0.08,
+      metalness: 0.12,
+    });
+    roomBox(parent, [3.2, 2.5, 0.08], [1.9, 2.35, -3.37], glass);
+    roomBox(parent, [0.08, 2.9, 2.6], [4.38, 2.05, 0], glass);
+    const trim = material(palette.metal, 0.32, 0.45);
+    for (const x of [0.3, 1.9, 3.5]) roomBox(parent, [0.07, 2.65, 0.12], [x, 2.32, -3.3], trim);
+    roomBox(parent, [3.35, 0.08, 0.12], [1.9, 1.05, -3.3], trim);
+    if (palette.luxury) {
+      for (let x = -4; x <= 4; x += 1.15) {
+        const vein = mesh(new THREE.BoxGeometry(0.025, 0.012, 7), material(0xb5b7b3, 0.5, 0.08), false);
+        vein.position.set(x, 0.012, 0);
+        vein.rotation.y = 0.18;
+        parent.add(vein);
+      }
+    }
+  }
+
+  function buildRoom(type: string) {
+    const nextRoot = new THREE.Group();
+    hotspots = [];
+    addShell(nextRoot, type);
+    if (type === 'studio') {
+      addBed(nextRoot);
+      const studioSofa = addSofa(nextRoot, -2.6, 1.65, Math.PI / 2);
+      studioSofa.scale.setScalar(0.72);
+      addPlant(nextRoot, -3.35, -2.55);
+      hotspot(nextRoot, 'A clever all-in-one layout', [-1.8, 1.35, 1.35]);
+    } else if (type === 'bedroom') {
+      addBed(nextRoot);
+      addPlant(nextRoot, -3.25, -2.45);
+    } else if (type === 'kitchen') {
+      addKitchen(nextRoot);
+    } else if (type === 'bathroom') {
+      addBathroom(nextRoot);
+      addPlant(nextRoot, 3.5, -2.5);
+    } else if (type === 'office') {
+      addOffice(nextRoot);
+    } else if (type === 'dining') {
+      addDining(nextRoot);
+    } else if (type === 'game') {
+      addGameRoom(nextRoot);
+    } else if (type === 'garden') {
+      addGarden(nextRoot);
+    } else {
+      addSofa(nextRoot, 0.2, 0.35, 0);
+      roomBox(nextRoot, [2.6, 0.24, 1.25], [0.15, 0.32, 2.1], material(0x8b6348, 0.72, 0.03));
+      roomBox(nextRoot, [2.7, 1.45, 0.13], [0.15, 1.45, -3.2], material(0x20282d, 0.22, 0.28));
+      addPlant(nextRoot, -3.35, -2.55);
+      hotspot(nextRoot, palette.luxury ? 'Gallery-scale living room' : 'A cozy place to unwind', [0.15, 1.22, 0.35]);
+    }
+    return nextRoot;
+  }
+
+  function setRoom(nextType: string, _roomIndex = 0) {
+    scene.remove(roomRoot);
+    disposeObject(roomRoot);
+    roomType = nextType;
+    roomRoot = buildRoom(nextType);
+    roomRoot.scale.setScalar(0.96);
+    roomRoot.position.y = -0.15;
+    scene.add(roomRoot);
+  }
+
+  function applyCamera() {
+    const horizontal = Math.cos(pitch) * distance;
+    camera.position.set(
+      Math.sin(yaw) * horizontal,
+      1.15 + Math.sin(pitch) * distance,
+      Math.cos(yaw) * horizontal,
+    );
+    camera.lookAt(target);
+  }
+
+  function resize() {
+    const width = Math.max(1, options.canvas.clientWidth);
+    const height = Math.max(1, options.canvas.clientHeight);
+    if (options.canvas.width !== Math.floor(width * renderer.getPixelRatio()) ||
+        options.canvas.height !== Math.floor(height * renderer.getPixelRatio())) {
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    }
+  }
+
+  function setViewMode(mode: 'overview' | 'walkthrough') {
+    viewMode = mode;
+    if (mode === 'walkthrough') {
+      yaw = 0.72;
+      pitch = 0.18;
+      distance = 5.6;
+      target.set(0, 1.2, -0.25);
+      camera.fov = 58;
+    } else {
+      yaw = 0.72;
+      pitch = 0.43;
+      distance = 13.4;
+      target.set(0, 1.25, 0);
+      camera.fov = 48;
+    }
+    camera.updateProjectionMatrix();
+  }
+
+  function reset() {
+    setViewMode(viewMode);
+  }
+
+  function setNight(value: boolean) {
+    night = value;
+    scene.background = new THREE.Color(night ? 0x101a29 : palette.sky);
+    scene.fog = new THREE.Fog(night ? 0x101a29 : palette.sky, 14, 27);
+    hemisphere.intensity = night ? 0.62 : 2.1;
+    sun.intensity = night ? 0.35 : 4.2;
+    warmLamp.intensity = night ? 34 : 18;
+  }
+
+  const onPointerDown = (event: PointerEvent) => {
+    pointerId = event.pointerId;
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    moved = false;
+    options.canvas.setPointerCapture?.(event.pointerId);
+  };
+  const onPointerMove = (event: PointerEvent) => {
+    if (pointerId !== event.pointerId) return;
+    const dx = event.clientX - pointerX;
+    const dy = event.clientY - pointerY;
+    if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
+    yaw -= dx * 0.008;
+    pitch = Math.max(0.18, Math.min(0.78, pitch + dy * 0.005));
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+  };
+  const onPointerUp = (event: PointerEvent) => {
+    if (pointerId !== event.pointerId) return;
+    if (!moved) {
+      const rect = options.canvas.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hit = raycaster.intersectObjects(hotspots, false)[0];
+      if (hit?.object.userData.label) options.onHotspot?.(hit.object.userData.label);
+    }
+    pointerId = null;
+  };
+  const onWheel = (event: WheelEvent) => {
+    event.preventDefault();
+    const minimum = viewMode === 'walkthrough' ? 4.6 : 8.5;
+    const maximum = viewMode === 'walkthrough' ? 10.5 : 18;
+    distance = Math.max(minimum, Math.min(maximum, distance + event.deltaY * 0.008));
+  };
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.key === 'ArrowLeft') yaw -= 0.12;
+    else if (event.key === 'ArrowRight') yaw += 0.12;
+    else if (event.key === 'ArrowUp') pitch = Math.max(0.18, pitch - 0.06);
+    else if (event.key === 'ArrowDown') pitch = Math.min(0.78, pitch + 0.06);
+    else if (event.key.toLowerCase() === 'r') reset();
+    else return;
+    event.preventDefault();
+  };
+  options.canvas.addEventListener('pointerdown', onPointerDown);
+  options.canvas.addEventListener('pointermove', onPointerMove);
+  options.canvas.addEventListener('pointerup', onPointerUp);
+  options.canvas.addEventListener('pointercancel', onPointerUp);
+  options.canvas.addEventListener('wheel', onWheel, { passive: false });
+  options.canvas.addEventListener('keydown', onKeyDown);
+
+  setRoom(roomType, options.roomIndex);
+  const clock = new THREE.Clock();
+  function draw() {
+    if (disposed) return;
+    resize();
+    const time = clock.getElapsedTime();
+    hotspots.forEach((orb, index) => {
+      orb.position.y = orb.userData.baseY + Math.sin(time * 2.2 + index) * 0.055;
+      orb.scale.setScalar(1 + Math.sin(time * 3 + index) * 0.1);
+      const ring = orb.children[0];
+      if (ring) ring.rotation.z = time * 0.7;
+    });
+    if (pointerId === null && viewMode === 'overview') yaw += 0.00045;
+    applyCamera();
+    renderer.render(scene, camera);
+    frame = requestAnimationFrame(draw);
+  }
+  frame = requestAnimationFrame(draw);
+
+  function dispose() {
+    disposed = true;
+    cancelAnimationFrame(frame);
+    options.canvas.removeEventListener('pointerdown', onPointerDown);
+    options.canvas.removeEventListener('pointermove', onPointerMove);
+    options.canvas.removeEventListener('pointerup', onPointerUp);
+    options.canvas.removeEventListener('pointercancel', onPointerUp);
+    options.canvas.removeEventListener('wheel', onWheel);
+    options.canvas.removeEventListener('keydown', onKeyDown);
+    disposeObject(scene);
+    renderer.dispose();
+  }
+
+  return {
+    dispose,
+    reset,
+    setRoom,
+    setNight,
+    setViewMode,
+    isNight: () => night,
+    getViewMode: () => viewMode,
+  };
+}
