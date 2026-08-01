@@ -47,10 +47,13 @@ Free to play. Wayfare Plus (optional) removes ads and unlocks the Time
 Machine — one chance per life to undo your own death — plus exclusive
 pets, including a tiny dragon who is technically a very committed iguana.
 
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://harnoorbrar.github.io/wayfare/privacy.html
+
 ## Keywords (100 char max, comma-separated, no spaces after commas)
 life sim,bitlife,simulator,life game,rpg,career,family,pets,dynasty,choices,text adventure
 
-## What's New (Version 1.5)
+## What's New (Version 1.6)
 Homes and cars finally feel alive.
 
 • Walk through redesigned 3D rooms with distinct styles for every property

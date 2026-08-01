@@ -123,6 +123,12 @@ import {
   performActivity,
   recommendation as activityRecommendation,
 } from './domain/activities';
+import {
+  babyAttemptAvailability,
+  completePregnancy,
+  conceptionChance,
+  tryForBaby as tryForBabyImpl,
+} from './domain/family';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -176,6 +182,13 @@ export const relationships = {
   ensureAll: (state: GameState) => ensureAllNpcs(state, rng),
   blurbFor,
   compatibilityWithPlayer,
+};
+
+export const family = {
+  availability: babyAttemptAvailability,
+  chance: conceptionChance,
+  tryForBaby: (state: GameState) => tryForBabyImpl(state, rng),
+  completePregnancy,
 };
 
 /** One year of every business the player owns, using the shared RNG. */

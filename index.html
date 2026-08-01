@@ -2405,6 +2405,10 @@ async function initAds() {
       maxAdContentRating: "Teen",
     });
     wireAdMobEvents(AdMob);
+    // Ask before AdMob can access the IDFA. A denial still permits contextual
+    // ads, while keeping the free game fully playable.
+    const tracking = await AdMob.trackingAuthorizationStatus();
+    if (tracking.status === "notDetermined") await AdMob.requestTrackingAuthorization();
     let consent = await AdMob.requestConsentInfo({ tagForUnderAgeOfConsent: false });
     if (!consent.canRequestAds && consent.isConsentFormAvailable) consent = await AdMob.showConsentForm();
     if (!consent.canRequestAds) {
@@ -3125,6 +3129,8 @@ function startNewLife(profile) {
     pendingChoice: null,
     lastMetAge: -1,
     lastDateAttemptAge: -1,
+    lastBabyAttemptAge: -1,
+    expectingBaby: null,
     savings: 0,
     investments: { stocks: 0, bonds: 0, crypto: 0 },
     investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
@@ -3241,7 +3247,7 @@ const EVENTS = [
         { label:"Not ready yet", deltas:[["happiness", -3]], result:"Decided to wait a little longer." },
       ]
   })},
-  { cond: s => s.partner && s.age>=22 && s.age<=45 && WayfareCore.rng.next()<0.12, weight: 0.7, build: s => ({
+  { cond: s => s.partner && !s.expectingBaby && s.age>=22 && s.age<=45 && WayfareCore.rng.next()<0.12, weight: 0.7, build: s => ({
       text: `${s.name} and ${s.partner} have been talking about having a baby.`,
       choices: [
         { label:"Start trying", deltas:[["happiness", rand(4,8)],["money", -1500]], result:"A baby is on the way!", flag:"baby" },
@@ -3752,6 +3758,19 @@ function ageUp() {
     });
   }
 
+  // A successful family-planning attempt becomes a birth on the following
+  // age-up. Process it after existing children age so the newborn stays age 0.
+  if (state.expectingBaby && state.age >= state.expectingBaby.dueAge) {
+    try {
+      const babyName = state.expectingBaby.plannedName || pick(FIRST_NAMES);
+      const birth = WayfareCore.family.completePregnancy(state, babyName);
+      if (birth.born) {
+        log(birth.message, [["happiness", 8]]);
+        haptic("heavy");
+      }
+    } catch(e) {}
+  }
+
   // income & housing costs (weekly * 52, simplified to once per year).
   // Wages ride cumulative inflation; income tax is withheld at the elected
   // rate before the money lands.
@@ -3957,10 +3976,14 @@ function resolveChoice(choiceIndex) {
     else state.relationships.push({ id: nextRelId(), name: state.partner, type: "Spouse", closeness: 85, lastInteractedAge: state.age });
   }
   if (c.flag === "baby") {
-    const kid = pick(FIRST_NAMES);
-    const relId = nextRelId();
-    state.children.push({name:kid, age:0, relId});
-    state.relationships.push({ id: relId, name: kid, type: "Child", closeness: 90, lastInteractedAge: state.age });
+    if (!state.expectingBaby) {
+      state.expectingBaby = {
+        partnerName: String(state.partner),
+        conceivedAge: state.age,
+        dueAge: state.age + 1,
+      };
+      state.lastBabyAttemptAge = state.age;
+    }
   }
   if (c.flag === "reconcile") {
     const p = state.relationships.find(r => r.name === state.partner && (r.type==="Spouse"||r.type==="Partner"));
@@ -4220,6 +4243,8 @@ function continueAsChild(childIndex) {
     pendingChoice: null,
     lastMetAge: -1,
     lastDateAttemptAge: -1,
+    lastBabyAttemptAge: -1,
+    expectingBaby: null,
     savings: 0,
     investments: { stocks: 0, bonds: 0, crypto: 0 },
     investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },
@@ -4723,6 +4748,8 @@ function renderActivities(main) {
   main.appendChild(list);
 }
 
+let homeManagementMode = false;
+
 function renderHome(main) {
   // ---- Health & Insurance ----
   try {
@@ -4795,16 +4822,32 @@ function renderHome(main) {
   }
 
   const prop = PROPERTIES.find(p=>p.id===state.property);
+  if (!prop) {
+    state.property = null;
+    state.ownership = null;
+    state.activeRoomIndex = null;
+    saveGame();
+    renderHome(main);
+    return;
+  }
   const layout = roomLayoutFor(prop.roomCount);
 
-  // Single-room properties (studio/one-bed): skip the floor plan, go straight to the room.
-  if (layout.length === 1) {
-    state.activeRoomIndex = 0;
-    renderRoomDetail(main, prop, layout, 0, false);
+  // The owned-home landing experience is now the real WebGL tour. The legacy
+  // room/furniture screen remains available only as an explicit management tool.
+  if (!homeManagementMode) {
+    renderOwnedHomeHub(main, prop, layout);
     return;
   }
 
-  // Multi-room: floor plan view, or a specific room if one is active.
+  // Single-room properties go directly to their furniture manager.
+  if (layout.length === 1) {
+    state.activeRoomIndex = 0;
+    renderRoomDetail(main, prop, layout, 0, true);
+    return;
+  }
+
+  // Multi-room furniture management uses the floor plan only after the player
+  // explicitly asks for it.
   if (state.activeRoomIndex === null || state.activeRoomIndex === undefined) {
     renderFloorPlan(main, prop, layout);
   } else {
@@ -4812,7 +4855,55 @@ function renderHome(main) {
   }
 }
 
+function renderOwnedHomeHub(main, prop, layout) {
+  state.activeRoomIndex = null;
+  const placedCount = Object.values(state.placedFurniture || {}).reduce((sum, room) => sum + Object.keys(room || {}).length, 0);
+  const hero = document.createElement("section");
+  hero.className = "property-tour-feature";
+  hero.innerHTML = `
+    <div class="property-tour-kicker">Your interactive 3D home</div>
+    <div class="property-tour-title">${prop.name}</div>
+    <div class="property-tour-copy">Walk through ${layout.length === 1 ? "your space" : `all ${layout.length} rooms`}, switch the lighting, and explore every detail in real time.</div>
+    <button class="property-tour-button owned-home-tour" type="button">Enter My 3D Home</button>`;
+  hero.querySelector(".owned-home-tour").onclick = () => openPropertyExplorer(prop.id);
+  main.appendChild(hero);
+
+  financeStatusCard(main, prop);
+
+  const manage = document.createElement("button");
+  manage.className = "panel-action secondary";
+  manage.style.width = "100%";
+  manage.style.marginTop = "12px";
+  manage.textContent = placedCount ? `Manage Furniture · ${placedCount} items` : "Manage Furniture";
+  manage.onclick = () => {
+    homeManagementMode = true;
+    state.activeRoomIndex = null;
+    render();
+  };
+  main.appendChild(manage);
+
+  const browse = document.createElement("button");
+  browse.className = "panel-action secondary";
+  browse.style.width = "100%";
+  browse.style.marginTop = "8px";
+  browse.textContent = "Browse Other Properties";
+  browse.onclick = openPropertyModal;
+  main.appendChild(browse);
+}
+
 function renderFloorPlan(main, prop, layout) {
+  const returnToTour = document.createElement("button");
+  returnToTour.className = "panel-action";
+  returnToTour.style.width = "100%";
+  returnToTour.style.marginBottom = "10px";
+  returnToTour.textContent = "← Back to My 3D Home";
+  returnToTour.onclick = () => {
+    homeManagementMode = false;
+    state.activeRoomIndex = null;
+    render();
+  };
+  main.appendChild(returnToTour);
+
   const stage = document.createElement("div");
   stage.id = "room-stage";
   stage.innerHTML = `<div id="room-label-bar" style="border-top:none;">
@@ -4861,8 +4952,12 @@ function renderRoomDetail(main, prop, layout, roomIndex, showBack) {
     const back = document.createElement("button");
     back.className = "panel-action secondary";
     back.style.marginBottom = "10px";
-    back.textContent = "← Floor Plan";
-    back.onclick = () => { state.activeRoomIndex = null; render(); };
+    back.textContent = layout.length === 1 ? "← Back to My 3D Home" : "← Furniture Floor Plan";
+    back.onclick = () => {
+      state.activeRoomIndex = null;
+      if (layout.length === 1) homeManagementMode = false;
+      render();
+    };
     main.appendChild(back);
   }
 
@@ -5818,6 +5913,59 @@ function renderCareerAdvisor(main) {
   main.appendChild(advisor);
 }
 
+function openBabyNameModal() {
+  if (!state.expectingBaby) {
+    toast("There isn't a baby to name right now.");
+    return;
+  }
+  const sheet = document.getElementById("modal-sheet");
+  const suggestions = [];
+  while (suggestions.length < 3) {
+    const candidate = pick(FIRST_NAMES);
+    if (!suggestions.includes(candidate)) suggestions.push(candidate);
+  }
+  sheet.innerHTML = `
+    <div id="modal-title">Choose the Baby's Name</div>
+    <div id="modal-sub">Pick a name now, or change it any time before the next birthday.</div>
+    <label class="creator-field" style="margin-top:14px;">
+      <span class="creator-field-label">First name</span>
+      <input class="baby-name-input" maxlength="24" autocomplete="off" placeholder="Baby's name">
+    </label>
+    <div class="creator-group" style="margin-top:14px;">
+      <div class="creator-option-label">Suggestions</div>
+      <div class="creator-options baby-name-suggestions"></div>
+    </div>
+    <div class="creator-actions">
+      <button class="panel-action secondary baby-name-cancel" type="button">Not Yet</button>
+      <button class="panel-action baby-name-save" type="button">Save Name</button>
+    </div>`;
+  const input = sheet.querySelector(".baby-name-input");
+  input.value = state.expectingBaby.plannedName || "";
+  suggestions.forEach(name => {
+    const suggestion = document.createElement("button");
+    suggestion.className = "creator-style";
+    suggestion.type = "button";
+    suggestion.textContent = name;
+    suggestion.onclick = () => {
+      input.value = name;
+      input.focus();
+    };
+    sheet.querySelector(".baby-name-suggestions").appendChild(suggestion);
+  });
+  sheet.querySelector(".baby-name-cancel").onclick = closeModal;
+  sheet.querySelector(".baby-name-save").onclick = () => {
+    const name = cleanCharacterName(input.value, pick(FIRST_NAMES));
+    state.expectingBaby.plannedName = name;
+    log(`${state.name} and ${state.expectingBaby.partnerName} chose the name ${name}.`);
+    saveGame();
+    render();
+    closeModal();
+    toast(`${name} it is.`);
+  };
+  document.getElementById("modal-overlay").classList.add("show");
+  setTimeout(() => input.focus(), 80);
+}
+
 function renderPeople(main) {
   // backfill traits/trust/memories on bonds from older saves or code paths
   try { WayfareCore.relationships.ensureAll(state); } catch(e) {}
@@ -5826,6 +5974,21 @@ function renderPeople(main) {
   title.className = "section-title";
   title.textContent = "Relationships";
   main.appendChild(title);
+
+  if (state.expectingBaby) {
+    const expecting = document.createElement("div");
+    expecting.className = "panel-card";
+    expecting.innerHTML = `<div class="panel-row">
+      <div><div class="panel-title">🍼 A Baby Is on the Way</div><div class="panel-sub">${state.name} and ${state.expectingBaby.partnerName} are expecting. The baby will arrive on the next birthday.</div></div>
+    </div>`;
+    const nameBaby = document.createElement("button");
+    nameBaby.className = "panel-action";
+    nameBaby.style.marginTop = "8px";
+    nameBaby.textContent = state.expectingBaby.plannedName ? `Name: ${state.expectingBaby.plannedName}` : "Choose Baby Name";
+    nameBaby.onclick = openBabyNameModal;
+    expecting.appendChild(nameBaby);
+    main.appendChild(expecting);
+  }
 
   // Meet New People action (capped to once per in-game year so it can't be spammed)
   const alreadyMetThisYear = state.lastMetAge === state.age;
@@ -5975,23 +6138,29 @@ function renderPeople(main) {
 
     const call = document.createElement('button');
     call.className = 'panel-action secondary small';
-    call.textContent = 'Call';
-    call.onclick = () => interact('call');
+    const childAge = r.type === "Child" ? Number(r.age || 0) : null;
+    call.textContent = childAge !== null ? (childAge <= 5 ? 'Read Together' : 'Check In') : 'Call';
+    call.onclick = () => childAge !== null
+      ? bond(rand(3,7), 2, childAge <= 5 ? "read with" : "checked in with")
+      : interact('call');
     actions.appendChild(call);
 
     const spend = document.createElement('button');
     spend.className = 'panel-action secondary small';
-    spend.textContent = 'Spend Time';
-    spend.onclick = () => interact('spend');
+    spend.textContent = childAge !== null ? 'Family Time' : 'Spend Time';
+    spend.onclick = () => childAge !== null
+      ? bond(rand(6,11), 3, "spent family time with")
+      : interact('spend');
     actions.appendChild(spend);
 
     const gift = document.createElement('button');
     gift.className = 'panel-action small';
-    gift.textContent = 'Gift ($50)';
+    gift.textContent = childAge !== null ? 'Treat ($50)' : 'Gift ($50)';
     gift.onclick = () => {
       if (state.money < 50) { toast('Need $50'); return; }
       state.money -= 50;
-      interact('gift');
+      if (childAge !== null) bond(rand(5,9), 1, "surprised");
+      else interact('gift');
     };
     actions.appendChild(gift);
 
@@ -6005,6 +6174,35 @@ function renderPeople(main) {
         bond(rand(8,14), 4, "took on a date —");
       };
       actions.appendChild(date);
+
+      const familyPlan = WayfareCore.family.availability(state);
+      const baby = document.createElement('button');
+      baby.className = 'panel-action small';
+      baby.textContent = familyPlan.ok
+        ? 'Try for a Baby'
+        : state.expectingBaby
+          ? 'Baby on the Way'
+          : state.lastBabyAttemptAge === state.age
+            ? 'Tried This Year'
+            : familyPlan.reason === 'Grow closer before taking this step.'
+              ? 'Grow Closer First'
+              : 'Try for a Baby';
+      baby.disabled = !familyPlan.ok;
+      baby.title = familyPlan.ok
+        ? `Estimated chance this year: ${Math.round(familyPlan.chance * 100)}%`
+        : familyPlan.reason || '';
+      baby.setAttribute('aria-label', familyPlan.ok
+        ? `Try for a baby with ${r.name}. Estimated chance ${Math.round(familyPlan.chance * 100)} percent.`
+        : `${baby.textContent}. ${familyPlan.reason || ''}`);
+      baby.onclick = () => {
+        const outcome = WayfareCore.family.tryForBaby(state);
+        log(outcome.message, outcome.conceived ? [["happiness", 6]] : [["happiness", 1]]);
+        toast(outcome.conceived ? "A baby is on the way!" : "It didn't happen this year.");
+        haptic(outcome.conceived ? "heavy" : "light");
+        saveGame();
+        render();
+      };
+      actions.appendChild(baby);
     }
 
     if (r.type === "Partner") {
@@ -7328,6 +7526,7 @@ function closePropertyExplorer() {
 function openPropertyExplorer(propId, roomIndex=0) {
   const prop = PROPERTIES.find(property => property.id === propId);
   if (!prop) return;
+  const isOwnedHome = state.property === prop.id;
   closePropertyExplorer();
   document.getElementById("modal-overlay").classList.remove("show");
 
@@ -7373,8 +7572,8 @@ function openPropertyExplorer(propId, roomIndex=0) {
       </div>
       <div class="property-tour-room-tabs" role="tablist" aria-label="Property rooms"></div>
       <div class="property-tour-actions">
-        <button class="property-tour-action secondary property-tour-back" type="button">All Properties</button>
-        <button class="property-tour-action primary property-tour-select" type="button">Rent This Property</button>
+        <button class="property-tour-action secondary property-tour-back" type="button">${isOwnedHome ? "Back Home" : "All Properties"}</button>
+        <button class="property-tour-action primary property-tour-select" type="button">${isOwnedHome ? "Manage This Room" : "Rent This Property"}</button>
       </div>
     </div>`;
   document.body.appendChild(root);
@@ -7654,23 +7853,34 @@ function openPropertyExplorer(propId, roomIndex=0) {
     event.currentTarget.setAttribute("aria-label", night ? "Switch to daylight" : "Switch to evening lighting");
     revealDetail(night ? "Evening ambience on" : "Natural daylight restored");
   };
-  root.querySelector(".property-tour-close").onclick = () => {
+  const exitPropertyTour = () => {
     closePropertyExplorer();
-    openPropertyModal();
+    if (isOwnedHome) {
+      homeManagementMode = false;
+      state.activeRoomIndex = null;
+      state.activeTab = "home";
+      render();
+    } else {
+      openPropertyModal();
+    }
   };
-  root.querySelector(".property-tour-back").onclick = () => {
-    closePropertyExplorer();
-    openPropertyModal();
-  };
+  root.querySelector(".property-tour-close").onclick = exitPropertyTour;
+  root.querySelector(".property-tour-back").onclick = exitPropertyTour;
   root.querySelector(".property-tour-select").onclick = () => {
     closePropertyExplorer();
-    document.getElementById("modal-overlay").classList.add("show");
-    openFurnitureStep(prop.id, "rent");
+    if (isOwnedHome) {
+      homeManagementMode = true;
+      state.activeRoomIndex = activeIndex;
+      state.activeTab = "home";
+      render();
+    } else {
+      document.getElementById("modal-overlay").classList.add("show");
+      openFurnitureStep(prop.id, "rent");
+    }
   };
   root.addEventListener("keydown", event => {
     if (event.key !== "Escape") return;
-    closePropertyExplorer();
-    openPropertyModal();
+    exitPropertyTour();
   });
 
   canvas.addEventListener("pointerdown", () => root.classList.add("explored"), { once:true });
@@ -7901,6 +8111,7 @@ function openMoreHub() {
     button.innerHTML = `<span class="more-hub-icon" aria-hidden="true">${destination.icon}</span><span class="more-hub-copy"><span class="more-hub-name">${destination.name}</span><span class="more-hub-detail">${destination.detail}</span></span><span class="more-hub-arrow" aria-hidden="true">›</span>`;
     button.addEventListener("click", () => {
       closeModal();
+      if (destination.tab === "home") homeManagementMode = false;
       state.activeTab = destination.tab;
       render();
     });

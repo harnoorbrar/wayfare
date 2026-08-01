@@ -53,6 +53,13 @@ export interface GameState {
   pendingChoice: unknown | null;
   lastMetAge: number;
   lastDateAttemptAge: number;
+  lastBabyAttemptAge: number;
+  expectingBaby: {
+    partnerName: string;
+    conceivedAge: number;
+    dueAge: number;
+    plannedName?: string;
+  } | null;
   savings: number;
   investments: Investments;
   investmentReturns: Investments;
@@ -112,6 +119,8 @@ export function saveDefaults(): Partial<GameState> {
     pendingChoice: null,
     lastMetAge: -1,
     lastDateAttemptAge: -1,
+    lastBabyAttemptAge: -1,
+    expectingBaby: null,
     savings: 0,
     investments: { stocks: 0, bonds: 0, crypto: 0 },
     investmentReturns: { stocks: 0, bonds: 0, crypto: 0 },

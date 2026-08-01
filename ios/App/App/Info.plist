@@ -6,6 +6,8 @@
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Wayfare asks permission to use a device identifier so Google can show and measure relevant ads. You can still play every free feature if you choose not to allow tracking.</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-9399690306106752~9680849788</string>
 	<key>SKAdNetworkItems</key>
