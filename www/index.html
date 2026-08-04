@@ -2221,17 +2221,34 @@ function customerHasPlus(info) {
   try { return !!(info && info.entitlements && info.entitlements.active && info.entitlements.active[PLUS.entitlement]); }
   catch(e) { return false; }
 }
-async function initPlus() {
+let _plusInitialization = null;
+async function ensurePlusReady() {
   const P = purchasesPlugin();
+  if (!P) throw new Error("Purchases are only available in the iOS app.");
+  if (PLUS.apiKey.indexOf("REPLACE") !== -1) throw new Error("Purchases are not configured yet.");
+  if (!_plusInitialization) {
+    _plusInitialization = (async () => {
+      await P.configure({ apiKey: PLUS.apiKey });
+      const { customerInfo } = await P.getCustomerInfo();
+      const owned = customerHasPlus(customerInfo);
+      setPlus(owned);
+      if (owned) removeAdsNow();
+      return P;
+    })().catch(error => {
+      // Let a later retry make a clean connection attempt.
+      _plusInitialization = null;
+      console.warn("Wayfare Plus initialization failed.", error);
+      throw error;
+    });
+  }
+  return _plusInitialization;
+}
+async function initPlus() {
   setPlus(hasPlus()); // reflect cache immediately
-  if (!P || PLUS.apiKey.indexOf("REPLACE") !== -1) return;
+  if (!purchasesPlugin() || PLUS.apiKey.indexOf("REPLACE") !== -1) return;
   try {
-    await P.configure({ apiKey: PLUS.apiKey });
-    const { customerInfo } = await P.getCustomerInfo();
-    const owned = customerHasPlus(customerInfo);
-    setPlus(owned);
-    if (owned) removeAdsNow();
-  } catch(e) { /* IAP must never break the game */ }
+    await ensurePlusReady();
+  } catch(e) { /* The paywall provides a retry action when it is opened. */ }
 }
 function removeAdsNow() {
   _interstitialReady = false;
@@ -2281,7 +2298,8 @@ async function renderPaywallPackages() {
     return;
   }
   try {
-    const { current } = await P.getOfferings();
+    const readyPurchases = await ensurePlusReady();
+    const { current } = await readyPurchases.getOfferings();
     const pkgs = (current && current.availablePackages) || [];
     if (!pkgs.length) { box.innerHTML = `<div class="paywall-loading">No options available right now.</div>`; return; }
     box.innerHTML = "";
@@ -2297,16 +2315,18 @@ async function renderPaywallPackages() {
       box.appendChild(btn);
     });
   } catch(e) {
-    box.innerHTML = `<div class="paywall-loading">Couldn't load options. Check your connection.</div>`;
+    box.innerHTML = `<div class="paywall-loading">Couldn't load purchase options. Check your connection and try again.</div><button class="pw-restore" id="pw-retry">Try Again</button>`;
+    document.getElementById("pw-retry").onclick = renderPaywallPackages;
   }
 }
 async function buyPlus(pkg, btn) {
   const P = purchasesPlugin();
-  if (!P) return;
+  if (!P) { toast("Purchases are available in the iOS app."); return; }
   const old = btn.innerHTML;
   btn.disabled = true; btn.innerHTML = "<span>Purchasing…</span>";
   try {
-    const { customerInfo } = await P.purchasePackage({ aPackage: pkg });
+    const readyPurchases = await ensurePlusReady();
+    const { customerInfo } = await readyPurchases.purchasePackage({ aPackage: pkg });
     if (customerHasPlus(customerInfo)) {
       setPlus(true); removeAdsNow(); haptic("heavy");
       toast("✦ Welcome to Wayfare Plus!");
@@ -2320,7 +2340,8 @@ async function restorePlus() {
   const P = purchasesPlugin();
   if (!P) { toast("Restore is available in the iOS app."); return; }
   try {
-    const { customerInfo } = await P.restorePurchases();
+    const readyPurchases = await ensurePlusReady();
+    const { customerInfo } = await readyPurchases.restorePurchases();
     if (customerHasPlus(customerInfo)) {
       setPlus(true); removeAdsNow();
       toast("✦ Wayfare Plus restored.");
