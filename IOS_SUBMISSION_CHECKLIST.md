@@ -3,7 +3,7 @@
 ## Build and upload
 
 - [ ] Confirm the App Store Connect record uses bundle ID `com.harnoorbrar.wayfare`.
-- [ ] Confirm version **1.6** is created in App Store Connect. Codemagic increments the build number above 6 automatically.
+- [ ] Confirm version **1.7** is created in App Store Connect. Codemagic increments the build number above 6 automatically.
 - [ ] In Codemagic, verify the `Codemagic Wayfare` App Store Connect integration is authorized and the signing profile is current.
 - [ ] Push the intended `main` commit. The `ios-release` workflow builds, tests, signs, uploads to TestFlight, and is configured to submit the selected build for review.
 - [ ] Install the TestFlight build on a physical iPhone and test a full life, a 3D home, Free Drive, an interstitial ad, a purchase, and Restore Purchases.
@@ -14,7 +14,7 @@
 - [ ] Upload the five 6.7-inch iPhone screenshots from `screenshots/store-preview-v14`. Add other required device sizes or use App Store Connect's screenshot scaling where available.
 - [ ] Complete the age-rating questionnaire against the shipped build. The existing suggested answers are in `STORE_LISTING.md`; do not rely on the expected 13+ result without completing the current questionnaire.
 - [ ] Set the support URL and privacy policy URL. Confirm both public GitHub Pages URLs load before submission.
-- [ ] Attach `com.harnoorbrar.wayfare.plus.monthly` and `com.harnoorbrar.wayfare.plus.lifetime` to version 1.6 and submit them with the app if they have not already been approved.
+- [ ] Attach `com.harnoorbrar.wayfare.plus.monthly` and `com.harnoorbrar.wayfare.plus.lifetime` to version 1.7 and submit them with the app if they have not already been approved.
 - [ ] Confirm the Paid Applications Agreement, banking, and tax details are active.
 - [ ] In RevenueCat, verify the production App Store API key, both products, the `plus` entitlement, and the current App Store Connect in-app purchase key.
 

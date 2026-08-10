@@ -53,15 +53,15 @@ Privacy Policy: https://harnoorbrar.github.io/wayfare/privacy.html
 ## Keywords (100 char max, comma-separated, no spaces after commas)
 life sim,bitlife,simulator,life game,rpg,career,family,pets,dynasty,choices,text adventure
 
-## What's New (Version 1.6)
-Homes and cars finally feel alive.
+## What's New (Version 1.7)
+The choices are harder—and your journey has more weight.
 
-• Walk through redesigned 3D rooms with distinct styles for every property
-• Enjoy premium materials, including marble floors and countertops in luxury homes
-• Take owned cars into Free Drive with unique speed, handling, RPM, traffic, ramps, and camera views
-• Get a more polished dashboard, smoother controls, and clearer settings
-• Use improved save backups plus stability fixes for aging, death, and continuing as your child
-• Unlock Wayfare Plus monthly or for life to remove ads and access premium perks
+• Face new multi-year dilemmas around career, family care, and personal integrity
+• See the known stakes of major decisions before choosing, while uncertain outcomes remain hidden
+• Enjoy a polished Life screen with clearer stats, stronger decision cards, and improved light and dark themes
+• Unlock the Wayfarer’s Compass after reaching adulthood, granting one extra Focus action every year
+• Share an optional App Store review later in a session without interrupting decisions or advertisements
+• Benefit from additional balance, accessibility, and stability improvements
 
 ## App Store Category
 Primary: Games
@@ -86,10 +86,14 @@ https://harnoorbrar.github.io/wayfare/
 ## Copyright
 2026 Harnoor Brar
 
-## Notes for App Review (Version 1.5)
+## Notes for App Review (Version 1.7)
 Wayfare does not require an account or demo login.
 
 This update adds:
+- New multi-year life dilemmas and visible choice stakes.
+- A refreshed Life screen and decision interface in light and dark themes.
+- An optional review prompt after age 18 and at least 12 age-ups in one session. The Wayfarer’s Compass reward is granted to every eligible player before either prompt option is selected; it is not conditional on leaving a review.
+- The Wayfarer’s Compass adds a third yearly Focus action and appears under More > Activities.
 - Interactive 3D home rooms: tap More > Home, choose Browse Properties,
   rent any property with Move In Empty, then tap the room/floor and drag to
   move and look around.
