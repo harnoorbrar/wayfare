@@ -74,6 +74,8 @@ export interface GameState {
   ambition: { id: string; claimed: string[] } | null;
   /** Two deliberate player actions available each in-game year. */
   activities: { age: number; used: number; performed: string[] } | null;
+  /** Persistent gameplay keepsakes earned through non-purchase milestones. */
+  specialItems?: string[];
   /**
    * The living economy. Loosely typed here to avoid a circular import with
    * the world domain module; the world engine owns the real WorldState shape.
@@ -131,6 +133,7 @@ export function saveDefaults(): Partial<GameState> {
     yearsAtJob: 0,
     ambition: null,
     activities: null,
+    specialItems: [],
   };
 }
 

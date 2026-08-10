@@ -2,6 +2,12 @@ import type { GameState } from './state';
 import { eligibilityGap, levelById, nextLevel } from './careers';
 
 export const FOCUS_PER_YEAR = 2;
+export const WAYFARERS_COMPASS_ID = 'wayfarers_compass';
+
+export function focusCapacity(state: GameState): number {
+  const hasCompass = Array.isArray(state.specialItems) && state.specialItems.includes(WAYFARERS_COMPASS_ID);
+  return FOCUS_PER_YEAR + (hasCompass ? 1 : 0);
+}
 
 export interface ActivityState {
   age: number;
@@ -123,7 +129,7 @@ export function ensureActivityState(state: GameState): ActivityState {
 export function availability(state: GameState, activity: ActivityDefinition): ActivityAvailability {
   const activityState = ensureActivityState(state);
   if (state.age < activity.minAge) return { ok: false, reason: `Unlocks at age ${activity.minAge}.` };
-  if (activityState.used >= FOCUS_PER_YEAR) return { ok: false, reason: 'No focus left this year.' };
+  if (activityState.used >= focusCapacity(state)) return { ok: false, reason: 'No focus left this year.' };
   if (activityState.performed.includes(activity.id)) return { ok: false, reason: 'Already done this year.' };
   if (activity.requiresRelationship && state.relationships.length === 0) return { ok: false, reason: 'Meet someone first.' };
   if ((state.money || 0) < activity.cost) return { ok: false, reason: `Needs $${activity.cost.toLocaleString()}.` };
@@ -178,7 +184,7 @@ export function performActivity(state: GameState, id: string): ActivityResult {
 }
 
 export function focusRemaining(state: GameState): number {
-  return Math.max(0, FOCUS_PER_YEAR - ensureActivityState(state).used);
+  return Math.max(0, focusCapacity(state) - ensureActivityState(state).used);
 }
 
 /** A single, explainable suggestion that turns an ambition into action. */

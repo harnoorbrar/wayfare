@@ -30,12 +30,26 @@ describe('event data integrity', () => {
       for (const choice of event.choices) {
         expect(choice.label.trim()).not.toBe('');
         expect(choice.result.trim()).not.toBe('');
+        if (choice.stakes !== undefined) expect(choice.stakes.trim()).not.toBe('');
         if (choice.costGate !== undefined) expect(choice.costGate).toBeGreaterThan(0);
         for (const effect of choice.effects ?? []) {
           expect(['money', 'happiness', 'health', 'smarts', 'looks']).toContain(effect.stat);
           expect(Number.isFinite(effect.amount)).toBe(true);
         }
       }
+    }
+  });
+
+  it('offers genuinely costly decisions in every major adult dilemma', () => {
+    const dilemmas = ['promotion_relocation', 'parent_needs_care', 'company_coverup'];
+    for (const id of dilemmas) {
+      const event = EVENTS.find((candidate) => candidate.id === id)!;
+      expect(event).toBeDefined();
+      expect(event.choices.length).toBeGreaterThanOrEqual(2);
+      expect(event.choices.every((choice) => Boolean(choice.stakes))).toBe(true);
+      expect(event.choices.every((choice) =>
+        Boolean(choice.schedule) || (choice.effects ?? []).some((effect) => effect.amount < 0),
+      )).toBe(true);
     }
   });
 

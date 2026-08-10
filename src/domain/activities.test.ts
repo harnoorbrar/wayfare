@@ -3,6 +3,7 @@ import {
   ACTIVITIES,
   availability,
   ensureActivityState,
+  focusCapacity,
   focusRemaining,
   performActivity,
   recommendation,
@@ -31,6 +32,18 @@ describe('activities', () => {
     expect(performActivity(state, 'study').ok).toBe(true);
     expect(focusRemaining(state)).toBe(0);
     expect(performActivity(state, 'create')).toEqual({ ok: false, reason: 'No focus left this year.' });
+  });
+
+  it('the Wayfarer\'s Compass grants a third action every year', () => {
+    const state = life({ specialItems: ['wayfarers_compass'] });
+    expect(focusCapacity(state)).toBe(3);
+    expect(performActivity(state, 'outdoors').ok).toBe(true);
+    expect(performActivity(state, 'study').ok).toBe(true);
+    expect(performActivity(state, 'create').ok).toBe(true);
+    expect(focusRemaining(state)).toBe(0);
+    expect(performActivity(state, 'cook')).toEqual({ ok: false, reason: 'No focus left this year.' });
+    state.age += 1;
+    expect(focusRemaining(state)).toBe(3);
   });
 
   it('prevents repeating the same action in a year', () => {

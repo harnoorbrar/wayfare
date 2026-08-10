@@ -9,6 +9,8 @@
  * Effects are [stat, amount] deltas the monolith's applyDelta understands
  * (money, happiness, health, smarts, looks). `schedule` queues a follow-up
  * event by id after `inYears`, optionally only with probability `chance`.
+ * `stakes` tells the player what is knowingly at risk without spoiling the
+ * uncertain outcome.
  */
 
 export interface EventEffect {
@@ -27,6 +29,8 @@ export interface Schedule {
 
 export interface EventChoice {
   readonly label: string;
+  /** Short, player-facing summary of the known tradeoff (outcomes may remain uncertain). */
+  readonly stakes?: string;
   /** Immediate stat effects. */
   readonly effects?: readonly EventEffect[];
   /** Line shown after choosing. */
@@ -125,11 +129,12 @@ export const EVENTS: readonly EventDef[] = [
     choices: [
       {
         label: 'Commit to it',
-        effects: [{ stat: 'happiness', amount: -3 }],
+        stakes: 'Career upside • less health and happiness now',
+        effects: [{ stat: 'happiness', amount: -5 }, { stat: 'health', amount: -2 }],
         result: 'Long nights ahead, but it could pay off.',
         schedule: { eventId: 'mentor_payoff', inYears: 2 },
       },
-      { label: 'Too busy right now', result: 'You kept your evenings to yourself.' },
+      { label: 'Protect your evenings', stakes: 'Keep your balance • lose this mentor', effects: [{ stat: 'happiness', amount: 3 }], result: 'You kept your evenings to yourself, knowing the offer would not wait.' },
     ],
   },
   {
@@ -391,8 +396,8 @@ export const EVENTS: readonly EventDef[] = [
     cooldownYears: 6,
     requires: { minAge: 25, maxAge: 75, hasChildren: true },
     choices: [
-      { label: 'Clear the whole day', effects: [{ stat: 'happiness', amount: 8 }], result: 'You were in the front row. They found you in the crowd immediately.' },
-      { label: 'Promise to make the next one', effects: [{ stat: 'happiness', amount: -6 }], result: 'They said they understood. The disappointment still showed.' },
+      { label: 'Clear the whole day', stakes: 'Family first • lose $900 in work and travel', effects: [{ stat: 'money', amount: -900 }, { stat: 'happiness', amount: 8 }], result: 'You were in the front row. They found you in the crowd immediately.' },
+      { label: 'Take the career meeting', stakes: 'Earn $1,400 • live with missing it', effects: [{ stat: 'money', amount: 1400 }, { stat: 'happiness', amount: -7 }], result: 'They said they understood. The disappointment still showed.' },
     ],
   },
   {
@@ -424,9 +429,186 @@ export const EVENTS: readonly EventDef[] = [
     cooldownYears: 9,
     requires: { minAge: 30, maxAge: 75, hasPartner: true },
     choices: [
-      { label: 'Take something off their plate', effects: [{ stat: 'happiness', amount: 6 }, { stat: 'health', amount: -1 }], result: 'The week was busier for you, but lighter for both of you.' },
-      { label: 'Suggest some time apart', effects: [{ stat: 'happiness', amount: -5 }], result: 'The space helped a little, though the conversation is not finished.' },
+      { label: 'Carry more at home', stakes: 'Support them • sacrifice health and work', effects: [{ stat: 'money', amount: -1200 }, { stat: 'happiness', amount: 6 }, { stat: 'health', amount: -4 }], result: 'The month was heavier for you, but lighter for both of you.' },
+      { label: 'Set a firm boundary', stakes: 'Protect yourself • strain the relationship', effects: [{ stat: 'health', amount: 3 }, { stat: 'happiness', amount: -6 }], result: 'The boundary was necessary. It still hurt to draw it.' },
     ],
+  },
+
+  // --- High-stakes adult dilemmas ----------------------------------------
+  {
+    id: 'promotion_relocation',
+    text: 'A major promotion is yours if you relocate within a month. The move would uproot the life you have built here.',
+    weight: 1.15,
+    once: true,
+    requires: { minAge: 27, maxAge: 55, employed: true },
+    choices: [
+      {
+        label: 'Take the promotion and move',
+        stakes: '+$12,000 now • career gamble in 2 years',
+        effects: [{ stat: 'money', amount: 12000 }, { stat: 'happiness', amount: -9 }],
+        result: 'The boxes are packed. The new title feels exciting; the goodbyes do not.',
+        schedule: { eventId: 'relocation_thrives', elseEventId: 'relocation_lonely', inYears: 2, chance: 0.52 },
+      },
+      {
+        label: 'Stay and turn it down',
+        stakes: 'Keep your roots • career may stall',
+        effects: [{ stat: 'happiness', amount: 5 }],
+        result: 'You chose the life around the job, not the job around the life.',
+        schedule: { eventId: 'promotion_passed_over', inYears: 2 },
+      },
+    ],
+  },
+  {
+    id: 'relocation_thrives',
+    text: 'The new city finally feels like home, and the promotion has opened doors you could not see before.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Build on the momentum', stakes: '+$20,000 • health pays the price', effects: [{ stat: 'money', amount: 20000 }, { stat: 'happiness', amount: 7 }, { stat: 'health', amount: -4 }], result: 'The gamble worked, though the pace remains relentless.' }],
+  },
+  {
+    id: 'relocation_lonely',
+    text: 'The promotion succeeded on paper, but the new city still feels borrowed and far from everyone who knew you.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Keep going', stakes: 'Keep the income • accept the loneliness', effects: [{ stat: 'money', amount: 9000 }, { stat: 'happiness', amount: -12 }, { stat: 'health', amount: -3 }], result: 'Your career grew faster than your new roots.' }],
+  },
+  {
+    id: 'promotion_passed_over',
+    text: 'The role above yours opens again, but leadership wants someone who showed more flexibility last time.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Accept the consequence', stakes: 'Stability kept • ambition bruised', effects: [{ stat: 'happiness', amount: -7 }], result: 'The choice still feels right. That does not make it painless.' }],
+  },
+  {
+    id: 'parent_needs_care',
+    text: 'A parent can no longer manage alone. Full-time care is expensive; doing it yourself would consume years of your life.',
+    weight: 1.05,
+    once: true,
+    requires: { minAge: 38, maxAge: 68 },
+    choices: [
+      {
+        label: 'Pay for professional care',
+        stakes: 'Requires $15,000 • preserve time and health',
+        costGate: 15000,
+        effects: [{ stat: 'money', amount: -15000 }, { stat: 'happiness', amount: 4 }],
+        result: 'They are safe and well cared for. The financial cushion is gone.',
+        schedule: { eventId: 'care_family_gratitude', inYears: 3 },
+      },
+      {
+        label: 'Become their caregiver',
+        stakes: 'Keep the money • sacrifice health and career',
+        effects: [{ stat: 'money', amount: -3000 }, { stat: 'health', amount: -9 }, { stat: 'happiness', amount: -4 }],
+        result: 'Your days reorganize around appointments, meals, and small acts of patience.',
+        schedule: { eventId: 'care_precious_time', elseEventId: 'care_burnout', inYears: 3, chance: 0.48 },
+      },
+      {
+        label: 'Ask the family to share it',
+        stakes: 'Uncertain help • risk a lasting family rift',
+        effects: [{ stat: 'happiness', amount: -3 }],
+        result: 'The family group chat becomes a negotiation no one wanted.',
+        schedule: { eventId: 'care_shared', elseEventId: 'care_resentment', inYears: 1, chance: 0.42 },
+      },
+    ],
+  },
+  {
+    id: 'care_family_gratitude',
+    text: 'The care arrangement gave your parent dignity and gave the family time together without constant crisis.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Treasure the time', effects: [{ stat: 'happiness', amount: 9 }], result: 'It was costly, and worth more than money.' }],
+  },
+  {
+    id: 'care_precious_time',
+    text: 'The caregiving years were exhausting, but they gave you conversations and ordinary afternoons you would never trade.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Hold onto that', effects: [{ stat: 'happiness', amount: 11 }, { stat: 'health', amount: -3 }], result: 'Love and exhaustion can occupy the same memory.' }],
+  },
+  {
+    id: 'care_burnout',
+    text: 'Years of caregiving have left you depleted, isolated, and behind financially.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Begin rebuilding', effects: [{ stat: 'money', amount: -5000 }, { stat: 'health', amount: -10 }, { stat: 'happiness', amount: -8 }], result: 'You did what you could. Recovery will take time.' }],
+  },
+  {
+    id: 'care_shared',
+    text: 'The family found a workable rhythm. Nobody got everything they wanted, but nobody carries it alone.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Keep showing up', effects: [{ stat: 'money', amount: -4000 }, { stat: 'happiness', amount: 6 }], result: 'Compromise made the burden survivable.' }],
+  },
+  {
+    id: 'care_resentment',
+    text: 'The promised family help slowly disappeared, leaving you with the care and a new layer of resentment.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Carry on alone', effects: [{ stat: 'money', amount: -3500 }, { stat: 'health', amount: -7 }, { stat: 'happiness', amount: -9 }], result: 'The work got done. The family will remember how.' }],
+  },
+  {
+    id: 'company_coverup',
+    text: 'You discover your employer hiding a decision that could harm customers. Reporting it may cost you your livelihood.',
+    weight: 0.9,
+    once: true,
+    requires: { minAge: 24, maxAge: 64, employed: true },
+    choices: [
+      {
+        label: 'Report it openly',
+        stakes: 'Protect others • risk retaliation',
+        effects: [{ stat: 'happiness', amount: -5 }, { stat: 'health', amount: -3 }],
+        result: 'Your name is attached to the report. There is no taking it back.',
+        schedule: { eventId: 'whistleblower_vindicated', elseEventId: 'whistleblower_blacklisted', inYears: 2, chance: 0.46 },
+      },
+      {
+        label: 'Leak it anonymously',
+        stakes: 'Lower personal risk • uncertain impact',
+        effects: [{ stat: 'happiness', amount: -2 }],
+        result: 'The documents leave your hands through an encrypted message.',
+        schedule: { eventId: 'anonymous_change', elseEventId: 'coverup_buried', inYears: 1, chance: 0.38 },
+      },
+      {
+        label: 'Stay silent',
+        stakes: 'Keep your security • carry the guilt',
+        effects: [{ stat: 'money', amount: 5000 }, { stat: 'happiness', amount: -10 }],
+        result: 'Work continues as if you never saw anything.',
+        schedule: { eventId: 'coverup_exposed', inYears: 3 },
+      },
+    ],
+  },
+  {
+    id: 'whistleblower_vindicated',
+    text: 'Investigators confirm your report. The company changes course, and your courage becomes public.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Stand by the decision', effects: [{ stat: 'money', amount: 8000 }, { stat: 'happiness', amount: 12 }], result: 'The risk was real. So was the difference you made.' }],
+  },
+  {
+    id: 'whistleblower_blacklisted',
+    text: 'The case collapses and your industry quietly closes ranks. Good work becomes much harder to find.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Start over elsewhere', effects: [{ stat: 'money', amount: -14000 }, { stat: 'happiness', amount: -8 }], result: 'Integrity kept its price tag.' }],
+  },
+  {
+    id: 'anonymous_change',
+    text: 'The anonymous leak forced reforms. Nobody will know the part you played.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Let that be enough', effects: [{ stat: 'happiness', amount: 7 }], result: 'Recognition was never the point.' }],
+  },
+  {
+    id: 'coverup_buried',
+    text: 'The anonymous documents were dismissed, and the company tightened its secrecy.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Live with the attempt', effects: [{ stat: 'happiness', amount: -6 }], result: 'You tried without risking everything. You still wonder if it was enough.' }],
+  },
+  {
+    id: 'coverup_exposed',
+    text: 'The cover-up becomes public years later. You recognize every detail and remember choosing silence.',
+    weight: 0,
+    scheduledOnly: true,
+    choices: [{ label: 'Face what you chose', effects: [{ stat: 'money', amount: -6000 }, { stat: 'happiness', amount: -14 }], result: 'Security bought time, not peace.' }],
   },
 
   // --- Personal growth and later life -------------------------------------
