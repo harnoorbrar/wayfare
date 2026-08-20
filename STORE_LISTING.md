@@ -51,16 +51,16 @@ Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/st
 Privacy Policy: https://harnoorbrar.github.io/wayfare/privacy.html
 
 ## Keywords (100 char max, comma-separated, no spaces after commas)
-life sim,bitlife,simulator,life game,rpg,career,family,pets,dynasty,choices,text adventure
+life sim,simulator,roleplay,story game,career,family,pets,dynasty,choices,text adventure,legacy
 
 ## What's New (Version 1.7)
 The choices are harder—and your journey has more weight.
 
 • Face new multi-year dilemmas around career, family care, and personal integrity
 • See the known stakes of major decisions before choosing, while uncertain outcomes remain hidden
+• Complete a fresh Daily Journey, build a return streak, and earn useful milestone rewards
 • Enjoy a polished Life screen with clearer stats, stronger decision cards, and improved light and dark themes
 • Unlock the Wayfarer’s Compass after reaching adulthood, granting one extra Focus action every year
-• Share an optional App Store review later in a session without interrupting decisions or advertisements
 • Benefit from additional balance, accessibility, and stability improvements
 
 ## App Store Category
@@ -92,6 +92,7 @@ Wayfare does not require an account or demo login.
 This update adds:
 - New multi-year life dilemmas and visible choice stakes.
 - A refreshed Life screen and decision interface in light and dark themes.
+- Daily Journeys rotate by local calendar day and persist only on-device. Players complete age-ups, choices, Activities, or relationship actions to build a streak and claim modest in-game rewards. No account, notification permission, or network connection is required.
 - An optional review prompt after age 18 and at least 12 age-ups in one session. The Wayfarer’s Compass reward is granted to every eligible player before either prompt option is selected; it is not conditional on leaving a review.
 - The Wayfarer’s Compass adds a third yearly Focus action and appears under More > Activities.
 - Interactive 3D home rooms: tap More > Home, choose Browse Properties,

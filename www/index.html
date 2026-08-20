@@ -1562,6 +1562,36 @@
     font-size: 12px; font-weight: 700; padding: 2px 9px;
     background: rgba(0,0,0,0.08); border-radius: 999px;
   }
+  .daily-journey-card {
+    position: relative; width: 100%; margin: 0 0 12px; padding: 14px;
+    display: grid; grid-template-columns: 42px minmax(0,1fr) auto; gap: 11px; align-items: center;
+    color: var(--ink); background: linear-gradient(135deg,rgba(201,154,58,.13),rgba(194,84,47,.08));
+    border: 1px solid rgba(168,146,95,.32); border-radius: 15px; font: inherit; text-align: left;
+    cursor: pointer; box-shadow: 0 7px 20px rgba(73,52,26,.055); overflow: hidden;
+  }
+  .daily-journey-card:active { transform: scale(.985); }
+  .daily-journey-card.reward-ready { border-color: rgba(194,84,47,.48); box-shadow: 0 8px 22px rgba(194,84,47,.12); }
+  .daily-journey-card.claimed { background: rgba(74,124,89,.08); border-color: rgba(74,124,89,.24); }
+  .daily-journey-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; color: #74591f; background: rgba(255,255,255,.62); font: 700 21px/1 var(--font-display); }
+  .daily-journey-kicker { display:flex; flex-wrap:wrap; align-items:center; gap:6px; color:#826b36; font-size:9px; font-weight:850; letter-spacing:.8px; text-transform:uppercase; }
+  .daily-streak { padding:3px 6px; border-radius:999px; color:#8e492e; background:rgba(194,84,47,.10); letter-spacing:0; text-transform:none; }
+  .daily-journey-title { margin-top:4px; font-size:13px; font-weight:800; line-height:1.2; }
+  .daily-journey-detail { margin-top:3px; color:var(--ink-dim); font-size:10.5px; line-height:1.35; }
+  .daily-journey-progress { height:5px; margin-top:8px; overflow:hidden; border-radius:999px; background:rgba(54,47,40,.10); }
+  .daily-journey-progress span { display:block; width:var(--daily-progress); height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--accent),var(--gold)); transition:width .25s ease; }
+  .daily-journey-status { align-self:start; padding:5px 8px; border-radius:999px; color:#74591f; background:rgba(255,255,255,.58); font-size:9px; font-weight:850; white-space:nowrap; }
+  .daily-journey-card.reward-ready .daily-journey-status { color:#fff; background:var(--accent); }
+  .daily-journey-card.claimed .daily-journey-status { color:var(--good); background:rgba(74,124,89,.12); }
+  .daily-modal-hero { padding:8px 2px 14px; text-align:center; }
+  .daily-modal-icon { width:54px; height:54px; margin:0 auto 11px; display:grid; place-items:center; border-radius:18px; color:#74591f; background:linear-gradient(145deg,rgba(201,154,58,.22),rgba(194,84,47,.12)); font:700 27px/1 var(--font-display); }
+  .daily-modal-kicker { color:var(--accent); font-size:9px; font-weight:850; letter-spacing:1px; text-transform:uppercase; }
+  .daily-modal-title { margin-top:6px; font:650 25px/1.05 var(--font-display); }
+  .daily-modal-copy { max-width:300px; margin:8px auto 0; color:var(--ink-dim); font-size:12.5px; line-height:1.5; }
+  .daily-modal-progress { margin:15px 0 5px; display:flex; justify-content:center; gap:6px; }
+  .daily-modal-progress span { width:23px; height:6px; border-radius:999px; background:rgba(54,47,40,.11); }
+  .daily-modal-progress span.done { background:var(--gold); }
+  .daily-modal-count { color:var(--ink-dim); font-size:10px; font-weight:750; text-align:center; }
+  .daily-reward-note { margin:13px 0; padding:11px 12px; border:1px solid rgba(168,146,95,.25); border-radius:12px; color:var(--ink-dim); background:rgba(201,154,58,.07); font-size:10.5px; line-height:1.4; }
   .story-hero {
     margin: 0 0 14px;
     padding: 16px;
@@ -1933,6 +1963,11 @@
   html[data-theme="dark"] :is(.choice-btn,.price-opt,.will-total-bar,.chip) { background:var(--paper-dim); }
   html[data-theme="dark"] :is(.panel-action.secondary,.filter-chip) { background:rgba(255,255,255,.035); }
   html[data-theme="dark"] .story-hero { border-color:rgba(228,119,80,.25); background:radial-gradient(circle at 100% 0%,rgba(223,180,94,.12),transparent 36%),linear-gradient(135deg,#25211c,#1d1a16); box-shadow:0 10px 26px rgba(0,0,0,.2); }
+  html[data-theme="dark"] .daily-journey-card { color:var(--ink); background:linear-gradient(135deg,rgba(223,180,94,.10),rgba(228,119,80,.06)); border-color:rgba(223,180,94,.20); box-shadow:0 8px 20px rgba(0,0,0,.16); }
+  html[data-theme="dark"] .daily-journey-card.claimed { background:rgba(120,188,137,.06); border-color:rgba(120,188,137,.16); }
+  html[data-theme="dark"] .daily-journey-icon,
+  html[data-theme="dark"] .daily-journey-status { color:var(--gold); background:rgba(255,255,255,.05); }
+  html[data-theme="dark"] .daily-reward-note { background:rgba(223,180,94,.06); border-color:rgba(223,180,94,.16); }
   html[data-theme="dark"] .life-snapshot-item { background:rgba(255,255,255,.035); border-color:rgba(255,255,255,.09); box-shadow:0 8px 20px rgba(0,0,0,.14); }
   html[data-theme="dark"] .life-goal { background:#211e1a; border-color:var(--line); box-shadow:0 8px 20px rgba(0,0,0,.16); }
   html[data-theme="dark"] .ambition-card { background:radial-gradient(circle at 100% 0%,rgba(223,180,94,.12),transparent 43%),#211e1a; border-color:rgba(223,180,94,.24); }
@@ -2098,7 +2133,40 @@ const HAPTICS_KEY = "wayfare-haptics";
 const REDUCE_MOTION_KEY = "wayfare-reduce-motion";
 const TEXT_SIZE_KEY = "wayfare-text-size";
 const SAVE_STORAGE_KEY = "wayfare-save-v1";
+const DAILY_JOURNEY_KEY = "wayfare-daily-journey-v1";
 const BACKUP_FORMAT_VERSION = 1;
+
+function readDailyJourney() {
+  let stored = null;
+  try { stored = JSON.parse(localStorage.getItem(DAILY_JOURNEY_KEY) || "null"); } catch(e) {}
+  const daily = WayfareCore.dailyJourneys.ensure(stored, new Date());
+  try { localStorage.setItem(DAILY_JOURNEY_KEY, JSON.stringify(daily)); } catch(e) {}
+  return daily;
+}
+function writeDailyJourney(daily) {
+  try { localStorage.setItem(DAILY_JOURNEY_KEY, JSON.stringify(daily)); } catch(e) {}
+}
+function recordDailyJourneyAction(action) {
+  const result = WayfareCore.dailyJourneys.record(readDailyJourney(), action);
+  writeDailyJourney(result.state);
+  if (result.justCompleted) haptic("heavy");
+  return result.justCompleted;
+}
+function claimDailyJourneyReward() {
+  const result = WayfareCore.dailyJourneys.claim(readDailyJourney());
+  if (!result.reward) return false;
+  writeDailyJourney(result.state);
+  applyDelta("happiness", result.reward.happiness);
+  if (result.reward.money) applyDelta("money", result.reward.money);
+  if (result.reward.smarts) applyDelta("smarts", result.reward.smarts);
+  if (result.reward.health) applyDelta("health", result.reward.health);
+  log(`Daily Journey complete. ${result.reward.label}.`);
+  saveGame();
+  render();
+  haptic("heavy");
+  toast(`Journey claimed · ${result.reward.label}`);
+  return true;
+}
 function hasPlus() { try { return localStorage.getItem(PLUS_KEY) === "1"; } catch(e) { return false; } }
 function setPlus(v) {
   try { localStorage.setItem(PLUS_KEY, v ? "1" : "0"); } catch(e) {}
@@ -3856,6 +3924,7 @@ function ageUp() {
 
   if (!state.timeMachineUsed) { try { _preAgeSnapshot = JSON.stringify(state); } catch(e) { _preAgeSnapshot = null; } }
   state.age++;
+  const dailyJourneyCompleted = recordDailyJourneyAction("age_up");
   haptic("medium");
 
   // High school is a universal life milestone. Players can still use the
@@ -4111,6 +4180,7 @@ function ageUp() {
   render();
   noteCompletedAgeUpForAds();
   noteCompletedAgeUpForReview();
+  if (dailyJourneyCompleted) toast("Daily Journey complete — reward ready on Life.");
   if (!maybeShowReviewPrompt()) maybeShowAgeUpInterstitial();
 }
 
@@ -4144,6 +4214,7 @@ function resolveChoice(choiceIndex) {
   (c.deltas||[]).forEach(([f,v])=>applyDelta(f,v));
   log(choiceResult, c.deltas);
   if (c.ach) unlockAchievement(c.ach);
+  const dailyJourneyCompleted = recordDailyJourneyAction("choice");
 
   // Chain events: queue any follow-up beat this choice scheduled (the
   // consequence that surfaces years from now).
@@ -4194,6 +4265,7 @@ function resolveChoice(choiceIndex) {
   state.pendingChoice = null;
   saveGame();
   render();
+  if (dailyJourneyCompleted) toast("Daily Journey complete — reward ready on Life.");
   if (!maybeShowReviewPrompt()) maybeShowAgeUpInterstitial();
 }
 
@@ -4620,6 +4692,76 @@ function render() {
   ageButton.setAttribute("aria-label", state.pendingChoice ? "Resolve the current life choice first" : "Advance one year");
 }
 
+function renderDailyJourneyCard(main) {
+  const daily = readDailyJourney();
+  const current = daily.current;
+  const button = document.createElement("button");
+  const percent = Math.round((current.progress / current.target) * 100);
+  const status = current.claimed ? "Claimed" : current.completed ? "Reward ready" : `${current.progress}/${current.target}`;
+  button.className = `daily-journey-card${current.completed && !current.claimed ? " reward-ready" : ""}${current.claimed ? " claimed" : ""}`;
+  button.style.setProperty("--daily-progress", `${percent}%`);
+  button.setAttribute("aria-label", `Daily Journey: ${current.title}. ${current.progress} of ${current.target} ${current.unit}. ${status}.`);
+  button.innerHTML = `
+    <span class="daily-journey-icon" aria-hidden="true">${current.icon}</span>
+    <span>
+      <span class="daily-journey-kicker">Daily Journey <span class="daily-streak">🔥 ${daily.history.streak} day streak</span></span>
+      <span class="daily-journey-title">${current.title}</span>
+      <span class="daily-journey-detail">${current.description}</span>
+      <span class="daily-journey-progress" aria-hidden="true"><span></span></span>
+    </span>
+    <span class="daily-journey-status">${status}</span>`;
+  button.onclick = openDailyJourneyModal;
+  main.appendChild(button);
+}
+
+function openDailyJourneyModal() {
+  const daily = readDailyJourney();
+  const current = daily.current;
+  const sheet = document.getElementById("modal-sheet");
+  const pips = Array.from({ length: current.target }, (_, index) => `<span class="${index < current.progress ? "done" : ""}"></span>`).join("");
+  const nextMilestone = daily.history.streak < 3 ? 3 : daily.history.streak < 7 ? 7 : Math.ceil((daily.history.streak + 1) / 7) * 7;
+  sheet.innerHTML = `
+    <div class="daily-modal-hero">
+      <div class="daily-modal-icon" aria-hidden="true">${current.icon}</div>
+      <div class="daily-modal-kicker">Today’s route · 🔥 ${daily.history.streak} day streak</div>
+      <div class="daily-modal-title" id="daily-journey-title">${current.title}</div>
+      <div class="daily-modal-copy">${current.description}</div>
+      <div class="daily-modal-progress" aria-hidden="true">${pips}</div>
+      <div class="daily-modal-count">${current.progress} of ${current.target} ${current.unit}</div>
+    </div>
+    <div class="daily-reward-note">Every completed journey grants +4 Happiness. Day 3 adds $1,000; every 7th day adds $2,500, +3 Health, and +3 Smarts. Next milestone: day ${nextMilestone}.</div>`;
+
+  const primary = document.createElement("button");
+  primary.className = "panel-action";
+  primary.style.width = "100%";
+  if (current.completed && !current.claimed) {
+    primary.textContent = "Claim today’s reward";
+    primary.onclick = () => { closeModal(); claimDailyJourneyReward(); };
+  } else if (current.claimed) {
+    primary.textContent = "Journey complete ✓";
+    primary.disabled = true;
+  } else {
+    primary.textContent = current.destination === "activities" ? "Open Activities" : current.destination === "people" ? "Open People" : "Continue Life";
+    primary.onclick = () => {
+      closeModal();
+      state.activeTab = current.destination;
+      render();
+    };
+  }
+  sheet.appendChild(primary);
+  const close = document.createElement("button");
+  close.className = "panel-action secondary";
+  close.style.cssText = "width:100%;margin-top:8px;";
+  close.textContent = "Close";
+  close.onclick = closeModal;
+  sheet.appendChild(close);
+  sheet.setAttribute("role", "dialog");
+  sheet.setAttribute("aria-modal", "true");
+  sheet.setAttribute("aria-labelledby", "daily-journey-title");
+  document.getElementById("modal-overlay").classList.add("show");
+  requestAnimationFrame(() => primary.focus());
+}
+
 function renderStory(main) {
   main.classList.add("story-screen");
   const achBar = document.createElement("button");
@@ -4627,6 +4769,7 @@ function renderStory(main) {
   achBar.innerHTML = `🏆 Achievements <span class="ach-count">${Object.keys(unlockedAch).length}/${ACHIEVEMENTS.length}</span>`;
   achBar.onclick = openAchievementsModal;
   main.appendChild(achBar);
+  renderDailyJourneyCard(main);
 
   const currentJob = JOBS.find(job => job.id === state.job);
   const chapter = document.createElement("section");
@@ -4946,12 +5089,13 @@ function renderActivities(main) {
     button.addEventListener("click", () => {
       const result = WayfareCore.activities.perform(state, activity.id);
       if (!result.ok) { toast(result.reason || "That activity is unavailable."); render(); return; }
+      const dailyJourneyCompleted = recordDailyJourneyAction("activity");
       const deltas = Object.entries(result.statDeltas || {}).map(([stat, amount]) => [stat, amount]);
       if (result.relationshipsImproved) deltas.push(["closeness", activity.relationshipDelta || 0]);
       log(`${state.name} ${activity.result}`, deltas);
       saveGame();
       haptic("medium");
-      toast(`${activity.name} complete.`);
+      toast(dailyJourneyCompleted ? "Daily Journey complete — reward ready on Life." : `${activity.name} complete.`);
       render();
     });
     list.appendChild(card);
@@ -6415,8 +6559,10 @@ function renderPeople(main) {
     // humor lifts mood, trust builds with contact, memories accumulate)
     const interact = (kind) => {
       const out = WayfareCore.relationships.applyInteraction(state, r, kind);
+      const dailyJourneyCompleted = recordDailyJourneyAction("relationship");
       log(out.text);
       saveGame(); render();
+      if (dailyJourneyCompleted) toast("Daily Journey complete — reward ready on Life.");
     };
     // legacy path for bespoke actions the domain doesn't model yet
     const bond = (amount, happyAmount, verb) => {
@@ -6424,8 +6570,10 @@ function renderPeople(main) {
       r.trust = clamp((r.trust||50) + rand(1,3), 0, 100);
       r.lastInteractedAge = state.age;
       if (happyAmount) state.happiness = clamp(state.happiness + happyAmount);
+      const dailyJourneyCompleted = recordDailyJourneyAction("relationship");
       log(`${state.name} ${verb} ${r.name}.`);
       saveGame(); render();
+      if (dailyJourneyCompleted) toast("Daily Journey complete — reward ready on Life.");
     };
 
     const call = document.createElement('button');
@@ -8392,6 +8540,7 @@ document.querySelectorAll(".nav-btn[data-tab]").forEach(b=>{
 document.getElementById("life-event-banner").addEventListener("click", openPendingLifeChoice);
 function openMoreHub() {
   const destinations = [
+    { tab:"daily", icon:"✦", name:"Daily Journey", detail:"A fresh goal and streak reward" },
     { tab:"activities", icon:"⚡", name:"Activities", detail:"Choose how to spend your focus" },
     { tab:"home", icon:"🏠", name:"Home", detail:"Live, move, and decorate" },
     { tab:"education", icon:"🎓", name:"Education", detail:"Study and build skills" },
@@ -8408,6 +8557,7 @@ function openMoreHub() {
     button.innerHTML = `<span class="more-hub-icon" aria-hidden="true">${destination.icon}</span><span class="more-hub-copy"><span class="more-hub-name">${destination.name}</span><span class="more-hub-detail">${destination.detail}</span></span><span class="more-hub-arrow" aria-hidden="true">›</span>`;
     button.addEventListener("click", () => {
       closeModal();
+      if (destination.tab === "daily") { openDailyJourneyModal(); return; }
       if (destination.tab === "home") homeManagementMode = false;
       state.activeTab = destination.tab;
       render();

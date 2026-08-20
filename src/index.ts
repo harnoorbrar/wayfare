@@ -130,6 +130,15 @@ import {
   conceptionChance,
   tryForBaby as tryForBabyImpl,
 } from './domain/family';
+import {
+  claimDailyJourney,
+  dailyJourneyDefinitions,
+  definitionForDay,
+  ensureDailyJourney,
+  localDayKey,
+  recordDailyAction,
+  rewardForStreak,
+} from './domain/dailyJourneys';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -347,6 +356,16 @@ export const activities = {
   focusRemaining,
   perform: performActivity,
   recommendation: activityRecommendation,
+};
+
+export const dailyJourneys = {
+  definitions: dailyJourneyDefinitions,
+  dayKey: localDayKey,
+  definitionForDay,
+  ensure: ensureDailyJourney,
+  record: recordDailyAction,
+  claim: claimDailyJourney,
+  rewardForStreak,
 };
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
