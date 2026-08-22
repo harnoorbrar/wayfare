@@ -1529,6 +1529,7 @@
   .paywall-perks { display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
   .pw-perk { font-size: 13.5px; font-weight: 600; }
   .paywall-loading { font-size: 13px; color:#8a7d6b; text-align:center; padding:14px 0; }
+  .paywall-error { margin:0 0 10px; padding:10px 12px; color:#8b3f2b; background:rgba(194,84,47,.08); border:1px solid rgba(194,84,47,.20); border-radius:10px; font-size:11px; line-height:1.4; text-align:left; }
   .pw-buy {
     display:flex; justify-content:space-between; align-items:center; width:100%;
     font: inherit; font-weight:700; font-size:14.5px; color:inherit;
@@ -2126,6 +2127,10 @@ const REVIEW_PROMPT = {
 const PLUS = {
   apiKey: "appl_RwFUYoiiMUybOOdWxaEbKKJTVVj",
   entitlement: "plus",
+  productIds: [
+    "com.harnoorbrar.wayfare.plus.monthly",
+    "com.harnoorbrar.wayfare.plus.lifetime",
+  ],
 };
 const PLUS_KEY = "wayfare-plus";
 const THEME_KEY = "wayfare-theme";
@@ -2465,13 +2470,9 @@ async function ensurePlusReady() {
   if (!_plusInitialization) {
     _plusInitialization = (async () => {
       await P.configure({ apiKey: PLUS.apiKey });
-      const { customerInfo } = await P.getCustomerInfo();
-      const owned = customerHasPlus(customerInfo);
-      setPlus(owned);
-      if (owned) removeAdsNow();
       return P;
     })().catch(error => {
-      // Let a later retry make a clean connection attempt.
+      // Configure itself did not finish, so a later retry is safe.
       _plusInitialization = null;
       console.warn("Wayfare Plus initialization failed.", error);
       throw error;
@@ -2483,7 +2484,11 @@ async function initPlus() {
   setPlus(hasPlus()); // reflect cache immediately
   if (!purchasesPlugin() || PLUS.apiKey.indexOf("REPLACE") !== -1) return;
   try {
-    await ensurePlusReady();
+    const readyPurchases = await ensurePlusReady();
+    const { customerInfo } = await readyPurchases.getCustomerInfo();
+    const owned = customerHasPlus(customerInfo);
+    setPlus(owned);
+    if (owned) removeAdsNow();
   } catch(e) { /* The paywall provides a retry action when it is opened. */ }
 }
 function removeAdsNow() {
@@ -2491,7 +2496,43 @@ function removeAdsNow() {
   _adDue = false;
 }
 function plusPriceLabel(pkg) {
-  try { return pkg.product.priceString; } catch(e) { return ""; }
+  try { return (pkg.product || pkg).priceString || ""; } catch(e) { return ""; }
+}
+function plusProductId(option) {
+  try { return String((option.product || option).identifier || ""); } catch(e) { return ""; }
+}
+function plusOptionIsLifetime(option) {
+  return option.packageType === "LIFETIME" || plusProductId(option) === PLUS.productIds[1];
+}
+function plusPurchaseError(error) {
+  if (error && (error.userCancelled || error.userCancelled === true)) return "cancelled";
+  const message = String(error?.message || error?.userInfo?.readableErrorCode || "").toLowerCase();
+  if (message.includes("cancel")) return "cancelled";
+  if (message.includes("network") || message.includes("offline") || message.includes("internet")) return "Check your connection and try again.";
+  if (message.includes("not available") || message.includes("not found") || message.includes("product")) return "This purchase option is not available from the App Store yet.";
+  if (message.includes("configuration") || message.includes("configure") || message.includes("api key")) return "Wayfare Plus is temporarily unavailable while its store connection is updated.";
+  return "The App Store could not complete this purchase. Please try again or use Restore Purchases.";
+}
+function showPaywallError(message) {
+  const box = document.getElementById("paywall-packages");
+  if (!box) { toast(message); return; }
+  const existing = box.querySelector(".paywall-error");
+  if (existing) existing.remove();
+  const error = document.createElement("div");
+  error.className = "paywall-error";
+  error.setAttribute("role", "status");
+  error.textContent = message;
+  box.prepend(error);
+}
+async function loadPlusOptions(readyPurchases) {
+  const offerings = await readyPurchases.getOfferings();
+  const packages = (offerings.current && offerings.current.availablePackages) || [];
+  if (packages.length) return packages.map(item => ({ kind:"package", item }));
+
+  // A direct StoreKit lookup keeps sales available if products are valid but
+  // the RevenueCat default Offering was accidentally removed or unpublished.
+  const direct = await readyPurchases.getProducts({ productIdentifiers: PLUS.productIds });
+  return (direct.products || []).map(item => ({ kind:"product", item }));
 }
 async function openPaywall() {
   haptic("light");
@@ -2535,41 +2576,53 @@ async function renderPaywallPackages() {
   }
   try {
     const readyPurchases = await ensurePlusReady();
-    const { current } = await readyPurchases.getOfferings();
-    const pkgs = (current && current.availablePackages) || [];
-    if (!pkgs.length) { box.innerHTML = `<div class="paywall-loading">No options available right now.</div>`; return; }
+    const options = await loadPlusOptions(readyPurchases);
+    if (!options.length) {
+      box.innerHTML = `<div class="paywall-error" role="status">Wayfare Plus is not available from the App Store yet. Please try again later.</div><button class="pw-restore" id="pw-retry">Try Again</button>`;
+      document.getElementById("pw-retry").onclick = renderPaywallPackages;
+      return;
+    }
     box.innerHTML = "";
     // Show monthly first, lifetime second, anything else after
     const order = { "MONTHLY": 0, "LIFETIME": 1 };
-    pkgs.sort((a,b) => (order[a.packageType] ?? 9) - (order[b.packageType] ?? 9));
-    pkgs.forEach(pkg => {
-      const isLife = pkg.packageType === "LIFETIME";
+    options.sort((a,b) => (order[a.item.packageType] ?? (plusOptionIsLifetime(a.item) ? 1 : 9)) - (order[b.item.packageType] ?? (plusOptionIsLifetime(b.item) ? 1 : 9)));
+    options.forEach(option => {
+      const isLife = plusOptionIsLifetime(option.item);
       const btn = document.createElement("button");
       btn.className = "pw-buy" + (isLife ? " pw-life" : "");
-      btn.innerHTML = `<span>${isLife ? "Lifetime — pay once" : "Monthly"}</span><span class="pw-price">${plusPriceLabel(pkg)}${isLife ? "" : "/mo"}</span>`;
-      btn.onclick = () => buyPlus(pkg, btn);
+      btn.innerHTML = `<span>${isLife ? "Lifetime — pay once" : "Monthly"}</span><span class="pw-price">${plusPriceLabel(option.item)}${isLife ? "" : "/mo"}</span>`;
+      btn.onclick = () => buyPlus(option, btn);
       box.appendChild(btn);
     });
   } catch(e) {
+    console.error("Wayfare Plus options failed to load.", e);
     box.innerHTML = `<div class="paywall-loading">Couldn't load purchase options. Check your connection and try again.</div><button class="pw-restore" id="pw-retry">Try Again</button>`;
     document.getElementById("pw-retry").onclick = renderPaywallPackages;
   }
 }
-async function buyPlus(pkg, btn) {
+async function buyPlus(option, btn) {
   const P = purchasesPlugin();
   if (!P) { toast("Purchases are available in the iOS app."); return; }
   const old = btn.innerHTML;
   btn.disabled = true; btn.innerHTML = "<span>Purchasing…</span>";
   try {
     const readyPurchases = await ensurePlusReady();
-    const { customerInfo } = await readyPurchases.purchasePackage({ aPackage: pkg });
+    const result = option.kind === "package"
+      ? await readyPurchases.purchasePackage({ aPackage: option.item })
+      : await readyPurchases.purchaseStoreProduct({ product: option.item });
+    const customerInfo = result.customerInfo;
     if (customerHasPlus(customerInfo)) {
       setPlus(true); removeAdsNow(); haptic("heavy");
       toast("✦ Welcome to Wayfare Plus!");
       document.getElementById("modal-overlay").classList.remove("show");
       return;
     }
-  } catch(e) { /* cancelled or failed — fall through */ }
+    showPaywallError("Purchase received. If Plus does not unlock shortly, tap Restore Purchases.");
+  } catch(e) {
+    console.error("Wayfare Plus purchase failed.", e);
+    const message = plusPurchaseError(e);
+    if (message !== "cancelled") showPaywallError(message);
+  }
   btn.disabled = false; btn.innerHTML = old;
 }
 async function restorePlus() {
@@ -2585,7 +2638,11 @@ async function restorePlus() {
     } else {
       toast("No previous purchase found.");
     }
-  } catch(e) { toast("Restore failed. Try again later."); }
+  } catch(e) {
+    console.error("Wayfare Plus restore failed.", e);
+    const message = plusPurchaseError(e);
+    if (message !== "cancelled") showPaywallError(message);
+  }
 }
 function admobPlugin() {
   return window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob || null;

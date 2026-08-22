@@ -5,6 +5,9 @@
 - [ ] Confirm the App Store Connect record uses bundle ID `com.harnoorbrar.wayfare`.
 - [ ] Confirm version **1.7** is created in App Store Connect. Codemagic increments the build number above 6 automatically.
 - [ ] In Codemagic, verify the `Codemagic Wayfare` App Store Connect integration is authorized and the signing profile is current.
+- [ ] Confirm the iOS App target has the **In-App Purchase** capability and its automatic provisioning profile was refreshed after the capability was added.
+- [ ] In App Store Connect > Business, confirm the latest Paid Applications Agreement is active and banking/tax status is complete.
+- [ ] In RevenueCat, confirm the Wayfare iOS app has an In-App Purchase Key, the `plus` entitlement includes both products, and an Offering containing monthly and lifetime packages is marked as the default.
 - [ ] Push the intended `main` commit. The `ios-release` workflow builds, tests, signs, uploads to TestFlight, and is configured to submit the selected build for review.
 - [ ] Install the TestFlight build on a physical iPhone and test a full life, a 3D home, Free Drive, an interstitial ad, a purchase, and Restore Purchases.
 
