@@ -15,7 +15,7 @@
 ## App Store Connect
 
 - [ ] Copy the title, subtitle, description, keywords, promotional text, category, review notes, and URLs from `STORE_LISTING.md`.
-- [ ] Upload the five 6.7-inch iPhone screenshots from `screenshots/store-preview-v14`. Add other required device sizes or use App Store Connect's screenshot scaling where available.
+- [ ] Upload the six 6.7-inch iPhone screenshots from `screenshots/store-preview-v15` in filename order (Companions leads at slot 2). Add other required device sizes or use App Store Connect's screenshot scaling where available.
 - [ ] Complete the age-rating questionnaire against the shipped build. The existing suggested answers are in `STORE_LISTING.md`; do not rely on the expected 13+ result without completing the current questionnaire.
 - [ ] Set the support URL and privacy policy URL. Confirm both public GitHub Pages URLs load before submission.
 - [ ] Attach `com.harnoorbrar.wayfare.plus.monthly` and `com.harnoorbrar.wayfare.plus.lifetime` to version 1.8 and submit them with the app if they have not already been approved.

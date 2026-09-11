@@ -1503,8 +1503,15 @@
   .fs-fill{height:100%;border-radius:3px;}
   .fs-label{font-size:9px;color:#a89a82;text-transform:uppercase;}
   .fs-val{font-size:12px;font-weight:700;color:var(--paper);}
+  .legacy-pets{display:grid;gap:8px;}
+  .legacy-pet{display:flex;align-items:center;gap:10px;}
+  .legacy-pet-icon{font-size:19px;filter:grayscale(.3);}
+  .legacy-pet-copy{display:flex;flex-direction:column;min-width:0;}
+  .legacy-pet-name{font-size:13px;font-weight:700;color:#f0e8dc;}
+  .legacy-pet-detail{font-size:11px;color:#a89a82;}
   .tally{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;}
-  .tally-item{display:flex;justify-content:space-between;font-size:13px;border-bottom:1px dotted rgba(255,255,255,.12);padding-bottom:5px;}
+  .tally-item{display:flex;justify-content:space-between;gap:8px;min-width:0;font-size:13px;border-bottom:1px dotted rgba(255,255,255,.12);padding-bottom:5px;}
+  .tally-v{text-align:right;}
   .tally-k{color:#a89a82;}
   .tally-v{color:var(--paper);font-weight:600;text-align:right;}
   #gameover{justify-content:flex-start!important;overflow-y:auto;}
@@ -1887,6 +1894,18 @@
   .whats-new-grid { gap:8px; }
   .whats-new-item { cursor:default; }
   .whats-new-item:active { transform:none; }
+  .companion-strip { margin-bottom:18px; }
+  .companion-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:8px; }
+  .companion-tile { display:flex; flex-direction:column; align-items:center; gap:5px; padding:11px 7px 9px; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.55); color:var(--ink); font:inherit; cursor:pointer; transition:transform .16s ease, border-color .16s ease; }
+  .companion-tile:active { transform:scale(.97); }
+  .companion-tile.needs { border-color:rgba(201,154,58,.5); background:rgba(201,154,58,.08); }
+  .companion-tile-icon { font-size:24px; line-height:1; }
+  .companion-tile-name { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; font-weight:800; }
+  .companion-tile-track { width:100%; height:4px; border-radius:999px; background:var(--paper-dim); overflow:hidden; }
+  .companion-tile-fill { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,var(--accent-dim),var(--accent)); }
+  .companion-note { margin-top:7px; color:var(--ink-dim); font-size:11px; line-height:1.4; }
+  html[data-theme="dark"] .companion-tile { background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.09); }
+  html[data-theme="dark"] .companion-tile.needs { border-color:rgba(223,180,94,.4); background:rgba(223,180,94,.08); }
   /* ---- Companions ---- */
   .pet-intro { margin:-2px 2px 10px; color:var(--ink-dim); font-size:11.5px; line-height:1.45; }
   .pet-card { padding:14px; margin-bottom:10px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:0 5px 16px rgba(43,36,32,.04); }
@@ -3351,6 +3370,43 @@ function performPetCare(petId, actionId) {
   toast(journeyDone ? "Daily Journey complete — reward ready on Life." : result.loved ? `${pet.name} loved that. Bond +${result.bondDelta}` : `Bond +${result.bondDelta} with ${pet.name}`);
 }
 
+/* Life-tab strip: who is waiting at home, and whether they need you this year.
+   Keeps the headline feature one tap away instead of buried in People. */
+function renderCompanionStrip(main) {
+  let pets = [];
+  try { pets = WayfareCore.pets.ensure(state); } catch(e) { return; }
+  if (!pets.length) return;
+  const section = document.createElement("section");
+  section.className = "companion-strip";
+  const uncared = pets.filter(pet => {
+    const done = pet.care && pet.care.age === state.age ? pet.care.done.length : 0;
+    return done === 0;
+  }).length;
+  const label = document.createElement("div");
+  label.className = "life-snapshot-label";
+  label.textContent = "At home";
+  const row = document.createElement("div");
+  row.className = "companion-row";
+  pets.slice(0, 4).forEach(pet => {
+    const t = petTypeById(pet.typeId);
+    if (!t) return;
+    const tile = document.createElement("button");
+    const needsYou = !(pet.care && pet.care.age === state.age && pet.care.done.length);
+    tile.className = "companion-tile" + (needsYou ? " needs" : "");
+    tile.setAttribute("aria-label", `${pet.name}, ${t.name}, bond ${pet.bond}${needsYou ? ", has not been cared for this year" : ""}`);
+    tile.innerHTML = `<span class="companion-tile-icon" aria-hidden="true">${t.icon}</span><span class="companion-tile-name">${escapeHtml(pet.name)}</span><span class="companion-tile-track"><span class="companion-tile-fill" style="width:${pet.bond}%"></span></span>`;
+    tile.onclick = () => { state.activeTab = "people"; render(); };
+    row.appendChild(tile);
+  });
+  const note = document.createElement("div");
+  note.className = "companion-note";
+  note.textContent = uncared
+    ? `${uncared === pets.length ? (uncared === 1 ? "Someone is" : "They are") : `${uncared} of them ${uncared === 1 ? "is" : "are"}`} still waiting on you this year.`
+    : "Everyone got their time with you this year.";
+  section.append(label, row, note);
+  main.appendChild(section);
+}
+
 /* One card per companion: identity, personality, bond, and this year's care. */
 function renderPetCard(pet) {
   const t = petTypeById(pet.typeId);
@@ -4594,8 +4650,11 @@ function buildLegacy(){
   if(age>95) cause="Died peacefully of old age, mid-nap, mid-dream.";
   else if(state.health<=0){const f=["Health finally filed its resignation.","The body called it a day.","Ran out of hit points the old-fashioned way."];cause=f[Math.floor(WayfareCore.rng.next()*f.length)];}
   else cause="Cause unknown. The universe shrugged.";
+  const companionsLoved=(state.pets||[]).length+(state.petMemorial||[]).length;
+  const devoted=(state.pets||[]).some(p=>(p.bond||0)>=90)||(state.petMemorial||[]).some(p=>(p.bond||0)>=90);
   let epitaph;
-  if(state.happiness>70) epitaph="Lived gladly, loved loudly, left light.";
+  if(companionsLoved>=4&&devoted) epitaph="Every stray found the door open. None of them left unloved.";
+  else if(state.happiness>70) epitaph="Lived gladly, loved loudly, left light.";
   else if((state.peakMoney||state.money)>500000) epitaph="Built much, kept more, took none of it along.";
   else if(state.children.length) epitaph="Remembered most by those they raised.";
   else epitaph="A quiet life, fully their own.";
@@ -4623,8 +4682,20 @@ function buildLegacy(){
       <div class="tally-item"><span class="tally-k">Achievements</span><span class="tally-v">${Object.keys(unlockedAch).length}/${ACHIEVEMENTS.length}</span></div>
       <div class="tally-item"><span class="tally-k">Estate</span><span class="tally-v">${fmtMoney(computeNetWorth(state))}</span></div>
       <div class="tally-item"><span class="tally-k">Known by</span><span class="tally-v">${state.relationships.length} people</span></div>
+      ${(()=>{ const lived=(state.pets||[]).length+(state.petMemorial||[]).length; return lived ? `<div class="tally-item"><span class="tally-k">Companions</span><span class="tally-v">${lived}</span></div>` : ""; })()}
       ${(()=>{ try { const life=WayfareCore.legacy.lifeScore(state); const dyn=(state.legacyTotal||0)+life.total; return `<div class="tally-item"><span class="tally-k">Life score</span><span class="tally-v">${life.total}</span></div><div class="tally-item"><span class="tally-k">Dynasty</span><span class="tally-v">${Math.round(dyn)} · ${WayfareCore.legacy.rank(dyn)}</span></div>`; } catch(e){ return ""; } })()}
     </div></div>
+    ${(()=>{
+      const gone=(state.petMemorial||[]);
+      const here=(state.pets||[]);
+      if(!gone.length&&!here.length) return "";
+      const line=entry=>{ const t=petTypeById(entry.typeId); return `<div class="legacy-pet"><span class="legacy-pet-icon" aria-hidden="true">${t?t.icon:"🐾"}</span><span class="legacy-pet-copy"><span class="legacy-pet-name">${escapeHtml(entry.name)}</span><span class="legacy-pet-detail">${entry.years===1?"1 year":`${entry.years} years`} together${entry.bond>=75?" · inseparable":""}</span></span></div>`; };
+      const survivors=here.map(pet=>`<div class="legacy-pet"><span class="legacy-pet-icon" aria-hidden="true">${(petTypeById(pet.typeId)||{icon:"🐾"}).icon}</span><span class="legacy-pet-copy"><span class="legacy-pet-name">${escapeHtml(pet.name)}</span><span class="legacy-pet-detail">Outlived them${state.children.length?" · went to the family":""}</span></span></div>`).join("");
+      return `<div class="legacy-panel">
+        <div class="legacy-h">The Ones Who Waited</div>
+        <div class="legacy-pets">${gone.slice(0,6).map(line).join("")}${survivors}</div>
+      </div>`;
+    })()}
     ${state.children.length ? `
     <div class="legacy-panel">
       <div class="legacy-h">Continue the Story</div>
@@ -5086,6 +5157,7 @@ function renderStory(main) {
   main.appendChild(chapter);
 
   renderLifeSnapshot(main, currentJob);
+  renderCompanionStrip(main);
   renderAmbitionSummary(main);
 
   const goals = buildLifeGoals();
