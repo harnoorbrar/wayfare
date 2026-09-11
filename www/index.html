@@ -1884,6 +1884,94 @@
     .activity-footer { align-items:stretch; flex-direction:column; }
     .activity-do { width:100%; }
   }
+  .whats-new-grid { gap:8px; }
+  .whats-new-item { cursor:default; }
+  .whats-new-item:active { transform:none; }
+  /* ---- Companions ---- */
+  .pet-intro { margin:-2px 2px 10px; color:var(--ink-dim); font-size:11.5px; line-height:1.45; }
+  .pet-card { padding:14px; margin-bottom:10px; border:1px solid var(--line); border-radius:16px; background:#fff; box-shadow:0 5px 16px rgba(43,36,32,.04); }
+  .pet-card-head { display:grid; grid-template-columns:52px minmax(0,1fr); align-items:center; gap:12px; }
+  .pet-portrait { width:52px; height:52px; display:grid; place-items:center; border-radius:16px; background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.9),transparent 55%),linear-gradient(145deg,rgba(201,154,58,.22),rgba(194,84,47,.14)); font-size:28px; box-shadow:inset 0 0 0 1px rgba(194,84,47,.12); }
+  .pet-identity { min-width:0; }
+  .pet-name-btn { display:inline-flex; align-items:center; gap:6px; max-width:100%; padding:2px 4px 2px 0; border:0; background:none; color:var(--ink); font:inherit; text-align:left; cursor:pointer; border-radius:8px; }
+  .pet-name { font-family:var(--font-display); font-size:18px; font-weight:700; letter-spacing:-.2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pet-rename-icon { flex:0 0 auto; width:22px; height:22px; display:grid; place-items:center; border-radius:7px; color:var(--accent); background:rgba(194,84,47,.10); font-size:11px; }
+  .pet-name-btn:active .pet-rename-icon { transform:scale(.92); }
+  .pet-sub { margin-top:1px; color:var(--ink-dim); font-size:11.5px; }
+  .pet-badges { display:flex; flex-wrap:wrap; gap:5px; margin-top:10px; }
+  .pet-badges:empty { display:none; }
+  .pet-badge { padding:4px 8px; border-radius:999px; color:var(--ink-dim); background:var(--paper-dim); font-size:9.5px; font-weight:750; }
+  .pet-badge.trait { color:#7a3a25; background:rgba(194,84,47,.10); }
+  .pet-badge.gold { color:#74591f; background:rgba(201,154,58,.16); }
+  .pet-badge.senior { color:#4f5f8a; background:rgba(79,95,138,.12); }
+  .pet-bond { margin-top:11px; }
+  .pet-bond-row { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .pet-bond-label { color:var(--ink-dim); font-size:9.5px; font-weight:850; letter-spacing:.8px; text-transform:uppercase; }
+  .pet-bond-value { font-size:12px; font-weight:800; color:var(--accent); }
+  .pet-bond-track { height:6px; margin-top:6px; border-radius:999px; background:var(--paper-dim); overflow:hidden; }
+  .pet-bond-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,var(--accent-dim),var(--accent) 60%,var(--gold)); transition:width .5s cubic-bezier(.2,.8,.2,1); }
+  .pet-actions { display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:7px; margin-top:12px; }
+  .pet-action { display:flex; flex-direction:column; align-items:center; gap:2px; min-height:58px; padding:8px 6px; border:1px solid var(--line); border-radius:13px; background:rgba(255,255,255,.6); color:var(--ink); font:inherit; cursor:pointer; transition:transform .12s ease, background .16s ease; }
+  .pet-action:active:not(:disabled) { transform:scale(.96); }
+  .pet-action.loved { border-color:rgba(201,154,58,.55); background:rgba(201,154,58,.09); }
+  .pet-action.loved .pet-action-label::after { content:" ♥"; color:var(--accent); }
+  .pet-action.done { border-style:dashed; background:transparent; }
+  .pet-action:disabled { color:var(--ink-dim); cursor:default; }
+  .pet-action:disabled:not(.done) { opacity:.6; }
+  .pet-action-icon { font-size:17px; line-height:1.2; }
+  .pet-action.done .pet-action-icon { color:var(--good); font-weight:900; }
+  .pet-action-label { font-size:11px; font-weight:800; }
+  .pet-action-cost { font-size:9.5px; font-weight:700; color:var(--ink-dim); }
+  .pet-memorial { margin-top:2px; }
+  .pet-memorial-list { display:grid; gap:6px; margin-top:10px; }
+  .pet-memorial-row { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:11px; background:var(--paper-dim); }
+  .pet-memorial-icon { font-size:18px; filter:grayscale(.35); }
+  .pet-memorial-copy { display:flex; flex-direction:column; min-width:0; }
+  .pet-memorial-name { font-size:12.5px; font-weight:800; }
+  .pet-memorial-detail { color:var(--ink-dim); font-size:10.5px; }
+  .pet-memorial-more { color:var(--ink-dim); font-size:10.5px; font-weight:700; text-align:center; padding:2px 0; }
+  /* adoption center */
+  .adopt-list { display:grid; gap:8px; }
+  .adopt-card { display:grid; grid-template-columns:44px minmax(0,1fr) auto; align-items:center; gap:10px; padding:11px 12px; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.62); }
+  .adopt-card.plus { border-color:rgba(201,154,58,.4); background:rgba(201,154,58,.06); }
+  .adopt-icon { width:44px; height:44px; display:grid; place-items:center; border-radius:13px; background:var(--paper-dim); font-size:24px; }
+  .adopt-copy { min-width:0; }
+  .adopt-name { font-size:13px; font-weight:800; }
+  .adopt-plus { margin-left:3px; color:#a8925f; font-size:10px; font-weight:850; letter-spacing:.4px; }
+  .adopt-blurb { margin-top:1px; color:var(--ink-dim); font-size:11px; line-height:1.38; }
+  .adopt-meta { display:flex; flex-wrap:wrap; gap:4px 9px; margin-top:4px; color:var(--ink-dim); font-size:10px; font-weight:750; }
+  .adopt-btn { min-height:38px; padding:8px 12px; border:0; border-radius:12px; color:#fff; background:var(--accent); font:inherit; font-size:11px; font-weight:800; white-space:nowrap; cursor:pointer; }
+  .adopt-btn.locked { color:#74591f; background:rgba(201,154,58,.2); }
+  .adopt-btn:disabled { color:var(--ink-dim); background:var(--paper-dim); cursor:default; }
+  .adopt-close { width:100%; margin-top:12px; min-height:44px; }
+  /* naming sheet */
+  .pet-name-head { text-align:center; margin-bottom:14px; }
+  .pet-name-portrait { width:84px; height:84px; margin:2px auto 12px; display:grid; place-items:center; border-radius:26px; background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.95),transparent 55%),linear-gradient(145deg,rgba(201,154,58,.26),rgba(194,84,47,.16)); font-size:46px; box-shadow:0 10px 24px rgba(194,84,47,.14), inset 0 0 0 1px rgba(194,84,47,.12); }
+  .pet-name-field { display:block; margin-bottom:12px; }
+  .pet-name-field input { font-size:17px; font-weight:700; min-height:50px; text-align:center; }
+  .pet-name-field input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(194,84,47,.14); }
+  .pet-name-suggest-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
+  .pet-name-shuffle { padding:5px 9px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.55); color:var(--accent); font:inherit; font-size:10.5px; font-weight:800; cursor:pointer; }
+  .pet-name-chips { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px; }
+  .pet-name-chip { min-height:38px; padding:8px 13px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.55); color:var(--ink); font:inherit; font-size:12px; font-weight:750; cursor:pointer; transition:transform .12s ease; }
+  .pet-name-chip:active { transform:scale(.95); }
+  .pet-name-chip.active { color:#fff; border-color:var(--accent); background:var(--accent); }
+  html[data-theme="dark"] .pet-card { background:#211e1a; box-shadow:0 10px 24px rgba(0,0,0,.16); }
+  html[data-theme="dark"] .pet-portrait, html[data-theme="dark"] .pet-name-portrait { background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.14),transparent 55%),linear-gradient(145deg,rgba(223,180,94,.2),rgba(228,119,80,.14)); }
+  html[data-theme="dark"] .pet-badge.trait { color:#f0a98b; background:rgba(228,119,80,.14); }
+  html[data-theme="dark"] .pet-badge.gold { color:var(--gold); background:rgba(223,180,94,.14); }
+  html[data-theme="dark"] .pet-badge.senior { color:#a9b6de; background:rgba(169,182,222,.12); }
+  html[data-theme="dark"] :is(.pet-action,.adopt-card,.pet-name-chip,.pet-name-shuffle) { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.1); }
+  html[data-theme="dark"] .pet-action.loved { border-color:rgba(223,180,94,.45); background:rgba(223,180,94,.09); }
+  html[data-theme="dark"] .pet-action.done { background:transparent; }
+  html[data-theme="dark"] .adopt-card.plus { border-color:rgba(223,180,94,.35); background:rgba(223,180,94,.07); }
+  html[data-theme="dark"] .adopt-btn.locked { color:var(--gold); background:rgba(223,180,94,.16); }
+  html[data-theme="dark"] .pet-name-chip.active { color:#fff; background:var(--accent); border-color:var(--accent); }
+  @media (max-width:340px) {
+    .pet-actions { grid-template-columns:repeat(3,1fr); }
+    .adopt-card { grid-template-columns:40px minmax(0,1fr); }
+    .adopt-btn { grid-column:1 / -1; width:100%; }
+  }
   #room-stage { border-radius: 16px; box-shadow: 0 10px 24px rgba(43,36,32,.08); }
   .floorplan-tile { border-radius: 13px; transition: transform .16s ease, background .16s ease; }
   .floorplan-tile:active, .furniture-item:active { transform: scale(.97); }
@@ -2355,6 +2443,8 @@ function openSettings() {
     <button class="panel-action" id="settings-plus" style="width:100%;margin-bottom:14px;">✦ View purchase options</button>
     <div class="settings-label">Character</div>
     <button class="panel-action secondary" id="settings-character" style="width:100%;min-height:44px;margin-bottom:14px;">Customize name &amp; appearance</button>
+    <div class="settings-label">This release</div>
+    <button class="panel-action secondary" id="settings-whats-new" style="width:100%;min-height:44px;margin-bottom:14px;">What's new in ${APP_VERSION}</button>
     <div class="settings-label">Appearance</div>
     <div class="appearance-options" role="group" aria-label="Appearance">
       <button class="theme-option" data-theme-option="system" aria-pressed="false"><span class="theme-glyph">◐</span><span>System</span></button>
@@ -2423,6 +2513,7 @@ function openSettings() {
   });
   document.getElementById("settings-plus").onclick = openPaywall;
   document.getElementById("settings-character").onclick = () => openCharacterCreator(true);
+  document.getElementById("settings-whats-new").onclick = openWhatsNew;
   const hapticsToggle = document.getElementById("haptics-toggle");
   hapticsToggle.setAttribute("aria-checked", String(preferenceEnabled(HAPTICS_KEY, true)));
   hapticsToggle.onclick = () => {
@@ -3091,10 +3182,14 @@ const ACHIEVEMENTS = [
   { id:"best_friend",   icon:"🐾", name:"Best Friend",          desc:"Adopt a pet.",                          check:s=>(s.pets||[]).length>=1 },
   { id:"menagerie",     icon:"🦁", name:"The Menagerie",        desc:"Own 3 pets at once.",                   check:s=>(s.pets||[]).length>=3 },
   { id:"good_boys",     icon:"🐕", name:"The Good Boys",        desc:"Own 3 dogs at once.",                   check:s=>(s.pets||[]).filter(isDog).length>=3 },
+  { id:"named_with_love", icon:"🏷️", name:"Named with Love",    desc:"Give a companion a name of your own.",  check:s=>(s.pets||[]).some(p=>p.customNamed) },
+  { id:"soulmates",     icon:"💞", name:"Soulmates",            desc:"Reach a 100 bond with a companion.",    check:s=>(s.pets||[]).some(p=>(p.bond||0)>=100) },
+  { id:"well_trained",  icon:"🎓", name:"Sit. Stay. Genius.",   desc:"Teach a companion 3 tricks.",           check:s=>(s.pets||[]).some(p=>(p.tricks||0)>=3) },
+  { id:"remembered",    icon:"🕯️", name:"Always Remembered",    desc:"Honour 3 companions on the memorial.",  check:s=>(s.petMemorial||[]).length>=3 },
   { id:"main_character",  icon:"📱", name:"Main Character",   desc:"Go viral." },
   { id:"out_there",       icon:"🛸", name:"Out There",        desc:"You know what you saw." },
   { id:"nine_lives",      icon:"🐈‍⬛", name:"Nine Lives",       desc:"Survive something you shouldn't have." },
-  { id:"old_friend",      icon:"🌈", name:"An Old Friend",    desc:"Give a pet a full, happy life." },
+  { id:"old_friend",      icon:"🌈", name:"An Old Friend",    desc:"Give a bonded companion a full, happy life." },
 ];
 
 function unlockAchievement(id) {
@@ -3116,77 +3211,210 @@ function checkAchievements() {
   });
 }
 
-/* ---------------- PETS ---------------- */
-const PET_TYPES = [
-  { id:"goldfish", icon:"🐠", name:"Goldfish", cost:15,  lifespan:4,  happy:1, upkeep:20,  blurb:"Low maintenance. Low expectations. Swims." },
-  { id:"hamster",  icon:"🐹", name:"Hamster",  cost:25,  lifespan:3,  happy:2, upkeep:60,  blurb:"Runs all night on a squeaky wheel. Adorable insomnia machine." },
-  { id:"cat",      icon:"🐈", name:"Cat",      cost:150, lifespan:16, happy:4, upkeep:600, blurb:"Owns you, legally speaking. Occasionally affectionate." },
-  { id:"dog",           icon:"🐕", name:"Rescue Mutt",      cost:100,  lifespan:14, happy:6, upkeep:700,  health:1, blurb:"One of everything. Loyal to the bone." },
-  { id:"dog_golden",    icon:"🦮", name:"Golden Retriever", cost:900,  lifespan:11, happy:8, upkeep:1100, health:1, blurb:"Aggressively friendly. Sheds a second dog per week." },
-  { id:"dog_chihuahua", icon:"🐶", name:"Chihuahua",        cost:500,  lifespan:16, happy:4, upkeep:500,  blurb:"Four pounds of pure rage and devotion." },
-  { id:"dog_husky",     icon:"🐺", name:"Husky",            cost:800,  lifespan:12, happy:6, upkeep:1200, health:2, blurb:"Screams instead of barking. Requires a daily marathon." },
-  { id:"dog_poodle",    icon:"🐩", name:"Poodle",           cost:1100, lifespan:14, happy:6, upkeep:1000, smarts:1, blurb:"Smarter than most of your coworkers. Knows it." },
-  { id:"dog_corgi",     icon:"🐕‍🦺", name:"Corgi",            cost:1000, lifespan:13, happy:7, upkeep:800,  blurb:"A loaf of bread with ambition and no legs." },
-  { id:"dog_greatdane", icon:"🐎", name:"Great Dane",       cost:1200, lifespan:8,  happy:7, upkeep:1600, blurb:"A small horse convinced it's a lap dog." },
-  { id:"dog_doberman",  icon:"🖤", name:"Doberman",         cost:1500, lifespan:11, happy:6, upkeep:1300, health:2, blurb:"Looks like a security system. Is actually a velcro baby." },
-  { id:"snake",    icon:"🐍", name:"Snake",    cost:200, lifespan:20, happy:2, upkeep:300, blurb:"Judges you silently from a heated rock." },
-  { id:"parrot",   icon:"🦜", name:"Parrot",   cost:900, lifespan:45, happy:4, upkeep:500, blurb:"May outlive you. Will definitely embarrass you." },
-  { id:"owl",      icon:"🦉", name:"Owl",      cost:2500, lifespan:25, happy:6, upkeep:900,  smarts:2, plus:true, blurb:"Silent. Wise. Definitely reading your mail." },
-  { id:"fennec",   icon:"🦊", name:"Fennec Fox", cost:3000, lifespan:13, happy:9, upkeep:1400, plus:true, blurb:"Ninety percent ears, ten percent chaos." },
-  { id:"dragon",   icon:"🐉", name:"Tiny Dragon", cost:10000, lifespan:60, happy:12, upkeep:2500, health:2, plus:true, blurb:"Technically a very committed iguana. Do not fact-check this." },
-];
-const PET_NAMES = ["Biscuit","Noodle","Waffles","Beans","Pickle","Mochi","Taco","Ziggy","Pepper","Gizmo","Churro","Bagel","Sprout","Turnip","Meatball","Crouton","Pumpkin","Dumpling","Nacho","Sir Reginald"];
-function petTypeById(id){ return PET_TYPES.find(p=>p.id===id); }
-function isDog(pet){ return pet.typeId === "dog" || (pet.typeId||"").indexOf("dog_") === 0; }
-
-function adoptPet(typeId) {
-  const t = petTypeById(typeId);
-  if (!t) return;
-  if (t.plus && !hasPlus()) { openPaywall(); return; }
-  if (state.money < t.cost) { toast("Not enough cash for the adoption fee."); return; }
-  applyDelta("money", -t.cost);
-  const name = pick(PET_NAMES);
-  state.pets.push({ name, typeId, age: 0, maxAge: Math.max(1, t.lifespan + rand(-2,3)) });
-  const joy = rand(4,8);
-  applyDelta("happiness", joy);
-  log(`${state.name} adopted a ${t.name.toLowerCase()} and named it ${name}. ${t.icon}`, [["happiness", joy]]);
-  closeModal();
-  saveGame(); render();
+/* ---------------- PETS (Companions) ----------------
+   Rules live in the domain layer (WayfareCore.pets): species, traits, bond,
+   care actions, the yearly tick and the memorial. This section is UI only. */
+const PET_TYPES = WayfareCore.pets.species;
+function petTypeById(id){ return WayfareCore.pets.speciesById(id); }
+function isDog(pet){ return WayfareCore.pets.isDog(pet); }
+function escapeHtml(text) {
+  return String(text ?? "").replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch]));
 }
 
+function petCareLabel(pet) {
+  const stage = WayfareCore.pets.lifeStageLabel(WayfareCore.pets.lifeStage(pet));
+  const years = pet.age === 1 ? "1 yr" : `${pet.age} yrs`;
+  return `${stage} · ${years} old`;
+}
+
+/* Adoption is a two-step sheet: choose a companion, then name them. */
 function openAdoptModal() {
   const sheet = document.getElementById("modal-sheet");
-  sheet.innerHTML = `<div class="panel-title" style="margin-bottom:2px;">🏡 Adoption Center</div>
-    <div class="panel-sub" style="margin-bottom:10px;">Every pet adds happiness each year, and costs a bit of upkeep. Some stick around longer than others.</div>`;
-  PET_TYPES.forEach(t=>{
-    const card = document.createElement("div");
-    card.style.cssText = "display:flex;gap:12px;align-items:center;padding:10px 2px;border-bottom:1px solid rgba(0,0,0,.08);";
+  sheet.innerHTML = `<div class="settings-head"><div class="settings-icon">🏡</div><div><div class="settings-title">Adoption Center</div><div class="settings-sub">Every companion brings joy each year and costs a little upkeep. The bond you build is what lasts.</div></div></div><div class="adopt-list"></div>`;
+  const list = sheet.querySelector(".adopt-list");
+  PET_TYPES.forEach(t => {
+    const locked = t.plus && !hasPlus();
+    const affordable = state.money >= t.cost;
+    const card = document.createElement("article");
+    card.className = "adopt-card" + (locked ? " plus" : "");
     card.innerHTML = `
-      <div style="font-size:26px;width:34px;text-align:center;">${t.icon}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-weight:700;">${t.name}${t.plus ? ' <span style="color:#a8925f;font-size:11px;font-weight:800;">✦ PLUS</span>' : ''} <span style="font-weight:400;font-size:12px;opacity:.7;">· ${fmtMoney(t.cost)}</span></div>
-        <div style="font-size:12px;opacity:.8;">${t.blurb}</div>
-        <div style="font-size:11px;opacity:.6;">~${t.lifespan} yrs · ${fmtMoney(t.upkeep)}/yr upkeep</div>
+      <div class="adopt-icon" aria-hidden="true">${t.icon}</div>
+      <div class="adopt-copy">
+        <div class="adopt-name">${t.name}${t.plus ? ' <span class="adopt-plus">✦ PLUS</span>' : ""}</div>
+        <div class="adopt-blurb">${t.blurb}</div>
+        <div class="adopt-meta"><span>${fmtMoney(t.cost)} to adopt</span><span>~${t.lifespan} yrs</span><span>${fmtMoney(t.upkeep)}/yr</span></div>
       </div>`;
     const btn = document.createElement("button");
-    btn.className = "panel-action";
-    const locked = t.plus && !hasPlus();
-    btn.textContent = locked ? "✦ Plus" : "Adopt";
-    btn.disabled = !locked && state.money < t.cost;
-    btn.onclick = ()=>adoptPet(t.id);
+    btn.className = "adopt-btn" + (locked ? " locked" : "");
+    btn.type = "button";
+    btn.textContent = locked ? "✦ Plus" : affordable ? "Choose" : "Too pricey";
+    btn.disabled = !locked && !affordable;
+    btn.onclick = () => { if (locked) { openPaywall(); return; } openPetNamingStep(t.id); };
     card.appendChild(btn);
-    sheet.appendChild(card);
+    list.appendChild(card);
   });
   const close = document.createElement("button");
-  close.className = "panel-action secondary";
-  close.style.cssText = "width:100%;margin-top:12px;";
+  close.className = "panel-action secondary adopt-close";
+  close.type = "button";
   close.textContent = "Close";
   close.onclick = closeModal;
   sheet.appendChild(close);
   document.getElementById("modal-overlay").classList.add("show");
 }
 
+/* Shared naming sheet: adoption (typeId) or rename (existing pet). */
+function openPetNamingStep(typeId, existingPet = null) {
+  const t = petTypeById(existingPet ? existingPet.typeId : typeId);
+  if (!t) return;
+  const sheet = document.getElementById("modal-sheet");
+  const renaming = Boolean(existingPet);
+  let suggestions = WayfareCore.pets.suggestNames(t.id, 4);
+  let draft = renaming ? existingPet.name : "";
 
+  const renderStep = () => {
+    sheet.innerHTML = `
+      <div class="pet-name-head">
+        <div class="pet-name-portrait" aria-hidden="true">${t.icon}</div>
+        <div class="creator-kicker">${renaming ? "Your companion" : "Almost home"}</div>
+        <div class="creator-title">${renaming ? `Rename ${escapeHtml(existingPet.name)}` : `Name your ${t.name.toLowerCase()}`}</div>
+        <div class="creator-sub">${renaming ? "A new name, same old friend. Nothing else changes." : "The name you choose is theirs for life. You'll learn their personality once they settle in."}</div>
+      </div>
+      <label class="creator-field pet-name-field"><span class="creator-field-label">Name</span><input class="pet-name-input" maxlength="${WayfareCore.pets.maxNameLength}" autocomplete="off" autocapitalize="words" enterkeyhint="done" placeholder="${escapeHtml(suggestions[0] || "Biscuit")}" value="${escapeHtml(draft)}" aria-label="Companion name"></label>
+      <div class="pet-name-suggest-row"><div class="creator-option-label">Ideas</div><button class="pet-name-shuffle" type="button" aria-label="Shuffle name ideas">⟳ Shuffle</button></div>
+      <div class="pet-name-chips"></div>
+      <div class="creator-actions"><button class="panel-action secondary pet-name-back" type="button">${renaming ? "Cancel" : "Back"}</button><button class="panel-action pet-name-confirm" type="button">${renaming ? "Save Name" : `Bring Home · ${fmtMoney(t.cost)}`}</button></div>`;
+    const input = sheet.querySelector(".pet-name-input");
+    const chips = sheet.querySelector(".pet-name-chips");
+    suggestions.forEach(name => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "pet-name-chip" + (draft === name ? " active" : "");
+      chip.textContent = name;
+      chip.onclick = () => { draft = name; input.value = name; chips.querySelectorAll(".pet-name-chip").forEach(c => c.classList.toggle("active", c === chip)); haptic("light"); };
+      chips.appendChild(chip);
+    });
+    input.addEventListener("input", () => { draft = input.value; chips.querySelectorAll(".pet-name-chip").forEach(c => c.classList.toggle("active", c.textContent === draft)); });
+    input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); confirm(); } });
+    sheet.querySelector(".pet-name-shuffle").onclick = () => { suggestions = WayfareCore.pets.suggestNames(t.id, 4); draft = input.value; renderStep(); };
+    sheet.querySelector(".pet-name-back").onclick = () => { if (renaming) closeModal(); else openAdoptModal(); };
+    const confirm = () => {
+      const typed = input.value;
+      if (renaming) {
+        const result = WayfareCore.pets.rename(state, existingPet.id, typed);
+        if (!result.ok) { toast(result.reason || "That name didn't take."); return; }
+        log(`${result.previous} is now ${result.pet.name}. ${t.icon} They answered to it immediately.`);
+        haptic("medium");
+        closeModal();
+        checkAchievements();
+        saveGame(); render();
+        toast(`Renamed to ${result.pet.name}.`);
+        return;
+      }
+      if (t.plus && !hasPlus()) { openPaywall(); return; }
+      const result = WayfareCore.pets.adopt(state, t.id, typed);
+      if (!result.ok) { toast(result.reason || "Adoption fell through."); return; }
+      const pet = result.pet;
+      const trait = WayfareCore.pets.traitById(pet.trait);
+      log(`${state.name} adopted a ${t.name.toLowerCase()} and named ${pet.name}. ${t.icon} ${trait ? `Turns out ${pet.name} is ${trait.label.toLowerCase()} — ${trait.blurb.toLowerCase()}` : ""}`, [["happiness", result.happiness], ["money", -t.cost]]);
+      recordDailyJourneyAction("pet");
+      haptic("heavy");
+      closeModal();
+      checkAchievements();
+      saveGame(); render();
+      toast(`${pet.name} is home. ${t.icon}`);
+    };
+    sheet.querySelector(".pet-name-confirm").onclick = confirm;
+    if (!renaming) setTimeout(() => { try { input.focus({ preventScroll: true }); } catch(e) {} }, 60);
+  };
+  renderStep();
+  document.getElementById("modal-overlay").classList.add("show");
+}
+
+function openRenamePet(petId) {
+  const pet = WayfareCore.pets.byId(state, petId);
+  if (pet) openPetNamingStep(null, pet);
+}
+
+function performPetCare(petId, actionId) {
+  const pet = WayfareCore.pets.byId(state, petId);
+  const t = pet && petTypeById(pet.typeId);
+  if (!pet || !t) return;
+  const result = WayfareCore.pets.care(state, petId, actionId);
+  if (!result.ok) { toast(result.reason || "Not right now."); render(); return; }
+  const deltas = Object.entries(result.statDeltas || {}).filter(([, n]) => n);
+  if (result.cost) deltas.push(["money", -result.cost]);
+  log(`${result.text} ${t.icon}`, deltas);
+  const journeyDone = recordDailyJourneyAction("pet");
+  haptic(result.loved ? "heavy" : "medium");
+  checkAchievements();
+  saveGame(); render();
+  toast(journeyDone ? "Daily Journey complete — reward ready on Life." : result.loved ? `${pet.name} loved that. Bond +${result.bondDelta}` : `Bond +${result.bondDelta} with ${pet.name}`);
+}
+
+/* One card per companion: identity, personality, bond, and this year's care. */
+function renderPetCard(pet) {
+  const t = petTypeById(pet.typeId);
+  const trait = WayfareCore.pets.traitById(pet.trait);
+  const tier = WayfareCore.pets.bondTier(pet.bond);
+  const card = document.createElement("article");
+  card.className = "pet-card";
+  const badges = [];
+  if (trait) badges.push(`<span class="pet-badge trait" title="${escapeHtml(trait.blurb)}">${trait.icon} ${trait.label}</span>`);
+  if (pet.tricks >= WayfareCore.pets.wellTrainedTricks) badges.push(`<span class="pet-badge gold">🎓 Well-trained</span>`);
+  else if (pet.tricks > 0) badges.push(`<span class="pet-badge">${pet.tricks} trick${pet.tricks === 1 ? "" : "s"}</span>`);
+  if (WayfareCore.pets.lifeStage(pet) === "senior") badges.push(`<span class="pet-badge senior">Senior · vet care helps</span>`);
+  card.innerHTML = `
+    <div class="pet-card-head">
+      <div class="pet-portrait" aria-hidden="true">${t.icon}</div>
+      <div class="pet-identity">
+        <button class="pet-name-btn" type="button" aria-label="Rename ${escapeHtml(pet.name)}"><span class="pet-name">${escapeHtml(pet.name)}</span><span class="pet-rename-icon" aria-hidden="true">✎</span></button>
+        <div class="pet-sub">${t.name} · ${petCareLabel(pet)}</div>
+      </div>
+    </div>
+    <div class="pet-badges">${badges.join("")}</div>
+    <div class="pet-bond"><div class="pet-bond-row"><span class="pet-bond-label">Bond · ${tier.label}</span><span class="pet-bond-value">${pet.bond}</span></div><div class="pet-bond-track"><div class="pet-bond-fill" style="width:${pet.bond}%"></div></div></div>
+    <div class="pet-actions"></div>`;
+  card.querySelector(".pet-name-btn").onclick = () => openRenamePet(pet.id);
+  const actions = card.querySelector(".pet-actions");
+  WayfareCore.pets.careActions.forEach(action => {
+    const availability = WayfareCore.pets.careAvailability(state, pet, action.id);
+    if (!availability.ok && (availability.reason === "Not a walker" || availability.reason === "Not trainable")) return;
+    const done = availability.reason === "Done this year";
+    const loved = trait && trait.loves === action.id;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pet-action" + (done ? " done" : "") + (loved ? " loved" : "");
+    btn.disabled = !availability.ok;
+    btn.setAttribute("aria-label", `${action.label}${availability.cost ? ` for ${fmtMoney(availability.cost)}` : ""}${done ? ", done this year" : ""}`);
+    btn.innerHTML = `<span class="pet-action-icon" aria-hidden="true">${done ? "✓" : action.icon}</span><span class="pet-action-label">${action.label}</span><span class="pet-action-cost">${done ? "Done" : availability.cost ? fmtMoney(availability.cost) : availability.ok ? "Free" : availability.reason}</span>`;
+    btn.onclick = () => performPetCare(pet.id, action.id);
+    actions.appendChild(btn);
+  });
+  return card;
+}
+
+function renderPetMemorial(main) {
+  const remembered = WayfareCore.pets.memorial(state);
+  if (!remembered.length) return;
+  const card = document.createElement("div");
+  card.className = "panel-card pet-memorial";
+  card.innerHTML = `<div class="panel-title">Remembered</div><div class="panel-sub">The companions who shared this life.</div><div class="pet-memorial-list"></div>`;
+  const list = card.querySelector(".pet-memorial-list");
+  remembered.slice(0, 8).forEach(entry => {
+    const t = petTypeById(entry.typeId);
+    const row = document.createElement("div");
+    row.className = "pet-memorial-row";
+    row.innerHTML = `<span class="pet-memorial-icon" aria-hidden="true">${t ? t.icon : "🐾"}</span><span class="pet-memorial-copy"><span class="pet-memorial-name">${escapeHtml(entry.name)}</span><span class="pet-memorial-detail">${t ? t.name : "Companion"} · ${entry.years === 1 ? "1 year" : `${entry.years} years`} together · Bond ${entry.bond}</span></span>`;
+    list.appendChild(row);
+  });
+  if (remembered.length > 8) {
+    const more = document.createElement("div");
+    more.className = "pet-memorial-more";
+    more.textContent = `and ${remembered.length - 8} more`;
+    list.appendChild(more);
+  }
+  main.appendChild(card);
+}
 
 function makeStartingFamily() {
   const fam = [
@@ -3451,6 +3679,7 @@ function startNewLife(profile) {
     businesses: [],
     generation: 1,
     pets: [],
+    petMemorial: [],
     skills: {},
     yearsAtJob: 0,
     ambition: null,
@@ -3860,8 +4089,8 @@ const EVENTS = [
       const bird = s.pets.find(p=>p.typeId==="parrot");
       return { text:`${bird.name} learned a new word. Where did ${bird.name} learn that word. Company was over. 🦜`, deltas:[["happiness", rand(1,4)],["looks", rand(-1,0)]] };
   }},
-  { cond: s => (s.pets||[]).length>0 && WayfareCore.rng.next()<0.1, weight: 0.8, build: s => {
-      const pet = pick(s.pets);
+  { cond: s => (s.pets||[]).some(p => p.lastVetAge !== s.age - 1) && WayfareCore.rng.next()<0.1, weight: 0.8, build: s => {
+      const pet = pick(s.pets.filter(p => p.lastVetAge !== s.age - 1));
       const t = petTypeById(pet.typeId) || PET_TYPES[0];
       const bill = rand(300, 1800);
       return {
@@ -3873,6 +4102,39 @@ const EVENTS = [
       };
   }},
 
+  // ---- companions: personality moments ----
+  { cond: s => (s.pets||[]).some(p=>p.trait==="mischievous") && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
+      const pet = pick(s.pets.filter(p=>p.trait==="mischievous"));
+      const t = petTypeById(pet.typeId) || PET_TYPES[0];
+      const r = pick(["opened a cupboard that was definitely latched","relocated every sock in the house to one secret pile","learned which button turns the TV on. Only that button","staged a jailbreak during a dinner party"]);
+      return { text:`${pet.name} ${r}. ${t.icon}`, deltas:[["happiness", rand(1,4)]] };
+  }},
+  { cond: s => (s.pets||[]).some(p=>p.trait==="cuddly" && p.bond>=50) && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
+      const pet = pick(s.pets.filter(p=>p.trait==="cuddly" && p.bond>=50));
+      const t = petTypeById(pet.typeId) || PET_TYPES[0];
+      return { text:`Rough week. ${pet.name} noticed before anyone else did and refused to leave ${s.name}'s side. ${t.icon}`, deltas:[["happiness", rand(3,6)]] };
+  }},
+  { cond: s => (s.pets||[]).some(p=>p.trait==="brave") && WayfareCore.rng.next()<0.25, weight: 1, build: s => {
+      const pet = pick(s.pets.filter(p=>p.trait==="brave"));
+      const t = petTypeById(pet.typeId) || PET_TYPES[0];
+      return { text:`${pet.name} chased something off the porch at 3 a.m. Nobody saw what. ${pet.name} has not stopped bragging. ${t.icon}`, deltas:[["happiness", rand(1,4)]] };
+  }},
+  { cond: s => (s.pets||[]).some(p=>p.trait==="clever" && p.tricks>=3) && WayfareCore.rng.next()<0.25, weight: 1, build: s => {
+      const pet = pick(s.pets.filter(p=>p.trait==="clever" && p.tricks>=3));
+      const t = petTypeById(pet.typeId) || PET_TYPES[0];
+      return { text:`${pet.name} performed the full trick routine for a stranger and earned a tip. ${s.name} was not consulted. ${t.icon}`, deltas:[["happiness", rand(2,5)],["money", rand(20,80)]] };
+  }},
+  { cond: s => (s.pets||[]).some(p=>p.trait==="dramatic") && WayfareCore.rng.next()<0.3, weight: 1, build: s => {
+      const pet = pick(s.pets.filter(p=>p.trait==="dramatic"));
+      const t = petTypeById(pet.typeId) || PET_TYPES[0];
+      const r = pick(["fainted, theatrically, because dinner was four minutes late","delivered a monologue at the closed bathroom door","refused to walk on the wet grass and demanded to be carried","sulked for an entire day over a slightly different brand of food"]);
+      return { text:`${pet.name} ${r}. ${t.icon}`, deltas:[["happiness", rand(1,3)]] };
+  }},
+  { cond: s => (s.pets||[]).some(p=>p.bond<=15 && p.age>=2) && WayfareCore.rng.next()<0.35, weight: 1.2, build: s => {
+      const pet = pick(s.pets.filter(p=>p.bond<=15 && p.age>=2));
+      const t = petTypeById(pet.typeId) || PET_TYPES[0];
+      return { text:`${pet.name} has started sleeping in the far room. ${t.icon} It's been a while since anyone spent real time together.`, deltas:[["happiness", rand(-3,-1)]] };
+  }},
   { cond: s => (s.pets||[]).some(p=>p.typeId==="dog_husky") && WayfareCore.rng.next()<0.35, weight: 1, build: s => {
       const dog = s.pets.find(p=>p.typeId==="dog_husky");
       return { text:`${dog.name} was told "no" and delivered a four-minute rebuttal speech. The neighbors have opinions. 🐺`, deltas:[["happiness", rand(1,4)]] };
@@ -4039,29 +4301,14 @@ function ageUp() {
     relTick.messages.forEach(m => log(m.text, m.deltas));
   } catch(e) {}
 
-  // pets: happiness, upkeep, aging, and eventually goodbyes
-  if (state.pets && state.pets.length) {
-    const survivors = [];
-    state.pets.forEach(pet => {
-      pet.age++;
-      const t = petTypeById(pet.typeId);
-      if (!t) return; // unknown type from a future save — drop quietly
-      applyDelta("happiness", t.happy);
-      applyDelta("money", -t.upkeep);
-      if (t.health) applyDelta("health", t.health);
-      if (t.smarts) applyDelta("smarts", t.smarts);
-      if (pet.age >= pet.maxAge) {
-        const oldAge = pet.maxAge >= t.lifespan;
-        const grief = rand(4,9);
-        applyDelta("happiness", -grief);
-        log(`${pet.name} the ${t.name.toLowerCase()} ${oldAge ? "passed peacefully after a long, good life" : "passed away too soon"}. ${t.icon} Goodbye, ${pet.name}.`, [["happiness", -grief]]);
-        if (oldAge) unlockAchievement("old_friend");
-      } else {
-        survivors.push(pet);
-      }
-    });
-    state.pets = survivors;
-  }
+  // companions: bond drift, joy scaled by bond, upkeep, ageing, and goodbyes
+  // (domain layer). Runs after state.age advanced, so "last year" = age - 1.
+  try {
+    const petTick = WayfareCore.petsYearTick(state);
+    petTick.messages.forEach(m => log(m.text, m.deltas));
+    if (petTick.fullLife) unlockAchievement("old_friend");
+    if (petTick.passed.length) haptic("heavy");
+  } catch(e) { console.error(e); }
 
   // kids get older too
   if (state.children.length) {
@@ -4514,6 +4761,7 @@ function continueAsChild(childIndex) {
   const inheritedVehicles = state.vehicles;
   const inheritedBusinesses = state.businesses;
   const inheritedPets = state.pets || [];
+  const inheritedMemorial = state.petMemorial || [];
   const inheritedAppearance = characterAppearance(state);
   const carriedRelId = state.nextRelId;
   const survivingPartnerName = state.partner;
@@ -4572,6 +4820,7 @@ function continueAsChild(childIndex) {
     businesses: inheritedBusinesses,
     generation: nextGeneration,
     pets: inheritedPets,
+    petMemorial: inheritedMemorial,
     skills: {},
     yearsAtJob: 0,
     ambition: null,
@@ -4938,8 +5187,9 @@ function renderLifeSnapshot(main, currentJob) {
   const netWorth = computeNetWorth(state);
   const jobTitle = currentJob && currentJob.id !== "unemployed" ? currentJob.title : "Open to possibilities";
   const jobDetail = currentJob && currentJob.id !== "unemployed" ? fmtMoney(state.salary || 0) + "/wk" : "Explore careers";
+  const companions = (state.pets || []).length;
   const relationshipDetail = relationships.length
-    ? `${relationships.length} ${relationships.length === 1 ? "connection" : "connections"}${state.partner ? " · partnered" : ""}`
+    ? `${relationships.length} ${relationships.length === 1 ? "connection" : "connections"}${state.partner ? " · partnered" : ""}${companions ? ` · ${companions} ${companions === 1 ? "companion" : "companions"}` : ""}`
     : "Meet someone new";
   const focusDetail = state.age < 4
     ? "Unlocks at age 4"
@@ -6507,35 +6757,27 @@ function renderPeople(main) {
   meetCard.appendChild(meetBtn);
   main.appendChild(meetCard);
 
-  // Pets
+  // Companions
+  try { WayfareCore.pets.ensure(state); } catch(e) {}
   const petsTitle = document.createElement("div");
   petsTitle.className = "section-title";
-  petsTitle.textContent = "Pets";
+  petsTitle.textContent = "Companions";
   main.appendChild(petsTitle);
 
+  const pets = state.pets || [];
+  if (pets.length) {
+    const intro = document.createElement("div");
+    intro.className = "pet-intro";
+    intro.textContent = "Each care action works once a year. Bonded companions give more joy — and are harder to say goodbye to.";
+    main.appendChild(intro);
+    pets.forEach(pet => { if (petTypeById(pet.typeId)) main.appendChild(renderPetCard(pet)); });
+  }
   const petCard = document.createElement("div");
   petCard.className = "panel-card";
-  if (state.pets && state.pets.length) {
-    state.pets.forEach(pet => {
-      const t = petTypeById(pet.typeId);
-      if (!t) return;
-      const row = document.createElement("div");
-      row.className = "panel-row";
-      row.style.marginBottom = "6px";
-      row.innerHTML = `<div><div class="panel-title">${t.icon} ${pet.name}</div><div class="panel-sub">${t.name} · ${pet.age} yr${pet.age===1?"":"s"} old</div></div>`;
-      const playBtn = document.createElement("button");
-      playBtn.className = "panel-action secondary";
-      playBtn.textContent = "Play";
-      playBtn.onclick = () => {
-        applyDelta("happiness", rand(2,4));
-        log(`${state.name} spent the afternoon with ${pet.name}. Time well wasted. ${t.icon}`);
-        saveGame(); render();
-      };
-      row.appendChild(playBtn);
-      petCard.appendChild(row);
-    });
+  if (!pets.length) {
+    petCard.innerHTML = `<div class="panel-title">No companions yet</div><div class="panel-sub">${state.age < 6 ? "The adoption center opens at age 6." : "The house is suspiciously quiet. Every companion gets a name, a personality, and a bond that grows with care."}</div>`;
   } else {
-    petCard.innerHTML = `<div class="panel-sub" style="margin-bottom:8px;">No pets yet. The house is suspiciously quiet.</div>`;
+    petCard.innerHTML = `<div class="panel-title">Room for one more?</div><div class="panel-sub">Every companion adds joy each year and a little upkeep.</div>`;
   }
   const adoptBtn = document.createElement("button");
   adoptBtn.className = "panel-action";
@@ -6545,6 +6787,7 @@ function renderPeople(main) {
   adoptBtn.onclick = openAdoptModal;
   petCard.appendChild(adoptBtn);
   main.appendChild(petCard);
+  renderPetMemorial(main);
 
   // Last Will & Testament summary card
   if (!state.will) state.will = {};
@@ -8653,12 +8896,48 @@ document.getElementById("restart-btn").addEventListener("click", ()=>{
   newGame();
 });
 
+/* ---------------- WHAT'S NEW ----------------
+   Shown once per release to returning players. Keep APP_VERSION in step with
+   MARKETING_VERSION in ios/App/App.xcodeproj/project.pbxproj. */
+const APP_VERSION = "1.8";
+const WHATS_NEW_KEY = "wayfare-whats-new-seen";
+const WHATS_NEW = {
+  version: APP_VERSION,
+  title: "Companions",
+  intro: "Pets grew up. Every animal you bring home now has a name you choose, a personality, and a bond that only grows with real care.",
+  highlights: [
+    { icon:"🏷️", name:"Name your companions", detail:"Type a name at adoption or rename anytime from their card." },
+    { icon:"🫶", name:"Personalities & bond", detail:"Six traits, each with a favourite kind of care. Bonded companions give more joy." },
+    { icon:"🩺", name:"Care that matters", detail:"Play, walk, train, treat, and vet visits — once a year each. Senior checkups can buy extra time." },
+    { icon:"🕯️", name:"Remembered", detail:"Companions who pass are honoured on a memorial, and a new ambition rewards a kind heart." },
+  ],
+};
+function whatsNewSeen() { try { return localStorage.getItem(WHATS_NEW_KEY) === WHATS_NEW.version; } catch(e) { return true; } }
+function markWhatsNewSeen() { try { localStorage.setItem(WHATS_NEW_KEY, WHATS_NEW.version); } catch(e) {} }
+function openWhatsNew() {
+  markWhatsNewSeen();
+  const sheet = document.getElementById("modal-sheet");
+  sheet.innerHTML = `<div class="creator-head"><div class="creator-kicker">What's new in ${WHATS_NEW.version}</div><div class="creator-title">${WHATS_NEW.title}</div><div class="creator-sub">${WHATS_NEW.intro}</div></div><div class="more-hub-grid whats-new-grid"></div><div class="creator-actions"><button class="panel-action secondary whats-new-later" type="button">Later</button><button class="panel-action whats-new-go" type="button">Meet the companions</button></div>`;
+  const grid = sheet.querySelector(".whats-new-grid");
+  WHATS_NEW.highlights.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "more-hub-item whats-new-item";
+    row.innerHTML = `<span class="more-hub-icon" aria-hidden="true">${item.icon}</span><span class="more-hub-copy"><span class="more-hub-name">${item.name}</span><span class="more-hub-detail">${item.detail}</span></span>`;
+    grid.appendChild(row);
+  });
+  sheet.querySelector(".whats-new-later").onclick = closeModal;
+  sheet.querySelector(".whats-new-go").onclick = () => { closeModal(); state.activeTab = "people"; render(); };
+  document.getElementById("modal-overlay").classList.add("show");
+}
+
 if (!loadGame()) {
+  markWhatsNewSeen(); // a brand-new player meets the features in play, not a changelog
   newGame();
 } else {
   if (repairProgressionState()) saveGame();
   render();
   if (!state.alive) showSavedDeathScreen();
+  else if (!whatsNewSeen()) setTimeout(openWhatsNew, 450);
 }
 
 /* ---------------- PWA: OFFLINE SUPPORT ---------------- */
