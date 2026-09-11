@@ -10,18 +10,20 @@ const path = require('path');
 const http = require('http');
 
 const ROOT = path.join(__dirname, '..');
-const OUT_DIR = path.join(ROOT, 'screenshots', 'store-preview-v14');
+const OUT_DIR = path.join(ROOT, 'screenshots', 'store-preview-v15');
 const RAW_DIR = path.join(OUT_DIR, 'raw');
-const BACKGROUND = path.join(OUT_DIR, 'wayfare-journey-background.png');
+const BACKGROUND = process.env.SCREENSHOT_BACKGROUND || path.join(OUT_DIR, 'wayfare-journey-background.png');
 const PORT = process.env.PORT || '8086';
 const APP_URL = process.env.SCREENSHOT_URL || `http://localhost:${PORT}/`;
 const APP_SIZE = { width: 430, height: 932 };
 const STORE_SIZE = { width: 1284, height: 2778 };
+// Override with BROWSER_PATH when Chrome lives elsewhere (CI, macOS, Linux).
 const BROWSER_PATH = process.env.BROWSER_PATH || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 
 const scenes = [
   {
     file: '01-live-your-story',
+    achievements: ['first_steps', 'first_job', 'adulting', 'best_friend', 'homeowner'],
     headline: 'Live a life that feels like yours.',
     subtitle: 'Every year brings a new choice, consequence, and chapter.',
     tab: 'story',
@@ -37,7 +39,40 @@ const scenes = [
     },
   },
   {
-    file: '02-shape-who-you-become',
+    file: '02-name-every-companion',
+    achievements: ['first_steps', 'best_friend', 'named_with_love', 'well_trained', 'soulmates', 'old_friend', 'first_job'],
+    headline: 'Give them a name. Earn the bond.',
+    subtitle: 'Adopt, name, and care for companions with personalities of their own.',
+    tab: 'people',
+    scrollTo: '.pet-card',
+    patch: {
+      name: 'Jordan Reyes', age: 31, health: 80, happiness: 91, smarts: 70, looks: 62,
+      money: 42600, lastMetAge: 30,
+      relationships: [
+        { id: 20, name: 'Avery', type: 'Spouse', closeness: 93, trust: 92, lastInteractedAge: 31 },
+      ],
+      nextRelId: 21,
+      ambition: { id: 'companions', claimed: ['home'] },
+      pets: [
+        {
+          id: 1, name: 'Sunny', typeId: 'dog_golden', age: 4, maxAge: 12, trait: 'cuddly',
+          bond: 88, adoptedAge: 27, customNamed: true, care: { age: 31, done: ['play'] },
+          tricks: 3, lastVetAge: 30, bonusYears: 0,
+        },
+        {
+          id: 2, name: 'Miso', typeId: 'cat', age: 2, maxAge: 16, trait: 'mischievous',
+          bond: 46, adoptedAge: 29, customNamed: true, care: { age: 31, done: [] },
+          tricks: 0, lastVetAge: -1, bonusYears: 0,
+        },
+      ],
+      petMemorial: [
+        { name: 'Bubbles', typeId: 'goldfish', trait: 'lazy', years: 5, bond: 71, passedAge: 22, cause: 'old_age' },
+      ],
+    },
+  },
+  {
+    file: '03-shape-who-you-become',
+    achievements: ['first_steps', 'adulting', 'first_job'],
     headline: 'Shape who you become.',
     subtitle: 'Spend your focus. Build strengths. Create your own path.',
     tab: 'activities',
@@ -48,7 +83,8 @@ const scenes = [
     },
   },
   {
-    file: '03-build-your-career',
+    file: '04-build-your-career',
+    achievements: ['first_steps', 'adulting', 'first_job', 'scholar', 'homeowner', 'millionaire'],
     headline: 'Build a career, not just a resume.',
     subtitle: 'Learn skills, earn promotions, and climb your chosen ladder.',
     tab: 'job',
@@ -60,7 +96,8 @@ const scenes = [
     },
   },
   {
-    file: '04-build-a-family',
+    file: '05-build-a-family',
+    achievements: ['first_steps', 'first_job', 'adulting', 'homeowner', 'best_friend', 'full_house', 'millionaire'],
     headline: 'Build bonds that change everything.',
     subtitle: 'Love, friendship, children, and the family you choose.',
     tab: 'people',
@@ -79,7 +116,8 @@ const scenes = [
     },
   },
   {
-    file: '05-leave-a-legacy',
+    file: '06-leave-a-legacy',
+    achievements: ['first_steps', 'first_job', 'adulting', 'scholar', 'homeowner', 'millionaire', 'full_house', 'heir', 'purpose', 'golden_years', 'best_friend', 'old_friend'],
     headline: 'Leave a legacy worth inheriting.',
     subtitle: 'Build a dynasty, pass on your story, and begin again.',
     tab: 'story',
@@ -130,20 +168,37 @@ function asDataUrl(file) {
 }
 
 async function seedScene(page, scene) {
-  await page.evaluate(({ patch, tab }) => {
+  await page.evaluate(({ patch, tab, scrollTo, achievements }) => {
+    // A fresh save opens the character creator, which is modal. Seeded scenes
+    // supply their own character, so dismiss it before rendering.
+    const overlay = document.getElementById('modal-overlay');
+    overlay.classList.remove('show', 'creator-required');
+    document.getElementById('modal-sheet').innerHTML = '';
+    // A fresh save leaves `state` null until the creator runs. Start a real
+    // life first so every default field exists, then patch the scene on top.
+    if (!state) startNewLife({ name: patch.name || 'Jordan Reyes', appearance: {} });
+    if (Array.isArray(achievements)) {
+      Object.keys(unlockedAch).forEach((key) => delete unlockedAch[key]);
+      achievements.forEach((id, index) => { unlockedAch[id] = Date.now() - index * 86400000; });
+    }
+    const base = state;
     state = {
-      ...state,
+      ...base,
       ...patch,
       activeTab: tab,
       alive: true,
       pendingChoice: null,
-      investments: { stocks: 0, bonds: 0, crypto: 0, ...(state.investments || {}), ...(patch.investments || {}) },
-      skills: { ...(state.skills || {}), ...(patch.skills || {}) },
+      investments: { stocks: 0, bonds: 0, crypto: 0, ...(base.investments || {}), ...(patch.investments || {}) },
+      skills: { ...(base.skills || {}), ...(patch.skills || {}) },
     };
     document.getElementById('gameover').classList.remove('show');
     render();
     window.scrollTo(0, 0);
-  }, { patch: scene.patch, tab: scene.tab });
+    if (scrollTo) {
+      const target = document.querySelector(scrollTo);
+      if (target) target.scrollIntoView({ block: 'start' });
+    }
+  }, { patch: scene.patch, tab: scene.tab, scrollTo: scene.scrollTo || null, achievements: scene.achievements || null });
   await page.waitForTimeout(150);
 }
 

@@ -117,3 +117,12 @@ describe('activities', () => {
     expect(next?.reason).toContain('Store Manager');
   });
 });
+
+describe('defensive state handling', () => {
+  it('does not throw when a partial state is missing relationships', () => {
+    const partial = { age: 30, money: 1000, activities: null } as unknown as Parameters<typeof availability>[0];
+    const connect = ACTIVITIES.find((activity) => activity.requiresRelationship)!;
+    expect(() => availability(partial, connect)).not.toThrow();
+    expect(availability(partial, connect)).toMatchObject({ ok: false, reason: 'Meet someone first.' });
+  });
+});

@@ -131,7 +131,7 @@ export function availability(state: GameState, activity: ActivityDefinition): Ac
   if (state.age < activity.minAge) return { ok: false, reason: `Unlocks at age ${activity.minAge}.` };
   if (activityState.used >= focusCapacity(state)) return { ok: false, reason: 'No focus left this year.' };
   if (activityState.performed.includes(activity.id)) return { ok: false, reason: 'Already done this year.' };
-  if (activity.requiresRelationship && state.relationships.length === 0) return { ok: false, reason: 'Meet someone first.' };
+  if (activity.requiresRelationship && !(state.relationships || []).length) return { ok: false, reason: 'Meet someone first.' };
   if ((state.money || 0) < activity.cost) return { ok: false, reason: `Needs $${activity.cost.toLocaleString()}.` };
   return { ok: true };
 }

@@ -1,6 +1,6 @@
 import type { GameState } from './state';
 
-export type AmbitionId = 'fortune' | 'family' | 'mastery' | 'enterprise';
+export type AmbitionId = 'fortune' | 'family' | 'mastery' | 'enterprise' | 'companions';
 
 export interface AmbitionState {
   id: AmbitionId;
@@ -61,6 +61,24 @@ function totalStaff(state: GameState): number {
   }, 0);
 }
 
+function companionsEverLoved(state: GameState): number {
+  const living = Array.isArray(state.pets) ? state.pets.length : 0;
+  const remembered = Array.isArray(state.petMemorial) ? state.petMemorial.length : 0;
+  return living + remembered;
+}
+
+function strongestBond(state: GameState): number {
+  const pets = Array.isArray(state.pets) ? (state.pets as { bond?: unknown }[]) : [];
+  return pets.reduce((best, pet) => Math.max(best, typeof pet.bond === 'number' ? pet.bond : 0), 0);
+}
+
+function fullLivesGiven(state: GameState): number {
+  const remembered = Array.isArray(state.petMemorial)
+    ? (state.petMemorial as { cause?: unknown; bond?: unknown }[])
+    : [];
+  return remembered.filter((entry) => entry.cause === 'old_age' && typeof entry.bond === 'number' && entry.bond >= 50).length;
+}
+
 function advancedQualifications(state: GameState): number {
   return (state.degrees || []).filter((degree) => degree !== 'hs').length;
 }
@@ -112,6 +130,18 @@ export const AMBITIONS: readonly AmbitionDefinition[] = [
       { id: 'venture', label: 'Launch your first business', reward: 4, current: (state) => (state.businesses || []).length, target: 1 },
       { id: 'team', label: 'Employ a team of five', reward: 6, current: totalStaff, target: 5 },
       { id: 'portfolio', label: 'Own two businesses', reward: 10, current: (state) => (state.businesses || []).length, target: 2 },
+    ],
+  },
+  {
+    id: 'companions',
+    name: 'A Kind Heart',
+    icon: '🐾',
+    description: 'Give animals a home, a name, and a life worth remembering.',
+    tab: 'people',
+    milestones: [
+      { id: 'home', label: 'Welcome two companions home', reward: 4, current: companionsEverLoved, target: 2 },
+      { id: 'devoted', label: 'Reach a 90 bond with a companion', reward: 6, current: strongestBond, target: 90 },
+      { id: 'remembered', label: 'Give two bonded companions a full life', reward: 10, current: fullLivesGiven, target: 2 },
     ],
   },
 ] as const;

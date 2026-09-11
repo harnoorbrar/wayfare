@@ -1,4 +1,4 @@
-export type DailyJourneyAction = 'age_up' | 'choice' | 'activity' | 'relationship';
+export type DailyJourneyAction = 'age_up' | 'choice' | 'activity' | 'relationship' | 'pet';
 
 export interface DailyJourneyDefinition {
   id: string;
@@ -66,6 +66,11 @@ const DEFINITIONS: readonly DailyJourneyDefinition[] = [
     description: 'Live through seven more years and see where the road leads.', target: 7,
     unit: 'years lived', destination: 'story',
   },
+  {
+    id: 'good_company', action: 'pet', icon: '🐾', title: 'Keep good company',
+    description: 'Care for a companion three times. Adopt one if the house is too quiet.', target: 3,
+    unit: 'moments shared', destination: 'people',
+  },
 ] as const;
 
 function hashDay(day: string): number {
@@ -119,9 +124,12 @@ export function ensureDailyJourney(input: unknown, date = new Date()): DailyJour
   if (!current || current.day !== day) return { schema: 1, current: newCurrent(day, history), history };
 
   const definition = definitionForDay(day);
-  const progress = Math.min(definition.target, Math.max(0,
-    Number.isFinite(current.progress) ? Math.floor(current.progress) : 0,
-  ));
+  // A definition change under a live day (new journeys shipped mid-day) must
+  // not carry progress earned toward a different action.
+  const sameJourney = current.action === definition.action && current.target === definition.target;
+  const progress = sameJourney
+    ? Math.min(definition.target, Math.max(0, Number.isFinite(current.progress) ? Math.floor(current.progress) : 0))
+    : 0;
   const claimed = Boolean(current.claimed) || history.claimedDays.includes(day);
   return {
     schema: 1,

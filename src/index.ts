@@ -139,6 +139,35 @@ import {
   recordDailyAction,
   rewardForStreak,
 } from './domain/dailyJourneys';
+import {
+  PET_CARE_ACTIONS,
+  PET_TRAITS,
+  BOND_TIERS,
+  WELL_TRAINED_TRICKS,
+  MAX_PET_NAME_LENGTH,
+  adopt as adoptPetImpl,
+  bondTier,
+  care as carePetImpl,
+  careActionById,
+  careAvailability as petCareAvailability,
+  careCost as petCareCost,
+  cleanPetName,
+  companionSummary,
+  ensurePets,
+  isDogSpecies,
+  lifeStage as petLifeStage,
+  lifeStageLabel as petLifeStageLabel,
+  memorial as petMemorial,
+  petById,
+  petsYearTick as petsTickImpl,
+  rename as renamePetImpl,
+  species as petSpecies,
+  speciesById as petSpeciesById,
+  suggestNames as suggestPetNames,
+  traitById as petTraitById,
+  type Pet,
+  type PetCareActionId,
+} from './domain/pets';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -368,5 +397,38 @@ export const dailyJourneys = {
   rewardForStreak,
 };
 
+/** One companion year: ageing, upkeep, bond drift, joy, and goodbyes. */
+export function petsYearTick(state: GameState) {
+  return petsTickImpl(state, rng);
+}
+
+export const pets = {
+  species: petSpecies,
+  speciesById: petSpeciesById,
+  isDog: (pet: { typeId?: unknown }) => isDogSpecies(String(pet?.typeId ?? '')),
+  traits: PET_TRAITS,
+  traitById: petTraitById,
+  careActions: PET_CARE_ACTIONS,
+  careActionById,
+  bondTiers: BOND_TIERS,
+  bondTier,
+  wellTrainedTricks: WELL_TRAINED_TRICKS,
+  maxNameLength: MAX_PET_NAME_LENGTH,
+  ensure: (state: GameState) => ensurePets(state, rng),
+  byId: petById,
+  memorial: petMemorial,
+  cleanName: cleanPetName,
+  /** Name suggestions use a throwaway Rng so shuffling never perturbs the life's seed. */
+  suggestNames: (speciesId: string, count?: number) => suggestPetNames(speciesId, new Rng(), count),
+  adopt: (state: GameState, speciesId: string, name: unknown) => adoptPetImpl(state, speciesId, name, rng),
+  rename: renamePetImpl,
+  careAvailability: petCareAvailability,
+  careCost: petCareCost,
+  care: (state: GameState, petId: number, actionId: PetCareActionId) => carePetImpl(state, petId, actionId),
+  lifeStage: petLifeStage,
+  lifeStageLabel: petLifeStageLabel,
+  summary: companionSummary,
+};
+
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
-export type { GameState, Financials, EventChoice };
+export type { GameState, Financials, EventChoice, Pet };
