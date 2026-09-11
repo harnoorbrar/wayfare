@@ -8,7 +8,7 @@
 - [ ] Confirm the iOS App target has the **In-App Purchase** capability and its automatic provisioning profile was refreshed after the capability was added.
 - [ ] In App Store Connect > Business, confirm the latest Paid Applications Agreement is active and banking/tax status is complete.
 - [ ] In RevenueCat, confirm the Wayfare iOS app has an In-App Purchase Key, the `plus` entitlement includes both products, and an Offering containing monthly and lifetime packages is marked as the default.
-- [ ] Push the intended `main` commit. The `ios-release` workflow builds, tests, signs, uploads to TestFlight, and is configured to submit the selected build for review.
+- [ ] Push the intended `main` commit. The `ios-release` workflow builds, signs, and uploads to TestFlight. It does **not** submit for review — `submit_to_app_store` is false, so you test the build first and submit from App Store Connect yourself.
 - [ ] Install the TestFlight build on a physical iPhone and test a full life, a 3D home, Free Drive, an interstitial ad, a purchase, and Restore Purchases.
 - [ ] Companions QA: adopt with a typed name, rename from the card, run each care action (once per year), confirm the bond bar and trait badge update, age past a companion's lifespan and confirm the memorial entry, and load a pre-1.8 save to confirm existing pets survive with a backfilled bond and personality.
 
