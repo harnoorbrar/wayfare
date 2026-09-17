@@ -15,7 +15,25 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync ios
 
+      - name: Detect TestFlight secrets
+        id: release_secrets
+        env:
+          CERT_P12_BASE64: ${{ secrets.CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_BASE64: ${{ secrets.ASC_KEY_BASE64 }}
+        run: |
+          if [[ -n "$CERT_P12_BASE64" && -n "$CERT_PASSWORD" && -n "$PROVISIONING_PROFILE_BASE64" && -n "$APPLE_TEAM_ID" && -n "$ASC_KEY_ID" && -n "$ASC_ISSUER_ID" && -n "$ASC_KEY_BASE64" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Import signing certificate
+        if: fromJSON(steps.release_secrets.outputs.available)
         env:
           CERT_P12_BASE64: ${{ secrets.CERT_P12_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
@@ -28,6 +46,7 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
       - name: Install provisioning profile
+        if: fromJSON(steps.release_secrets.outputs.available)
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
         run: |
@@ -35,6 +54,7 @@ jobs:
           echo "$PROVISIONING_PROFILE_BASE64" | base64 --decode > ~/Library/MobileDevice/Provisioning\ Profiles/wayfare.mobileprovision
 
       - name: Build archive
+        if: fromJSON(steps.release_secrets.outputs.available)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
@@ -48,7 +68,18 @@ jobs:
             PROVISIONING_PROFILE_SPECIFIER="Wayfare App Store" \
             archive
 
+      - name: Build app without signing
+        if: '!fromJSON(steps.release_secrets.outputs.available)'
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -destination "generic/platform=iOS Simulator" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
       - name: Export IPA
+        if: fromJSON(steps.release_secrets.outputs.available)
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
@@ -60,6 +91,7 @@ jobs:
             -exportOptionsPlist ios/exportOptions.plist
 
       - name: Upload to TestFlight
+        if: fromJSON(steps.release_secrets.outputs.available)
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
