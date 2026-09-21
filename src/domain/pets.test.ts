@@ -26,6 +26,7 @@ import {
   suggestNames,
   traitsForSpecies,
   type Pet,
+  type PetMemorial,
 } from './pets';
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
@@ -376,13 +377,14 @@ describe('A Kind Heart ambition', () => {
     a.bond = 95;
     expect(ambitionSnapshot(state)!.completed).toBe(2);
 
-    state.petMemorial = [
+    const memorial: PetMemorial[] = [
       { name: 'X', typeId: 'dog', trait: 'brave', years: 12, bond: 80, passedAge: 40, cause: 'old_age' },
       { name: 'Y', typeId: 'cat', trait: 'lazy', years: 3, bond: 90, passedAge: 41, cause: 'too_soon' },
       { name: 'Z', typeId: 'cat', trait: 'lazy', years: 16, bond: 20, passedAge: 42, cause: 'old_age' },
     ];
+    state.petMemorial = memorial;
     expect(ambitionSnapshot(state)!.completed).toBe(2);
-    state.petMemorial.push({ name: 'W', typeId: 'parrot', trait: 'clever', years: 40, bond: 100, passedAge: 60, cause: 'old_age' });
+    memorial.push({ name: 'W', typeId: 'parrot', trait: 'clever', years: 40, bond: 100, passedAge: 60, cause: 'old_age' });
     expect(ambitionSnapshot(state)!.completed).toBe(3);
   });
 });
