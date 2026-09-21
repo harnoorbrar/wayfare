@@ -82,6 +82,12 @@ export interface GameState {
    * Undefined on pre-world saves — backfilled lazily on first tick/render.
    */
   world?: Record<string, unknown>;
+  /** Companions who passed; carried to the next generation. */
+  petMemorial?: unknown[];
+  /** Passport stamps and the once-a-year trip marker (travel domain). */
+  travel?: unknown;
+  /** Five life dreams drawn at adulthood (bucket list domain). */
+  bucketList?: unknown;
   [monolithField: string]: unknown;
 }
 

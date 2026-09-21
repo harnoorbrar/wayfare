@@ -10,7 +10,7 @@ const path = require('path');
 const http = require('http');
 
 const ROOT = path.join(__dirname, '..');
-const OUT_DIR = path.join(ROOT, 'screenshots', 'store-preview-v15');
+const OUT_DIR = path.join(ROOT, 'screenshots', 'store-preview-v16');
 const RAW_DIR = path.join(OUT_DIR, 'raw');
 const BACKGROUND = process.env.SCREENSHOT_BACKGROUND || path.join(OUT_DIR, 'wayfare-journey-background.png');
 const PORT = process.env.PORT || '8086';
@@ -39,7 +39,68 @@ const scenes = [
     },
   },
   {
-    file: '02-name-every-companion',
+    file: '02-see-the-world',
+    achievements: ['first_steps', 'adulting', 'first_job', 'first_stamp', 'frequent_flyer', 'wish_granted'],
+    headline: 'See the world, one trip a year.',
+    subtitle: 'Sixteen destinations. One passport. Every stamp a memory.',
+    tab: 'travel',
+    scrollTo: '.travel-hero',
+    patch: {
+      name: 'Jordan Reyes', age: 34, health: 84, happiness: 88, smarts: 72, looks: 63,
+      money: 58200, partner: 'Avery',
+      relationships: [
+        { id: 20, name: 'Avery', type: 'Spouse', closeness: 94, trust: 93, lastInteractedAge: 34 },
+      ],
+      nextRelId: 21,
+      travel: {
+        lastTripAge: 33,
+        stamps: [
+          { destinationId: 'banff', age: 24, companion: null },
+          { destinationId: 'lisbon', age: 27, companion: 'Avery' },
+          { destinationId: 'mexico_city', age: 29, companion: 'Avery' },
+          { destinationId: 'reykjavik', age: 31, companion: 'Avery' },
+          { destinationId: 'kyoto', age: 33, companion: 'Avery' },
+        ],
+      },
+      ambition: { id: 'wanderer', claimed: ['first_steps_abroad'] },
+    },
+  },
+  {
+    file: '03-five-dreams',
+    achievements: ['first_steps', 'adulting', 'first_job', 'first_stamp', 'wish_granted', 'homeowner'],
+    headline: 'Five dreams. One life.',
+    subtitle: 'Write a bucket list at 18, then spend a lifetime crossing it off.',
+    tab: 'story',
+    scrollTo: '.bucket-card',
+    patch: {
+      name: 'Jordan Reyes', age: 36, health: 81, happiness: 90, smarts: 74, looks: 63,
+      money: 71400, partner: 'Avery', ownership: 'owned',
+      relationships: [
+        { id: 20, name: 'Avery', type: 'Spouse', closeness: 95, trust: 94, lastInteractedAge: 36 },
+      ],
+      nextRelId: 21,
+      travel: {
+        lastTripAge: 35,
+        stamps: [
+          { destinationId: 'reykjavik', age: 31, companion: 'Avery' },
+          { destinationId: 'kyoto', age: 33, companion: 'Avery' },
+        ],
+      },
+      bucketList: {
+        swapUsed: false,
+        dreams: [
+          { id: 'aurora', doneAge: 31 },
+          { id: 'married', doneAge: 28 },
+          { id: 'machu_picchu', doneAge: null },
+          { id: 'chef', doneAge: null },
+          { id: 'see_eighty', doneAge: null },
+        ],
+      },
+      ambition: { id: 'wanderer', claimed: ['first_steps_abroad'] },
+    },
+  },
+  {
+    file: '04-name-every-companion',
     achievements: ['first_steps', 'best_friend', 'named_with_love', 'well_trained', 'soulmates', 'old_friend', 'first_job'],
     headline: 'Give them a name. Earn the bond.',
     subtitle: 'Adopt, name, and care for companions with personalities of their own.',
@@ -71,7 +132,7 @@ const scenes = [
     },
   },
   {
-    file: '03-shape-who-you-become',
+    file: '05-shape-who-you-become',
     achievements: ['first_steps', 'adulting', 'first_job'],
     headline: 'Shape who you become.',
     subtitle: 'Spend your focus. Build strengths. Create your own path.',
@@ -83,7 +144,7 @@ const scenes = [
     },
   },
   {
-    file: '04-build-your-career',
+    file: '06-build-your-career',
     achievements: ['first_steps', 'adulting', 'first_job', 'scholar', 'homeowner', 'millionaire'],
     headline: 'Build a career, not just a resume.',
     subtitle: 'Learn skills, earn promotions, and climb your chosen ladder.',
@@ -96,7 +157,7 @@ const scenes = [
     },
   },
   {
-    file: '05-build-a-family',
+    file: '07-build-a-family',
     achievements: ['first_steps', 'first_job', 'adulting', 'homeowner', 'best_friend', 'full_house', 'millionaire'],
     headline: 'Build bonds that change everything.',
     subtitle: 'Love, friendship, children, and the family you choose.',
@@ -116,7 +177,7 @@ const scenes = [
     },
   },
   {
-    file: '06-leave-a-legacy',
+    file: '08-leave-a-legacy',
     achievements: ['first_steps', 'first_job', 'adulting', 'scholar', 'homeowner', 'millionaire', 'full_house', 'heir', 'purpose', 'golden_years', 'best_friend', 'old_friend'],
     headline: 'Leave a legacy worth inheriting.',
     subtitle: 'Build a dynasty, pass on your story, and begin again.',

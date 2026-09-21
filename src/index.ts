@@ -168,6 +168,28 @@ import {
   type Pet,
   type PetCareActionId,
 } from './domain/pets';
+import {
+  MIN_TRAVEL_AGE,
+  ensureTravel,
+  hasTraveledThisYear,
+  passportSummary,
+  takeTrip as takeTripImpl,
+  travelPartner,
+  tripAvailability as tripAvailabilityImpl,
+  tripCost as tripCostImpl,
+  visitCount,
+  visitedRegions,
+  type TripOptions,
+} from './domain/travel';
+import { DESTINATIONS, TRAVEL_REGIONS, destinationById, regionById } from './data/travel';
+import {
+  BUCKET_LIST_AGE,
+  bucketListSnapshot,
+  claimDreams,
+  dreamById,
+  ensureBucketList,
+  swapDream as swapDreamImpl,
+} from './domain/bucketList';
 import type { GameState, Relationship } from './domain/state';
 
 /** The one shared RNG every simulation decision must flow through. */
@@ -428,6 +450,50 @@ export const pets = {
   lifeStage: petLifeStage,
   lifeStageLabel: petLifeStageLabel,
   summary: companionSummary,
+};
+
+/** Travel prices ride the same cumulative inflation as wages. */
+function travelPriceMultiplier(state: GameState): number {
+  try {
+    return wageMultiplier(ensureWorld(state));
+  } catch {
+    return 1;
+  }
+}
+
+function tripOptions(state: GameState, withPartner: boolean): TripOptions {
+  return { withPartner, priceMultiplier: travelPriceMultiplier(state) };
+}
+
+export const travel = {
+  minAge: MIN_TRAVEL_AGE,
+  destinations: DESTINATIONS,
+  regions: TRAVEL_REGIONS,
+  destinationById,
+  regionById,
+  ensure: ensureTravel,
+  partner: travelPartner,
+  cost: (state: GameState, destinationId: string, withPartner = false) => {
+    const destination = destinationById(destinationId);
+    return destination ? tripCostImpl(destination, tripOptions(state, withPartner)) : 0;
+  },
+  availability: (state: GameState, destinationId: string, withPartner = false) =>
+    tripAvailabilityImpl(state, destinationId, tripOptions(state, withPartner)),
+  takeTrip: (state: GameState, destinationId: string, withPartner = false) =>
+    takeTripImpl(state, destinationId, tripOptions(state, withPartner), rng),
+  traveledThisYear: hasTraveledThisYear,
+  visitCount,
+  visitedRegions,
+  passport: passportSummary,
+};
+
+export const bucketList = {
+  age: BUCKET_LIST_AGE,
+  ensure: (state: GameState) => ensureBucketList(state, rng),
+  snapshot: bucketListSnapshot,
+  claim: claimDreams,
+  dreamById,
+  swap: (state: GameState, dreamId: string) => swapDreamImpl(state, dreamId, rng),
 };
 
 export { Rng, clearSave, CURRENT_SAVE_VERSION };
