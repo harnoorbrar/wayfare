@@ -25,6 +25,11 @@ workflows:
       - name: Install npm dependencies
         script: |
           npm ci
+      - name: Ensure travel postcard art
+        script: |
+          # Normally committed; this is a safety net so a release build never
+          # ships flag placeholders if the art was not added locally.
+          if [ ! -f img/travel/banff.webp ]; then node scripts/fetch-travel-art.js; fi
       - name: Build web core bundle
         script: |
           npm run build

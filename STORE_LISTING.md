@@ -9,8 +9,7 @@ Live a whole life, your way
 (28 chars)
 
 ## Promotional Text (170 char max, editable anytime without review)
-One tap ages you a year. Choose school, career, love, kids, pets, risk. Every
-life is different. Every ending is earned. How far will yours go?
+New in 1.9: See the World. Travel to 16 destinations, fill your passport, and chase a bucket list of five dreams only this life will write.
 
 ## Description (4000 char max)
 
@@ -26,8 +25,10 @@ WHAT YOU CAN DO
 • Build a career from your first job to running multiple businesses
 • Date, marry, have kids, and raise them into their own lives
 • Buy homes and cars, finance them, or default and start over
-• Adopt pets — six species, eight dog breeds, each with their own quirks
-• Chase 22+ achievements, from surviving to 100 to founding a dynasty
+• Adopt and name companions, each with a personality and a bond you earn
+• Travel the world one trip a year — 16 destinations, one passport
+• Write a bucket list at 18 and spend a lifetime crossing it off
+• Chase 35 achievements, from surviving to 100 to founding a dynasty
 • Play the market — stocks, bonds, crypto — and live with the outcome
 • Die, and — if you've built something worth inheriting — play on as
   your own child in a new generation
@@ -51,7 +52,7 @@ Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/st
 Privacy Policy: https://harnoorbrar.github.io/wayfare/privacy.html
 
 ## Keywords (100 char max, comma-separated, no spaces after commas)
-life sim,simulator,roleplay,story game,career,family,pets,dynasty,choices,text adventure,legacy
+life sim,simulator,roleplay,story game,career,family,pets,travel,bucket list,dynasty,choices,legacy
 
 ## What's New (Version 1.9)
 See the World: life is bigger than one city.
