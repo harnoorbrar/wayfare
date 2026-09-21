@@ -2130,6 +2130,66 @@
     border-color: rgba(228,119,80,.38);
     box-shadow: 0 16px 38px rgba(0,0,0,.26);
   }
+
+  /* ---- Travel (1.9) ---- */
+  .travel-hero { position:relative; margin-bottom:14px; padding:16px; overflow:hidden; border:1px solid rgba(58,110,120,.26); border-radius:17px; background:radial-gradient(circle at 100% 0%,rgba(58,110,120,.16),transparent 48%),linear-gradient(145deg,rgba(201,154,58,.10),rgba(255,255,255,.4)); }
+  .travel-kicker { color:var(--ink-dim); font-size:9.5px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+  .travel-count { margin-top:4px; font-family:var(--font-display); font-size:19px; font-weight:700; line-height:1.15; }
+  .travel-status { margin-top:6px; color:var(--ink-dim); font-size:11.5px; line-height:1.45; }
+  .travel-regions { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+  .travel-region { display:inline-flex; align-items:center; gap:5px; padding:5px 9px; border:1px solid var(--line); border-radius:999px; color:var(--ink-dim); font-size:10px; font-weight:750; opacity:.62; }
+  .travel-region.seen { opacity:1; color:#2f5f68; border-color:rgba(58,110,120,.38); background:rgba(58,110,120,.10); }
+  .travel-company { display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:12px; padding:3px; border-radius:12px; background:var(--paper-dim); }
+  .travel-company button { min-height:36px; border:0; border-radius:10px; color:var(--ink-dim); background:transparent; font:inherit; font-size:11.5px; font-weight:780; cursor:pointer; }
+  .travel-company button[aria-pressed="true"] { color:var(--ink); background:var(--paper); box-shadow:0 2px 8px rgba(43,36,32,.10); }
+  .travel-region-head { display:flex; align-items:center; gap:7px; margin:20px 2px 9px; color:var(--ink-dim); font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+  .travel-list { display:flex; flex-direction:column; gap:12px; }
+  .travel-card { overflow:hidden; border:1px solid var(--line); border-radius:17px; background:rgba(255,255,255,.58); box-shadow:0 6px 18px rgba(43,36,32,.05); }
+  .travel-card.locked { box-shadow:none; }
+  .travel-art { position:relative; aspect-ratio:3 / 2; max-height:190px; width:100%; overflow:hidden; background:linear-gradient(135deg,rgba(201,154,58,.28),rgba(58,110,120,.24)); }
+  .travel-art img { display:block; width:100%; height:100%; object-fit:cover; }
+  .travel-art-fallback { position:absolute; inset:0; display:grid; place-items:center; font-size:46px; }
+  .travel-art img + .travel-art-fallback { display:none; }
+  .travel-visited { position:absolute; top:10px; right:10px; padding:4px 8px; border-radius:999px; color:#fff; background:rgba(33,29,26,.66); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); font-size:9.5px; font-weight:800; }
+  .travel-body { padding:12px 14px 14px; }
+  .travel-name-row { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .travel-name { font-family:var(--font-display); font-size:17px; font-weight:700; line-height:1.15; }
+  .travel-country { margin-top:2px; color:var(--ink-dim); font-size:10.5px; font-weight:700; }
+  .travel-cost { color:var(--ink); font-size:12px; font-weight:800; white-space:nowrap; }
+  .travel-blurb { margin:8px 0 10px; color:var(--ink-dim); font-size:11.5px; line-height:1.42; }
+  .travel-stamps { display:flex; flex-direction:column; gap:7px; }
+  .travel-stamp { display:grid; grid-template-columns:34px minmax(0,1fr) auto; align-items:center; gap:10px; padding:9px 11px; border:1px dashed rgba(58,110,120,.38); border-radius:12px; font-size:11.5px; }
+  .travel-stamp-flag { font-size:20px; text-align:center; }
+  .travel-stamp-name { font-weight:800; }
+  .travel-stamp-detail { color:var(--ink-dim); font-size:10px; }
+  .travel-stamp-age { color:var(--ink-dim); font-size:10px; font-weight:800; }
+  html[data-theme="dark"] .travel-hero { background:radial-gradient(circle at 100% 0%,rgba(90,160,170,.16),transparent 48%),rgba(255,255,255,.035); border-color:rgba(90,160,170,.28); }
+  html[data-theme="dark"] .travel-card { background:rgba(255,255,255,.035); }
+  html[data-theme="dark"] .travel-region.seen { color:#8fcad2; background:rgba(90,160,170,.14); border-color:rgba(90,160,170,.4); }
+  html[data-theme="dark"] .travel-stamp { border-color:rgba(90,160,170,.34); }
+  /* ---- Bucket list (1.9) ---- */
+  .bucket-card { position:relative; margin:0 0 18px; padding:15px; overflow:hidden; border:1px solid rgba(58,110,120,.28); border-radius:16px; background:radial-gradient(circle at 0% 0%,rgba(58,110,120,.12),transparent 45%),rgba(255,255,255,.58); box-shadow:0 8px 22px rgba(43,36,32,.05); }
+  .bucket-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .bucket-title { margin-top:3px; font-family:var(--font-display); font-size:17px; font-weight:700; }
+  .bucket-count { color:var(--ink-dim); font-size:10.5px; font-weight:800; white-space:nowrap; }
+  .bucket-list { display:flex; flex-direction:column; gap:6px; margin-top:11px; }
+  .bucket-item { width:100%; min-height:44px; display:grid; grid-template-columns:30px minmax(0,1fr) auto; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--line); border-radius:12px; color:var(--ink); background:rgba(255,255,255,.45); font:inherit; font-size:12px; font-weight:700; text-align:left; cursor:pointer; }
+  .bucket-item:active { transform:scale(.985); }
+  .bucket-item.done { cursor:default; color:var(--ink-dim); background:rgba(57,139,92,.07); border-color:rgba(57,139,92,.26); }
+  .bucket-item.done .bucket-label { text-decoration:line-through; text-decoration-color:rgba(57,139,92,.6); }
+  .bucket-icon { font-size:18px; text-align:center; }
+  .bucket-state { color:var(--ink-dim); font-size:10px; font-weight:800; white-space:nowrap; }
+  .bucket-item.done .bucket-state { color:#23724b; }
+  .bucket-swap { width:100%; min-height:38px; margin-top:10px; border:1px dashed var(--line); border-radius:11px; color:var(--ink-dim); background:transparent; font:inherit; font-size:11px; font-weight:780; cursor:pointer; }
+  html[data-theme="dark"] .bucket-card { background:radial-gradient(circle at 0% 0%,rgba(90,160,170,.12),transparent 45%),rgba(255,255,255,.035); }
+  html[data-theme="dark"] .bucket-item { background:rgba(255,255,255,.035); }
+  html[data-theme="dark"] .bucket-item.done { background:rgba(117,213,158,.07); border-color:rgba(117,213,158,.25); }
+  html[data-theme="dark"] .bucket-item.done .bucket-state { color:#75d59e; }
+  .legacy-dreams { display:flex; flex-direction:column; gap:7px; font-size:12.5px; text-align:left; }
+  .legacy-dream { display:grid; grid-template-columns:20px minmax(0,1fr); gap:8px; color:#f0e8dc; font-weight:650; }
+  .legacy-dream > span:first-child { color:#d9b56a; text-align:center; }
+  .legacy-dream.missed { color:#a89a82; font-weight:500; }
+  .legacy-dream.missed > span:first-child { color:#a89a82; }
 </style>
 </head>
 <body>
@@ -3149,6 +3209,8 @@ function repairProgressionState() {
       repaired = true;
     }
   }
+  // 1.9: adults loading an older save get their bucket list right away.
+  if (state.alive && state.age >= 18 && ensureBucketListWithLog()) repaired = true;
   return repaired;
 }
 
@@ -3209,6 +3271,11 @@ const ACHIEVEMENTS = [
   { id:"out_there",       icon:"🛸", name:"Out There",        desc:"You know what you saw." },
   { id:"nine_lives",      icon:"🐈‍⬛", name:"Nine Lives",       desc:"Survive something you shouldn't have." },
   { id:"old_friend",      icon:"🌈", name:"An Old Friend",    desc:"Give a bonded companion a full, happy life." },
+  { id:"first_stamp",   icon:"✈️", name:"Passport Stamped",     desc:"Take your first trip abroad.",          check:s=>WayfareCore.travel.passport(s).trips>=1 },
+  { id:"frequent_flyer", icon:"🧳", name:"Frequent Flyer",      desc:"Visit 8 different destinations.",       check:s=>WayfareCore.travel.passport(s).places>=8 },
+  { id:"globetrotter",  icon:"🌍", name:"Globetrotter",         desc:"Travel to all five regions of the world.", check:s=>WayfareCore.travel.passport(s).regions.length>=5 },
+  { id:"wish_granted",  icon:"🌠", name:"Wish Granted",         desc:"Fulfil a dream from your bucket list.", check:s=>{ const b=WayfareCore.bucketList.snapshot(s); return Boolean(b&&b.done>=1); } },
+  { id:"no_regrets",    icon:"📜", name:"No Regrets",           desc:"Fulfil every dream on your bucket list.", check:s=>{ const b=WayfareCore.bucketList.snapshot(s); return Boolean(b&&b.done===b.total); } },
 ];
 
 function unlockAchievement(id) {
@@ -4490,6 +4557,11 @@ function ageUp() {
     if (ambitionRewards.length) haptic("heavy");
   } catch(e) {}
 
+  // bucket list: drawn the year a life comes of age (or the first year an
+  // existing adult save meets 1.9), then dreams are fulfilled as they happen
+  ensureBucketListWithLog();
+  applyDreamClaims();
+
   if ((_healthTick && _healthTick.died) || state.health <= 0 || state.age >= 110) {
     if (_healthTick && _healthTick.causeOfDeath) state.causeOfDeath = _healthTick.causeOfDeath;
     handleDeath();
@@ -4652,8 +4724,13 @@ function buildLegacy(){
   else cause="Cause unknown. The universe shrugged.";
   const companionsLoved=(state.pets||[]).length+(state.petMemorial||[]).length;
   const devoted=(state.pets||[]).some(p=>(p.bond||0)>=90)||(state.petMemorial||[]).some(p=>(p.bond||0)>=90);
+  let placesSeen=0, dreams=null;
+  try { placesSeen=WayfareCore.travel.passport(state).places; } catch(e) {}
+  try { dreams=WayfareCore.bucketList.snapshot(state); } catch(e) {}
   let epitaph;
-  if(companionsLoved>=4&&devoted) epitaph="Every stray found the door open. None of them left unloved.";
+  if(dreams&&dreams.done===dreams.total) epitaph="Crossed off every dream, and made a few new ones on the way.";
+  else if(placesSeen>=8) epitaph="Saw the world, and let it change them.";
+  else if(companionsLoved>=4&&devoted) epitaph="Every stray found the door open. None of them left unloved.";
   else if(state.happiness>70) epitaph="Lived gladly, loved loudly, left light.";
   else if((state.peakMoney||state.money)>500000) epitaph="Built much, kept more, took none of it along.";
   else if(state.children.length) epitaph="Remembered most by those they raised.";
@@ -4683,6 +4760,8 @@ function buildLegacy(){
       <div class="tally-item"><span class="tally-k">Estate</span><span class="tally-v">${fmtMoney(computeNetWorth(state))}</span></div>
       <div class="tally-item"><span class="tally-k">Known by</span><span class="tally-v">${state.relationships.length} people</span></div>
       ${(()=>{ const lived=(state.pets||[]).length+(state.petMemorial||[]).length; return lived ? `<div class="tally-item"><span class="tally-k">Companions</span><span class="tally-v">${lived}</span></div>` : ""; })()}
+      ${placesSeen ? `<div class="tally-item"><span class="tally-k">Places seen</span><span class="tally-v">${placesSeen}</span></div>` : ""}
+      ${dreams ? `<div class="tally-item"><span class="tally-k">Dreams fulfilled</span><span class="tally-v">${dreams.done} of ${dreams.total}</span></div>` : ""}
       ${(()=>{ try { const life=WayfareCore.legacy.lifeScore(state); const dyn=(state.legacyTotal||0)+life.total; return `<div class="tally-item"><span class="tally-k">Life score</span><span class="tally-v">${life.total}</span></div><div class="tally-item"><span class="tally-k">Dynasty</span><span class="tally-v">${Math.round(dyn)} · ${WayfareCore.legacy.rank(dyn)}</span></div>`; } catch(e){ return ""; } })()}
     </div></div>
     ${(()=>{
@@ -4696,6 +4775,10 @@ function buildLegacy(){
         <div class="legacy-pets">${gone.slice(0,6).map(line).join("")}${survivors}</div>
       </div>`;
     })()}
+    ${dreams ? `<div class="legacy-panel">
+      <div class="legacy-h">The Bucket List</div>
+      <div class="legacy-dreams">${dreams.dreams.map(d=>`<div class="legacy-dream${d.doneAge===null?" missed":""}"><span aria-hidden="true">${d.doneAge===null?"○":"✓"}</span><span>${d.definition.label}${d.doneAge===null?"":` · age ${d.doneAge}`}</span></div>`).join("")}</div>
+    </div>` : ""}
     ${state.children.length ? `
     <div class="legacy-panel">
       <div class="legacy-h">Continue the Story</div>
@@ -5048,13 +5131,14 @@ function render() {
   document.querySelectorAll(".nav-btn[data-tab]").forEach(b=>{
     b.classList.toggle("active", b.dataset.tab === state.activeTab);
   });
-  const secondaryTabs = ["activities", "home", "education", "vehicles", "bank", "business"];
+  const secondaryTabs = ["activities", "travel", "home", "education", "vehicles", "bank", "business"];
   document.getElementById("more-btn").classList.toggle("active", secondaryTabs.includes(state.activeTab));
 
   const main = document.getElementById("main");
   main.innerHTML = "";
   if (state.activeTab === "story") renderStory(main);
   else if (state.activeTab === "activities") renderActivities(main);
+  else if (state.activeTab === "travel") renderTravel(main);
   else if (state.activeTab === "home") renderHome(main);
   else if (state.activeTab === "job") renderJob(main);
   else if (state.activeTab === "people") renderPeople(main);
@@ -5159,6 +5243,7 @@ function renderStory(main) {
   renderLifeSnapshot(main, currentJob);
   renderCompanionStrip(main);
   renderAmbitionSummary(main);
+  renderBucketList(main);
 
   const goals = buildLifeGoals();
   const goalsSection = document.createElement("section");
@@ -5430,6 +5515,199 @@ function buildLifeGoals() {
   }
   if (goals.length < 3) add("📖", "Shape your legacy", `Age ${state.age} · the story continues`, Math.min(100, state.age / 80 * 100), "story");
   return goals.slice(0, 3);
+}
+
+/* ---------------- TRAVEL (1.9) ---------------- */
+// Rules live in WayfareCore.travel (src/domain/travel.ts); this only renders
+// the passport and destination cards and turns a trip into timeline lines.
+let travelWithPartner = false;
+
+function travelArtMarkup(destination) {
+  // Postcard art is optional: if the file is missing the flag stands in.
+  return `<img src="img/travel/${destination.id}.webp" alt="" loading="lazy" decoding="async" onerror="this.remove()"><span class="travel-art-fallback" aria-hidden="true">${destination.flag}</span>`;
+}
+
+function travelEffectChips(destination, firstVisit) {
+  const chips = [];
+  const happiness = firstVisit ? destination.happiness : Math.max(1, Math.round(destination.happiness / 2));
+  chips.push(`<span class="activity-effect positive">+${happiness} happiness</span>`);
+  if (destination.health) chips.push(`<span class="activity-effect positive">+${destination.health} health</span>`);
+  if (destination.smarts && firstVisit) chips.push(`<span class="activity-effect positive">+${destination.smarts} smarts</span>`);
+  Object.entries(destination.skills || {}).forEach(([skill, amount]) => {
+    const gain = firstVisit ? amount : Math.ceil(amount / 2);
+    chips.push(`<span class="activity-effect positive">+${gain} ${WayfareCore.skills.skillName(skill)}</span>`);
+  });
+  return chips.join("");
+}
+
+function renderTravel(main) {
+  const T = WayfareCore.travel;
+  const passport = T.passport(state);
+  const partner = T.partner(state);
+  if (!partner) travelWithPartner = false;
+  const seenRegions = new Set(passport.regions);
+
+  const title = document.createElement("div");
+  title.className = "section-title";
+  title.textContent = "Travel";
+  main.appendChild(title);
+
+  const hero = document.createElement("section");
+  hero.className = "travel-hero";
+  let status;
+  if (state.age < T.minAge) status = `Travel unlocks at ${T.minAge}. Until then, the atlas is for dreaming.`;
+  else if (T.traveledThisYear(state)) status = "You've already travelled this year. The next adventure waits for your next birthday.";
+  else status = "One trip a year. First visits leave the deepest mark, and a new corner of the world adds a little extra joy.";
+  const regionChips = T.regions.map(region => `<span class="travel-region${seenRegions.has(region.id) ? " seen" : ""}" aria-label="${region.name}${seenRegions.has(region.id) ? ", visited" : ""}">${region.icon} ${region.name}</span>`).join("");
+  hero.innerHTML = `<div class="travel-kicker">Passport</div><div class="travel-count">${passport.places} of ${passport.totalPlaces} places · ${passport.regions.length} of ${passport.totalRegions} regions</div><div class="travel-status">${status}</div><div class="travel-regions">${regionChips}</div>`;
+  if (partner && state.age >= T.minAge) {
+    const company = document.createElement("div");
+    company.className = "travel-company";
+    company.setAttribute("role", "group");
+    company.setAttribute("aria-label", "Who is travelling");
+    [[false, "Solo"], [true, `With ${partner.name}`]].forEach(([value, label]) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.setAttribute("aria-pressed", String(travelWithPartner === value));
+      button.onclick = () => { travelWithPartner = value; haptic("light"); render(); };
+      company.appendChild(button);
+    });
+    hero.appendChild(company);
+  }
+  main.appendChild(hero);
+
+  T.regions.forEach(region => {
+    const head = document.createElement("div");
+    head.className = "travel-region-head";
+    head.innerHTML = `<span aria-hidden="true">${region.icon}</span><span>${region.name}</span>`;
+    main.appendChild(head);
+    const list = document.createElement("div");
+    list.className = "travel-list";
+    T.destinations.filter(destination => destination.region === region.id).forEach(destination => {
+      const visits = T.visitCount(state, destination.id);
+      const availability = T.availability(state, destination.id, travelWithPartner);
+      const card = document.createElement("article");
+      card.className = `travel-card${availability.ok ? "" : " locked"}`;
+      card.innerHTML = `<div class="travel-art">${travelArtMarkup(destination)}${visits ? `<span class="travel-visited">Visited${visits > 1 ? ` ×${visits}` : ""}</span>` : ""}</div><div class="travel-body"><div class="travel-name-row"><div><div class="travel-name">${destination.name}</div><div class="travel-country">${destination.flag} ${destination.country}</div></div><div class="travel-cost">${fmtMoney(availability.cost)}</div></div><div class="travel-blurb">${destination.blurb}</div><div class="activity-footer"><div class="activity-effects">${travelEffectChips(destination, visits === 0)}</div><button class="activity-do" type="button" ${availability.ok ? "" : "disabled"}>${availability.ok ? "Go" : availability.reason}</button></div></div>`;
+      card.querySelector(".activity-do").addEventListener("click", () => {
+        try { takeTrip(destination.id); } catch(e) { console.error(e); openErrorModal(e); }
+      });
+      list.appendChild(card);
+    });
+    main.appendChild(list);
+  });
+
+  const stamps = T.ensure(state).stamps;
+  if (stamps.length) {
+    const head = document.createElement("div");
+    head.className = "travel-region-head";
+    head.innerHTML = `<span aria-hidden="true">🛂</span><span>Passport stamps</span>`;
+    main.appendChild(head);
+    const list = document.createElement("div");
+    list.className = "travel-stamps";
+    stamps.slice(-12).reverse().forEach(stamp => {
+      const destination = T.destinationById(stamp.destinationId);
+      if (!destination) return;
+      const row = document.createElement("div");
+      row.className = "travel-stamp";
+      row.innerHTML = `<span class="travel-stamp-flag" aria-hidden="true">${destination.flag}</span><span><span class="travel-stamp-name">${destination.name}</span><span class="travel-stamp-detail">${stamp.companion ? ` · with ${escapeHtml(stamp.companion)}` : " · solo"}</span></span><span class="travel-stamp-age">Age ${stamp.age}</span>`;
+      list.appendChild(row);
+    });
+    main.appendChild(list);
+  }
+}
+
+function takeTrip(destinationId) {
+  const result = WayfareCore.travel.takeTrip(state, destinationId, travelWithPartner);
+  if (!result.ok) { toast(result.reason || "That trip isn't possible right now."); render(); return; }
+  const destination = result.destination;
+  log(`${destination.flag} ${result.text}`, result.deltas);
+  if (result.firstVisit) log(`${state.name} got a new passport stamp: ${destination.name}, ${destination.country}.`);
+  if (result.mishap) log(result.mishap.text, result.mishap.deltas);
+  applyDreamClaims();
+  saveGame();
+  haptic("heavy");
+  toast(result.newRegion ? `${destination.flag} A new corner of the world.` : `${destination.flag} ${destination.name} — a trip to remember.`);
+  render();
+}
+
+/* ---------------- BUCKET LIST (1.9) ---------------- */
+function applyDreamClaims() {
+  let claim = null;
+  try { claim = WayfareCore.bucketList.claim(state); } catch(e) { return; }
+  claim.fulfilled.forEach(entry => {
+    log(`Dream fulfilled: ${entry.definition.label.charAt(0).toLowerCase()}${entry.definition.label.slice(1)}. ${entry.definition.icon}`, [["happiness", entry.happiness]]);
+  });
+  if (claim.listComplete) log(`Every dream on ${state.name}'s bucket list came true.`, [["happiness", claim.bonus]]);
+  if (claim.fulfilled.length) haptic("heavy");
+}
+
+function ensureBucketListWithLog() {
+  let hadList = false;
+  try {
+    hadList = Boolean(WayfareCore.bucketList.snapshot(state));
+    WayfareCore.bucketList.ensure(state);
+    if (!hadList && WayfareCore.bucketList.snapshot(state)) {
+      log(`${state.name} wrote a bucket list: five things to do before the end.`);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function renderBucketList(main) {
+  if (state.age < 18) return;
+  let snapshot = null;
+  try { snapshot = WayfareCore.bucketList.snapshot(state); } catch(e) {}
+  if (!snapshot) return;
+  const card = document.createElement("section");
+  card.className = "bucket-card";
+  card.innerHTML = `<div class="bucket-head"><div><div class="ambition-kicker">Bucket list</div><div class="bucket-title">${snapshot.done === snapshot.total ? "Every dream, lived" : "Before the end"}</div></div><div class="bucket-count">${snapshot.done} of ${snapshot.total}</div></div><div class="bucket-list"></div>`;
+  const list = card.querySelector(".bucket-list");
+  snapshot.dreams.forEach(dream => {
+    const done = dream.doneAge !== null;
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "bucket-item" + (done ? " done" : "");
+    row.setAttribute("aria-label", `${dream.definition.label}${done ? `, fulfilled at age ${dream.doneAge}` : ", not yet"}`);
+    row.innerHTML = `<span class="bucket-icon" aria-hidden="true">${dream.definition.icon}</span><span class="bucket-label">${dream.definition.label}</span><span class="bucket-state">${done ? `✓ Age ${dream.doneAge}` : "›"}</span>`;
+    if (!done) row.onclick = () => { state.activeTab = dream.definition.tab; render(); };
+    list.appendChild(row);
+  });
+  if (snapshot.canSwap) {
+    const swap = document.createElement("button");
+    swap.type = "button";
+    swap.className = "bucket-swap";
+    swap.textContent = "Change your mind about one dream";
+    swap.onclick = openDreamSwap;
+    card.appendChild(swap);
+  }
+  main.appendChild(card);
+}
+
+function openDreamSwap() {
+  const snapshot = WayfareCore.bucketList.snapshot(state);
+  if (!snapshot || !snapshot.canSwap) return;
+  const sheet = document.getElementById("modal-sheet");
+  sheet.innerHTML = `<div class="settings-head"><div class="settings-icon">🌠</div><div><div class="settings-title">Change your mind</div><div class="settings-sub">Once per life</div></div></div><div class="more-hub-intro">People change. Let go of one dream and a different one takes its place. You can only do this once in this life.</div><div class="ambition-options"></div>`;
+  const options = sheet.querySelector(".ambition-options");
+  snapshot.dreams.filter(dream => dream.doneAge === null).forEach(dream => {
+    const button = document.createElement("button");
+    button.className = "ambition-option";
+    button.innerHTML = `<span class="ambition-option-icon" aria-hidden="true">${dream.definition.icon}</span><span><span class="ambition-option-name">${dream.definition.label}</span><span class="ambition-option-detail">Let this one go</span></span><span class="ambition-option-arrow" aria-hidden="true">›</span>`;
+    button.onclick = () => {
+      const result = WayfareCore.bucketList.swap(state, dream.definition.id);
+      closeModal();
+      if (!result.ok) { toast(result.reason); return; }
+      log(`${state.name} let go of one dream (${dream.definition.label.toLowerCase()}) and found another: ${result.replacement.label.toLowerCase()}.`);
+      saveGame();
+      haptic("medium");
+      render();
+    };
+    options.appendChild(button);
+  });
+  document.getElementById("modal-overlay").classList.add("show");
 }
 
 function renderActivities(main) {
@@ -8914,6 +9192,7 @@ function openMoreHub() {
   const destinations = [
     { tab:"daily", icon:"✦", name:"Daily Journey", detail:"A fresh goal and streak reward" },
     { tab:"activities", icon:"⚡", name:"Activities", detail:"Choose how to spend your focus" },
+    { tab:"travel", icon:"✈", name:"Travel", detail:"See the world, one trip a year" },
     { tab:"home", icon:"🏠", name:"Home", detail:"Live, move, and decorate" },
     { tab:"education", icon:"🎓", name:"Education", detail:"Study and build skills" },
     { tab:"vehicles", icon:"🚗", name:"Vehicles", detail:"Buy, own, and maintain" },
@@ -8971,17 +9250,19 @@ document.getElementById("restart-btn").addEventListener("click", ()=>{
 /* ---------------- WHAT'S NEW ----------------
    Shown once per release to returning players. Keep APP_VERSION in step with
    MARKETING_VERSION in ios/App/App.xcodeproj/project.pbxproj. */
-const APP_VERSION = "1.8";
+const APP_VERSION = "1.9";
 const WHATS_NEW_KEY = "wayfare-whats-new-seen";
 const WHATS_NEW = {
   version: APP_VERSION,
-  title: "Companions",
-  intro: "Pets grew up. Every animal you bring home now has a name you choose, a personality, and a bond that only grows with real care.",
+  title: "See the World",
+  intro: "Life is bigger than one city. Take a trip every year, fill your passport, and chase the five dreams that only this life will write.",
+  cta: "Start travelling",
+  ctaTab: "travel",
   highlights: [
-    { icon:"🏷️", name:"Name your companions", detail:"Type a name at adoption or rename anytime from their card." },
-    { icon:"🫶", name:"Personalities & bond", detail:"Six traits, each with a favourite kind of care. Bonded companions give more joy." },
-    { icon:"🩺", name:"Care that matters", detail:"Play, walk, train, treat, and vet visits — once a year each. Senior checkups can buy extra time." },
-    { icon:"🕯️", name:"Remembered", detail:"Companions who pass are honoured on a memorial, and a new ambition rewards a kind heart." },
+    { icon:"✈️", name:"Travel", detail:"Sixteen destinations across five regions. One trip a year — solo or with your partner." },
+    { icon:"🛂", name:"A passport that fills up", detail:"Every trip leaves a stamp and a memory. First visits and new regions hit hardest." },
+    { icon:"🌠", name:"Your bucket list", detail:"Five dreams drawn at 18 and ticked off as you live them. Change your mind once per life." },
+    { icon:"🧭", name:"See the World", detail:"A new life ambition, five achievements, and a tombstone that remembers where you went." },
   ],
 };
 function whatsNewSeen() { try { return localStorage.getItem(WHATS_NEW_KEY) === WHATS_NEW.version; } catch(e) { return true; } }
@@ -8989,7 +9270,7 @@ function markWhatsNewSeen() { try { localStorage.setItem(WHATS_NEW_KEY, WHATS_NE
 function openWhatsNew() {
   markWhatsNewSeen();
   const sheet = document.getElementById("modal-sheet");
-  sheet.innerHTML = `<div class="creator-head"><div class="creator-kicker">What's new in ${WHATS_NEW.version}</div><div class="creator-title">${WHATS_NEW.title}</div><div class="creator-sub">${WHATS_NEW.intro}</div></div><div class="more-hub-grid whats-new-grid"></div><div class="creator-actions"><button class="panel-action secondary whats-new-later" type="button">Later</button><button class="panel-action whats-new-go" type="button">Meet the companions</button></div>`;
+  sheet.innerHTML = `<div class="creator-head"><div class="creator-kicker">What's new in ${WHATS_NEW.version}</div><div class="creator-title">${WHATS_NEW.title}</div><div class="creator-sub">${WHATS_NEW.intro}</div></div><div class="more-hub-grid whats-new-grid"></div><div class="creator-actions"><button class="panel-action secondary whats-new-later" type="button">Later</button><button class="panel-action whats-new-go" type="button">${WHATS_NEW.cta}</button></div>`;
   const grid = sheet.querySelector(".whats-new-grid");
   WHATS_NEW.highlights.forEach(item => {
     const row = document.createElement("div");
@@ -8998,7 +9279,7 @@ function openWhatsNew() {
     grid.appendChild(row);
   });
   sheet.querySelector(".whats-new-later").onclick = closeModal;
-  sheet.querySelector(".whats-new-go").onclick = () => { closeModal(); state.activeTab = "people"; render(); };
+  sheet.querySelector(".whats-new-go").onclick = () => { closeModal(); state.activeTab = WHATS_NEW.ctaTab; render(); };
   document.getElementById("modal-overlay").classList.add("show");
 }
 

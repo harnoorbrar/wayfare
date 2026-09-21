@@ -27,4 +27,8 @@ for (const file of ['index.html', 'service-worker.js']) {
   fs.copyFileSync(path.join(root, file), path.join(root, 'www', file));
 }
 
+// Travel postcard art (scripts/fetch-travel-art.js) ships from www/img too.
+const imgSrc = path.join(root, 'img');
+if (fs.existsSync(imgSrc)) fs.cpSync(imgSrc, path.join(root, 'www', 'img'), { recursive: true });
+
 console.log('Synced core bundle, WebGL driving bundle, app shell, and service worker -> www/');

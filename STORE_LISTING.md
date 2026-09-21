@@ -53,16 +53,16 @@ Privacy Policy: https://harnoorbrar.github.io/wayfare/privacy.html
 ## Keywords (100 char max, comma-separated, no spaces after commas)
 life sim,simulator,roleplay,story game,career,family,pets,dynasty,choices,text adventure,legacy
 
-## What's New (Version 1.8)
-Companions: the animals in your life finally have names, personalities, and a bond you earn.
+## What's New (Version 1.9)
+See the World: life is bigger than one city.
 
-• Name every companion you adopt, and rename them any time from their card
-• Discover their personality — cuddly, mischievous, lazy, brave, clever, or dramatic — and the kind of care each one loves best
-• Build a bond through Play, Walk, Train, Treat, and Vet Visits, once each per year
-• Watch a strong bond return more happiness every year, and unlock trait-driven moments written just for them
-• Give senior companions a checkup to help them stay a little longer
-• Honour the ones you lose on a memorial that follows your family line
-• Chase a new life ambition, A Kind Heart, plus four new achievements and a new Daily Journey
+• Travel to 16 destinations across five regions, from Banff to Kyoto to Queenstown — one trip a year
+• Go solo or bring your partner along, and grow closer on the road
+• Fill a passport: every trip leaves a stamp and a memory, and first visits hit hardest
+• Write a bucket list at 18 — five dreams that tick themselves off as you live them
+• Change your mind about one dream per life
+• Chase a new life ambition, See the World, plus five new achievements
+• Your tombstone now remembers the places you saw and the dreams you fulfilled
 
 ## App Store Category
 Primary: Games
@@ -87,10 +87,15 @@ https://harnoorbrar.github.io/wayfare/
 ## Copyright
 2026 Harnoor Brar
 
-## Notes for App Review (Version 1.8)
+## Notes for App Review (Version 1.9)
 Wayfare does not require an account or demo login.
 
 This update adds:
+- Travel (More > Travel): from age 18, the player can take one simulated trip per in-game year to one of 16 real-world destinations, paid with in-game money. Trips are text and illustration only; there is no booking, location access, network call, or real-world purchase involved.
+- A Bucket List on the Life tab from age 18: five in-game goals that complete automatically. Stored only in the local save.
+- A new life ambition and five achievements. All progression is free; nothing in this update is gated behind Wayfare Plus.
+
+Earlier updates added:
 - Companions: adopted pets are named by the player (free text, on-device only), have a personality trait, and a bond that grows through yearly care actions and decays through neglect. Everything is stored in the local save; no account, network, or user-generated-content sharing is involved. Reach it via the People tab.
 - A "What's new" sheet shown once per release to returning players, and again on demand from Settings.
 - New multi-year life dilemmas and visible choice stakes.

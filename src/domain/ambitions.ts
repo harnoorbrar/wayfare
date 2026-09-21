@@ -1,6 +1,7 @@
 import type { GameState } from './state';
+import { placesVisited, visitedRegions } from './travel';
 
-export type AmbitionId = 'fortune' | 'family' | 'mastery' | 'enterprise' | 'companions';
+export type AmbitionId = 'fortune' | 'family' | 'mastery' | 'enterprise' | 'companions' | 'wanderer';
 
 export interface AmbitionState {
   id: AmbitionId;
@@ -142,6 +143,18 @@ export const AMBITIONS: readonly AmbitionDefinition[] = [
       { id: 'home', label: 'Welcome two companions home', reward: 4, current: companionsEverLoved, target: 2 },
       { id: 'devoted', label: 'Reach a 90 bond with a companion', reward: 6, current: strongestBond, target: 90 },
       { id: 'remembered', label: 'Give two bonded companions a full life', reward: 10, current: fullLivesGiven, target: 2 },
+    ],
+  },
+  {
+    id: 'wanderer',
+    name: 'See the World',
+    icon: '✈',
+    description: 'Fill a passport, and let every corner of the map change you a little.',
+    tab: 'travel',
+    milestones: [
+      { id: 'first_steps_abroad', label: 'Visit three destinations', reward: 4, current: placesVisited, target: 3 },
+      { id: 'corners', label: 'Travel to all five regions', reward: 6, current: (state) => visitedRegions(state).length, target: 5 },
+      { id: 'citizen', label: 'Collect twelve passport stamps', reward: 10, current: placesVisited, target: 12 },
     ],
   },
 ] as const;
