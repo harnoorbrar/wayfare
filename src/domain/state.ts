@@ -66,6 +66,8 @@ export interface GameState {
   businesses: unknown[];
   generation: number;
   pets: unknown[];
+  /** Companions who passed; kept loosely typed until the pet domain owns saves. */
+  petMemorial?: unknown[];
   /** skillId -> 0-100. Grows through work and actions; gates promotions. */
   skills: Record<string, number>;
   /** Years at the current career level; resets on hire/promotion. */
@@ -129,6 +131,7 @@ export function saveDefaults(): Partial<GameState> {
     businesses: [],
     generation: 1,
     pets: [],
+    petMemorial: [],
     skills: {},
     yearsAtJob: 0,
     ambition: null,
