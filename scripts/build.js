@@ -23,7 +23,7 @@ fs.copyFileSync(driveSrc, path.join(destDir, 'drive3d.js'));
 // The Capacitor shell ships from www/, so keep its document shell and cache
 // manifest in lockstep with the source files too. This prevents a polished UI
 // change in index.html from being accidentally omitted from an iOS build.
-for (const file of ['index.html', 'service-worker.js']) {
+for (const file of ['index.html', 'service-worker.js', 'terms.html', 'privacy.html', 'support.html', 'crossroads.css']) {
   fs.copyFileSync(path.join(root, file), path.join(root, 'www', file));
 }
 
@@ -32,3 +32,10 @@ const imgSrc = path.join(root, 'img');
 if (fs.existsSync(imgSrc)) fs.cpSync(imgSrc, path.join(root, 'www', 'img'), { recursive: true });
 
 console.log('Synced core bundle, WebGL driving bundle, app shell, and service worker -> www/');
+
+// Keep the shared purchase coordinator in both browser and native outputs.
+for (const file of ['plus-store.js', 'plus-ui.js', 'crossroads-stories.js', 'crossroads-stories-later.js', 'crossroads.js', 'crossroads-ui.js', 'crossroads-chronicle.js']) {
+  const input = path.join(root, 'assets', file);
+  fs.copyFileSync(input, path.join(root, 'js', file));
+  fs.copyFileSync(input, path.join(destDir, file));
+}

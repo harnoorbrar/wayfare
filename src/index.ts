@@ -1,3 +1,4 @@
+import './native-purchases';
 /**
  * WayfareCore — the typed domain layer, exposed as a single global (IIFE
  * bundle at js/core.js) that the legacy index.html script consumes while the

@@ -1,8 +1,9 @@
-const CACHE_NAME = 'wayfare-pwa-v65';
+const CACHE_NAME = 'wayfare-pwa-v68';
 const ASSETS = [
   './',
   './index.html',
-  './js/core.js',
+  './js/core.js', './js/plus-store.js', './js/plus-ui.js',
+  './crossroads.css', './js/crossroads-stories.js', './js/crossroads-stories-later.js', './js/crossroads.js', './js/crossroads-ui.js', './js/crossroads-chronicle.js', './img/travel/banff.webp', './support.html',
   './js/drive3d.js',
   './manifest.json',
   './privacy.html',

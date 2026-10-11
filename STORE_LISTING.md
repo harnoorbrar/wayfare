@@ -9,7 +9,7 @@ Live a whole life, your way
 (28 chars)
 
 ## Promotional Text (170 char max, editable anytime without review)
-New in 1.9: See the World. Travel to 16 destinations, fill your passport, and chase a bucket list of five dreams only this life will write.
+New in 2.0: Crossroads. Eight connected stories, yearly intentions, and a Chronicle of the choices and memories that shape your life.
 
 ## Description (4000 char max)
 
@@ -54,16 +54,17 @@ Privacy Policy: https://harnoorbrar.github.io/wayfare/privacy.html
 ## Keywords (100 char max, comma-separated, no spaces after commas)
 life sim,simulator,roleplay,story game,career,family,pets,travel,bucket list,dynasty,choices,legacy
 
-## What's New (Version 1.9)
-See the World: life is bigger than one city.
+## What's New (Version 2.0)
+Crossroads: a life shaped by the choices you make.
 
-• Travel to 16 destinations across five regions, from Banff to Kyoto to Queenstown — one trip a year
-• Go solo or bring your partner along, and grow closer on the road
-• Fill a passport: every trip leaves a stamp and a memory, and first visits hit hardest
-• Write a bucket list at 18 — five dreams that tick themselves off as you live them
-• Change your mind about one dream per life
-• Chase a new life ambition, See the World, plus five new achievements
-• Your tombstone now remembers the places you saw and the dreams you fulfilled
+• Discover eight connected stories across 24 scenes, with earlier choices returning in later chapters.
+• Give each year a direction with six intentions and visible effects.
+• Revisit your choices and their consequences in your personal Chronicle.
+• Look back on each year, and carry family memories into the next generation.
+• Explore a redesigned Life screen with light and dark themes.
+• Improved Plus purchase registration, purchase status checks, and restores.
+
+Your existing saves, travel, passport, and bucket lists continue in this update.
 
 ## App Store Category
 Primary: Games
@@ -88,10 +89,16 @@ https://harnoorbrar.github.io/wayfare/
 ## Copyright
 2026 Harnoor Brar
 
-## Notes for App Review (Version 1.9)
+## Notes for App Review (Version 2.0)
 Wayfare does not require an account or demo login.
 
-This update adds:
+This update adds Crossroads: eight authored three-part stories, six yearly intentions, annual summaries, and an on-device Chronicle of choices and inherited family memories. All core progression is free. No generative AI or account is required to play.
+
+Crossroads stories begin from age 6. Tap the intention card on Life to choose a focus before aging up. Open More > Your Chronicle to view decisions, yearly summaries, and family records. The Life screen's "The rest of your world" section contains existing goals and the bucket list.
+
+Purchase fixes register the official RevenueCat Capacitor SDK, grant Plus only from the active `plus` entitlement, handle pending approvals without repeated checkouts, refresh verified access, and restore existing purchases. Tap the top-right Plus button for monthly, lifetime, Restore Purchases, and Check purchase status.
+
+The following existing features are retained:
 - Travel (More > Travel): from age 18, the player can take one simulated trip per in-game year to one of 16 real-world destinations, paid with in-game money. Trips are text and illustration only; there is no booking, location access, network call, or real-world purchase involved.
 - A Bucket List on the Life tab from age 18: five in-game goals that complete automatically. Stored only in the local save.
 - A new life ambition and five achievements. All progression is free; nothing in this update is gated behind Wayfare Plus.
