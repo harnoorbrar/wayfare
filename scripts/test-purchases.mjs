@@ -15,6 +15,15 @@ const base=()=>({configure:async()=>{configured++;},isConfigured:async()=>({isCo
 function install(p){w.Capacitor={getPlatform:()=> 'ios',isNativePlatform:()=>true,Plugins:{Purchases:p}};w.WayfareNative={Purchases:p};run('_plusInitialization=null;_plusInitializationPlugin=null;_plusRefresh=null;_plusPending=false;setPlus(false);');return p;}
 async function paywall(){await run('openPaywall()');}
 let passed=0;async function test(name,fn){await fn();passed++;console.log('PASS '+name);}
+// Virtual time exercises hung native calls without waiting minutes per build.
+async function withStoreClock(fn){
+ const originalSet=w.setTimeout,originalClear=w.clearTimeout,timers=new Map();let now=0,next=0;
+ w.setTimeout=(callback,delay=0,...args)=>{const id=--next;timers.set(id,{at:now+Number(delay),callback:()=>callback(...args)});return id;};
+ w.clearTimeout=id=>{if(!timers.delete(id))originalClear.call(w,id);};
+ const flush=async()=>{for(let n=0;n<60;n++)await Promise.resolve();};
+ const advance=async ms=>{await flush();const end=now+ms;while(true){const entry=[...timers].filter(([,t])=>t.at<=end).sort((a,b)=>a[1].at-b[1].at)[0];if(!entry)break;now=entry[1].at;timers.delete(entry[0]);entry[1].callback();await flush();}now=end;await flush();};
+ try{await fn({advance,flush});}finally{w.setTimeout=originalSet;w.clearTimeout=originalClear;timers.clear();}
+}
 try{
  run("startNewLife({name:'Payment Test'});closeModal();");
  await test('Wrapped offerings render localized monthly and lifetime products without unnecessary configure',async()=>{
@@ -64,5 +73,42 @@ try{
    run("document.getElementById('modal-sheet').textContent='A different screen'");release({current:{availablePackages:ids.map(id=>({product:product(id)}))}});await opening;
    assert.equal(w.document.getElementById('modal-sheet').textContent,'A different screen');
  });
+ await test('Hung listener registration and ownership refresh do not block available prices',async()=>withStoreClock(async({flush,advance})=>{
+   const p=install(base());p.addCustomerInfoUpdateListener=()=>new Promise(()=>{});p.getCustomerInfo=()=>new Promise(()=>{});
+   let finished=false;const opening=paywall().then(()=>{finished=true;});await flush();
+   assert.equal(finished,true,'Prices should render without waiting for optional native callbacks');await opening;
+   assert.equal(w.document.querySelectorAll('.pw-buy').length,2);assert.equal(w.document.querySelector('#paywall-packages').getAttribute('aria-busy'),'false');
+   await advance(12000);
+ }));
+ await test('A hung offerings request falls back to direct App Store products after five seconds',async()=>withStoreClock(async({advance})=>{
+   const p=install(base());p.getOfferings=()=>new Promise(()=>{});let finished=false;
+   const opening=paywall().then(()=>{finished=true;});await advance(5000);assert.equal(finished,true);await opening;
+   assert.equal(w.document.querySelectorAll('.pw-buy').length,2);
+ }));
+ await test('Serial native initialization stalls cannot exceed the overall fifteen-second limit',async()=>withStoreClock(async({advance})=>{
+   const p=install(base());p.isConfigured=()=>new Promise(()=>{});p.configure=()=>new Promise(()=>{});
+   let finished=false;const opening=paywall().then(()=>{finished=true;});await advance(15000);
+   assert.equal(finished,true,'The whole load must finish within fifteen seconds');await opening;
+   assert.match(w.document.querySelector('.paywall-error').textContent,/did not respond in time/);
+   assert.equal(w.document.querySelector('#pw-retry').disabled,false);assert.equal(w.document.querySelector('#paywall-packages').getAttribute('aria-busy'),'false');
+   await advance(15000);
+ }));
+ await test('Timeout exposes retry; late results cannot replace the successful retry',async()=>withStoreClock(async({advance,flush})=>{
+   let late;const p=install(base());p.getOfferings=()=>new Promise(()=>{});p.getProducts=()=>new Promise(resolve=>{late=resolve;});
+   let finished=false;const opening=paywall().then(()=>{finished=true;});await advance(12000);assert.equal(finished,true);await opening;
+   assert.ok(w.document.querySelector('#pw-retry'));assert.equal(w.document.querySelectorAll('.pw-buy').length,0);
+   p.getOfferings=base().getOfferings;p.getProducts=base().getProducts;await run('renderPaywallPackages()');
+   assert.equal(w.document.querySelectorAll('.pw-buy').length,2);assert.equal(w.document.querySelector('.paywall-error'),null);
+   late({products:[{identifier:ids[0],priceString:'STALE'}]});await flush();assert.doesNotMatch(w.document.querySelector('#paywall-packages').textContent,/STALE/);
+ }));
+ await test('An empty customer update does not erase purchase options',async()=>{
+   install(base());await paywall();listeners.at(-1)(empty.customerInfo);assert.equal(w.document.querySelectorAll('.pw-buy').length,2);
+ });
+ await test('Loading deadlines never cancel or retry a purchase awaiting Apple',async()=>withStoreClock(async({advance,flush})=>{
+   let finish;const p=install(base());p.purchasePackage=()=>{bought++;return new Promise(resolve=>{finish=resolve;});};await paywall();w.buyButton=w.document.querySelector('.pw-buy');
+   const pending=run("buyPlus({kind:'package',item:{product:{identifier:PLUS.productIds[0]}}},window.buyButton)");await flush();assert.ok(finish);const count=bought;
+   await advance(60000);assert.equal(run('WayfareIAP.isBusy()'),true);assert.equal(bought,count);assert.equal(w.document.querySelector('#pw-restore').disabled,true);
+   finish(owned);await pending;assert.equal(run('hasPlus()'),true);
+ }));
  console.log(`${passed} purchase/restore integration checks passed. No real store transactions were made.`);
 }finally{w.close();}

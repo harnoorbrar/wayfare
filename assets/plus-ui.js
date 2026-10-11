@@ -18,11 +18,18 @@ async function ensurePlusReady(){
       if(typeof P.isConfigured==='function'){try{configured=(await WayfareIAP.timeout(P.isConfigured())).isConfigured===true;}catch{}}
       if(!configured)await WayfareIAP.timeout(P.configure({apiKey:PLUS.apiKey}));
       if(typeof P.addCustomerInfoUpdateListener==='function'&&!_plusListening.has(P)){
-        try{await WayfareIAP.timeout(P.addCustomerInfoUpdateListener(info=>{
+        // Listener registration must never delay prices or checkout readiness.
+        _plusListening.add(P);
+        void WayfareIAP.timeout(Promise.resolve().then(()=>P.addCustomerInfoUpdateListener(info=>{
+          const previouslyOwned=hasPlus();
           const owned=applyPlusCustomerInfo(info);
           const box=document.getElementById('paywall-packages');
-          if(box&&owned!==null&&!WayfareIAP.isBusy())box.textContent=owned?'✦ Wayfare Plus is active.':'Your purchase status changed. Check purchase status to refresh your options.';
-        }));_plusListening.add(P);}catch{/* Older native builds still refresh on foreground and explicit checks. */}
+          if(box&&owned!==null&&(owned||previouslyOwned)&&!WayfareIAP.isBusy()){
+            ++_paywallLoad;
+            box.textContent=owned?'✦ Wayfare Plus is active.':'Your purchase status changed. Check purchase status to refresh your options.';
+            plusBusyUI(false);
+          }
+        }))).catch(()=>{_plusListening.delete(P);});
       }
       return P;
     })();
@@ -79,12 +86,27 @@ async function renderPaywallPackages(){
   if(WayfareIAP.isBusy()){box.textContent='A purchase or restore is in progress. Finish the Apple sheet before trying again.';plusBusyUI(true);return;}
   if(!purchasesPlugin()){box.textContent='App Store purchases and restores are available in the iPhone app. Your game is still free to play here.';return;}
   box.textContent='Loading App Store options…';box.setAttribute('aria-busy','true');
+  let loading=true;
   try{
-    const P=await ensurePlusReady();try{await refreshPlus();}catch{ /* Loading products may still succeed; cached access is retained. */ }
-    if(!current())return;
+    // Bound the entire read-only flow, not each serial SDK call separately.
+    // Checkout and Restore Purchases intentionally have no automatic retry/timeout.
+    const options=await WayfareIAP.timeout((async()=>{
+      const P=await ensurePlusReady();if(!loading||!current())return [];
+      // A slow ownership refresh must not prevent store prices from appearing.
+      // buyPlus still verifies ownership before initiating any transaction.
+      void refreshPlus().then(owned=>{
+        if(owned===true&&current()){
+          ++_paywallLoad;
+          box.textContent='✦ Wayfare Plus is active. Thank you for supporting Wayfare.';
+          plusBusyUI(false);
+        }
+      }).catch(()=>{ /* Preserve cached access when the store is unavailable. */ });
+      if(hasPlus()||_plusPending)return [];
+      return loadPlusOptions(P);
+    })(),15000);
+    if(!current()||WayfareIAP.isBusy())return;
     if(hasPlus()){box.textContent='✦ Wayfare Plus is active. Thank you for supporting Wayfare.';return;}
     if(_plusPending){box.textContent='Your purchase is awaiting confirmation. Use Check purchase status or Restore Purchases. Do not purchase again while Apple is processing it.';return;}
-    const options=await loadPlusOptions(P);if(!current())return;
     box.replaceChildren();
     if(!options.length){throw new Error('Products are not available for this storefront.');}
     options.sort((a,b)=>Number(plusOptionIsLifetime(a.item))-Number(plusOptionIsLifetime(b.item)));
@@ -93,8 +115,8 @@ async function renderPaywallPackages(){
       const name=document.createElement('span');name.textContent=lifetime?'Lifetime — pay once':'Monthly';const price=document.createElement('span');price.className='pw-price';price.textContent=plusPriceLabel(option.item)+(lifetime?'':' / month');button.append(name,price);button.onclick=()=>buyPlus(option,button);box.append(button);
     });
   }catch(e){
-    if(!current())return;box.replaceChildren();showPaywallError(plusPurchaseError(e));const retry=document.createElement('button');retry.type='button';retry.id='pw-retry';retry.className='pw-restore';retry.textContent='Reload App Store options';retry.onclick=renderPaywallPackages;box.append(retry);
-  }finally{if(current()){box.setAttribute('aria-busy','false');plusBusyUI(WayfareIAP.isBusy());}}
+    if(!current()||WayfareIAP.isBusy())return;box.replaceChildren();showPaywallError(plusPurchaseError(e));const retry=document.createElement('button');retry.type='button';retry.id='pw-retry';retry.className='pw-restore';retry.textContent='Reload App Store options';retry.onclick=renderPaywallPackages;box.append(retry);
+  }finally{loading=false;if(current()){box.setAttribute('aria-busy','false');plusBusyUI(WayfareIAP.isBusy());}}
 }
 async function buyPlus(option,button){
   if(WayfareIAP.isBusy()||_plusPending)return;

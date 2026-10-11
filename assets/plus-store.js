@@ -9,14 +9,14 @@
   function timeout(promise, milliseconds = 12000) {
     let timer;
     return Promise.race([promise, new Promise((_, reject) => {
-      timer = setTimeout(() => reject(new Error('Store connection timed out. Check your internet connection.')), milliseconds);
+      timer = setTimeout(() => reject(Object.assign(new Error('Store connection timed out.'), { code: 'STORE_TIMEOUT' })), milliseconds);
     })]).finally(() => clearTimeout(timer));
   }
   async function loadOptions(purchases, productIds) {
     const options = new Map();
     let offeringsError;
     try {
-      const response = await timeout(purchases.getOfferings());
+      const response = await timeout(purchases.getOfferings(), 5000);
       const offerings = response?.offerings || response;
       for (const item of offerings?.current?.availablePackages || []) {
         const id = item?.product?.identifier;
@@ -27,7 +27,7 @@
     const missing = productIds.filter(id => !options.has(id));
     if (missing.length) {
       try {
-        const response = await timeout(purchases.getProducts({ productIdentifiers: missing }));
+        const response = await timeout(purchases.getProducts({ productIdentifiers: missing }), 7000);
         for (const item of response?.products || []) {
           if (missing.includes(item?.identifier) && item.priceString) options.set(item.identifier, { kind: 'product', item });
         }
@@ -41,6 +41,7 @@
   function errorMessage(error) {
     const code = String(error?.code ?? '');
     const text = `${error?.message || ''} ${error?.userInfo?.readableErrorCode || ''}`.toLowerCase();
+    if (code === 'STORE_TIMEOUT') return 'The App Store did not respond in time. Please try again. You can keep playing for free.';
     if (error?.userCancelled === true || error?.userCancelled === 'true' || code === '1' || text.includes('purchase_cancelled')) return 'cancelled';
     if (code === '20' || /pending|deferred|ask.to.buy/.test(text)) return 'Apple is waiting for approval or payment confirmation. You have not unlocked Plus yet. Do not buy again; return after approval or use Restore Purchases.';
     if (code === '15' || /already in progress/.test(text)) return 'A purchase is already in progress. Finish the Apple purchase sheet before trying again.';
