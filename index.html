@@ -2260,7 +2260,15 @@
 
 </div>
 
+<link rel="stylesheet" href="crossroads.css">
 <script src="js/core.js"></script>
+<script src="js/crossroads-stories.js"></script>
+<script src="js/crossroads-stories-later.js"></script>
+<script src="js/crossroads.js"></script>
+<script src="js/crossroads-ui.js"></script>
+<script src="js/crossroads-chronicle.js"></script>
+<script src="js/plus-store.js"></script>
+<script src="js/plus-ui.js"></script>
 <script src="js/drive3d.js"></script>
 <script>
 /* =========================================================
@@ -2624,196 +2632,6 @@ if (window.matchMedia) {
   if (appearanceQuery.addEventListener) appearanceQuery.addEventListener("change", syncSystemTheme);
   else if (appearanceQuery.addListener) appearanceQuery.addListener(syncSystemTheme);
 }
-function purchasesPlugin() {
-  const P = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Purchases;
-  return P || null;
-}
-function customerHasPlus(info) {
-  try { return !!(info && info.entitlements && info.entitlements.active && info.entitlements.active[PLUS.entitlement]); }
-  catch(e) { return false; }
-}
-let _plusInitialization = null;
-async function ensurePlusReady() {
-  const P = purchasesPlugin();
-  if (!P) throw new Error("Purchases are only available in the iOS app.");
-  if (PLUS.apiKey.indexOf("REPLACE") !== -1) throw new Error("Purchases are not configured yet.");
-  if (!_plusInitialization) {
-    _plusInitialization = (async () => {
-      await P.configure({ apiKey: PLUS.apiKey });
-      return P;
-    })().catch(error => {
-      // Configure itself did not finish, so a later retry is safe.
-      _plusInitialization = null;
-      console.warn("Wayfare Plus initialization failed.", error);
-      throw error;
-    });
-  }
-  return _plusInitialization;
-}
-async function initPlus() {
-  setPlus(hasPlus()); // reflect cache immediately
-  if (!purchasesPlugin() || PLUS.apiKey.indexOf("REPLACE") !== -1) return;
-  try {
-    const readyPurchases = await ensurePlusReady();
-    const { customerInfo } = await readyPurchases.getCustomerInfo();
-    const owned = customerHasPlus(customerInfo);
-    setPlus(owned);
-    if (owned) removeAdsNow();
-  } catch(e) { /* The paywall provides a retry action when it is opened. */ }
-}
-function removeAdsNow() {
-  _interstitialReady = false;
-  _adDue = false;
-}
-function plusPriceLabel(pkg) {
-  try { return (pkg.product || pkg).priceString || ""; } catch(e) { return ""; }
-}
-function plusProductId(option) {
-  try { return String((option.product || option).identifier || ""); } catch(e) { return ""; }
-}
-function plusOptionIsLifetime(option) {
-  return option.packageType === "LIFETIME" || plusProductId(option) === PLUS.productIds[1];
-}
-function plusPurchaseError(error) {
-  if (error && (error.userCancelled || error.userCancelled === true)) return "cancelled";
-  const message = String(error?.message || error?.userInfo?.readableErrorCode || "").toLowerCase();
-  if (message.includes("cancel")) return "cancelled";
-  if (message.includes("network") || message.includes("offline") || message.includes("internet")) return "Check your connection and try again.";
-  if (message.includes("not available") || message.includes("not found") || message.includes("product")) return "This purchase option is not available from the App Store yet.";
-  if (message.includes("configuration") || message.includes("configure") || message.includes("api key")) return "Wayfare Plus is temporarily unavailable while its store connection is updated.";
-  return "The App Store could not complete this purchase. Please try again or use Restore Purchases.";
-}
-function showPaywallError(message) {
-  const box = document.getElementById("paywall-packages");
-  if (!box) { toast(message); return; }
-  const existing = box.querySelector(".paywall-error");
-  if (existing) existing.remove();
-  const error = document.createElement("div");
-  error.className = "paywall-error";
-  error.setAttribute("role", "status");
-  error.textContent = message;
-  box.prepend(error);
-}
-async function loadPlusOptions(readyPurchases) {
-  const offerings = await readyPurchases.getOfferings();
-  const packages = (offerings.current && offerings.current.availablePackages) || [];
-  if (packages.length) return packages.map(item => ({ kind:"package", item }));
-
-  // A direct StoreKit lookup keeps sales available if products are valid but
-  // the RevenueCat default Offering was accidentally removed or unpublished.
-  const direct = await readyPurchases.getProducts({ productIdentifiers: PLUS.productIds });
-  return (direct.products || []).map(item => ({ kind:"product", item }));
-}
-async function openPaywall() {
-  haptic("light");
-  const overlay = document.getElementById("modal-overlay");
-  const sheet = document.getElementById("modal-sheet");
-  const owned = hasPlus();
-  sheet.innerHTML = `
-    <div class="panel-title" style="margin-bottom:2px;">✦ Wayfare Plus</div>
-    <div class="paywall-sub">${owned
-      ? "You have Wayfare Plus. Thank you for supporting a solo developer."
-      : "Support a solo-built life sim — and play it uninterrupted."}</div>
-    <div class="paywall-perks">
-      <div class="pw-perk">⏪ Time Machine — undo death, once per life</div>
-      <div class="pw-perk">🦉 Exclusive pets — owl, fennec fox &amp; tiny dragon</div>
-      <div class="pw-perk">🚫 No ads, ever</div>
-      <div class="pw-perk">✦ Plus badge on your legacy tombstone</div>
-      <div class="pw-perk">🛠 Funds new life events, careers &amp; features</div>
-    </div>
-    <div id="paywall-packages"><div class="paywall-loading">Loading options…</div></div>
-    <button class="pw-restore" id="pw-restore">Restore Purchases</button>
-    <div class="pw-legal">
-      Monthly subscription renews automatically unless cancelled at least 24 hours before the current period ends.
-      Payment is charged to your Apple ID at confirmation. Manage or cancel in Apple ID subscription settings.
-      <a href="https://harnoorbrar.github.io/wayfare/terms.html" target="_blank" rel="noopener">Terms of Use</a> ·
-      <a href="https://harnoorbrar.github.io/wayfare/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
-    </div>
-    <button class="pw-close" id="pw-close">Close</button>`;
-  overlay.classList.add("show");
-  document.getElementById("pw-close").onclick = () => overlay.classList.remove("show");
-  document.getElementById("pw-restore").onclick = restorePlus;
-  renderPaywallPackages();
-}
-async function renderPaywallPackages() {
-  const box = document.getElementById("paywall-packages");
-  if (!box) return;
-  if (hasPlus()) { box.innerHTML = `<div class="paywall-loading">✦ Active</div>`; return; }
-  const P = purchasesPlugin();
-  if (!P) {
-    box.innerHTML = `<div class="paywall-loading">Purchases are available in the iOS app.</div>`;
-    return;
-  }
-  try {
-    const readyPurchases = await ensurePlusReady();
-    const options = await loadPlusOptions(readyPurchases);
-    if (!options.length) {
-      box.innerHTML = `<div class="paywall-error" role="status">Wayfare Plus is not available from the App Store yet. Please try again later.</div><button class="pw-restore" id="pw-retry">Try Again</button>`;
-      document.getElementById("pw-retry").onclick = renderPaywallPackages;
-      return;
-    }
-    box.innerHTML = "";
-    // Show monthly first, lifetime second, anything else after
-    const order = { "MONTHLY": 0, "LIFETIME": 1 };
-    options.sort((a,b) => (order[a.item.packageType] ?? (plusOptionIsLifetime(a.item) ? 1 : 9)) - (order[b.item.packageType] ?? (plusOptionIsLifetime(b.item) ? 1 : 9)));
-    options.forEach(option => {
-      const isLife = plusOptionIsLifetime(option.item);
-      const btn = document.createElement("button");
-      btn.className = "pw-buy" + (isLife ? " pw-life" : "");
-      btn.innerHTML = `<span>${isLife ? "Lifetime — pay once" : "Monthly"}</span><span class="pw-price">${plusPriceLabel(option.item)}${isLife ? "" : "/mo"}</span>`;
-      btn.onclick = () => buyPlus(option, btn);
-      box.appendChild(btn);
-    });
-  } catch(e) {
-    console.error("Wayfare Plus options failed to load.", e);
-    box.innerHTML = `<div class="paywall-loading">Couldn't load purchase options. Check your connection and try again.</div><button class="pw-restore" id="pw-retry">Try Again</button>`;
-    document.getElementById("pw-retry").onclick = renderPaywallPackages;
-  }
-}
-async function buyPlus(option, btn) {
-  const P = purchasesPlugin();
-  if (!P) { toast("Purchases are available in the iOS app."); return; }
-  const old = btn.innerHTML;
-  btn.disabled = true; btn.innerHTML = "<span>Purchasing…</span>";
-  try {
-    const readyPurchases = await ensurePlusReady();
-    const result = option.kind === "package"
-      ? await readyPurchases.purchasePackage({ aPackage: option.item })
-      : await readyPurchases.purchaseStoreProduct({ product: option.item });
-    const customerInfo = result.customerInfo;
-    if (customerHasPlus(customerInfo)) {
-      setPlus(true); removeAdsNow(); haptic("heavy");
-      toast("✦ Welcome to Wayfare Plus!");
-      document.getElementById("modal-overlay").classList.remove("show");
-      return;
-    }
-    showPaywallError("Purchase received. If Plus does not unlock shortly, tap Restore Purchases.");
-  } catch(e) {
-    console.error("Wayfare Plus purchase failed.", e);
-    const message = plusPurchaseError(e);
-    if (message !== "cancelled") showPaywallError(message);
-  }
-  btn.disabled = false; btn.innerHTML = old;
-}
-async function restorePlus() {
-  const P = purchasesPlugin();
-  if (!P) { toast("Restore is available in the iOS app."); return; }
-  try {
-    const readyPurchases = await ensurePlusReady();
-    const { customerInfo } = await readyPurchases.restorePurchases();
-    if (customerHasPlus(customerInfo)) {
-      setPlus(true); removeAdsNow();
-      toast("✦ Wayfare Plus restored.");
-      document.getElementById("modal-overlay").classList.remove("show");
-    } else {
-      toast("No previous purchase found.");
-    }
-  } catch(e) {
-    console.error("Wayfare Plus restore failed.", e);
-    const message = plusPurchaseError(e);
-    if (message !== "cancelled") showPaywallError(message);
-  }
-}
 function admobPlugin() {
   return window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob || null;
 }
@@ -3172,7 +2990,7 @@ function hasUsablePendingChoice(choice) {
 // hide Age Up permanently while the Story screen crashed trying to render it.
 function repairProgressionState() {
   if (!state) return false;
-  let repaired = false;
+  let repaired = WayfareCrossroads.repair(state);
   if (typeof state.alive !== "boolean") {
     state.alive = true;
     repaired = true;
@@ -3217,6 +3035,7 @@ function repairProgressionState() {
 // Persistence lives in WayfareCore (src/domain/save.ts): versioned envelope,
 // legacy-save migration, default backfill, and RNG state for determinism.
 function saveGame() {
+  if (state) WayfareCrossroads.refreshYear(state);
   try { WayfareCore.persistSave(state); } catch(e) {}
   try { checkAchievements(); } catch(e) {}
 }
@@ -3809,7 +3628,9 @@ function startNewLife(profile) {
     activities: null,
     specialItems: (() => { try { return localStorage.getItem(REVIEW_PROMPT.rewardKey) === "1" ? ["wayfarers_compass"] : []; } catch(e) { return []; } })(),
   };
+  WayfareCrossroads.ensure(state);
   log(`${state.name} was born today. A whole life, waiting to happen.`);
+  saveGame();
   render();
 }
 
@@ -4364,8 +4185,12 @@ function ageUp() {
   }
   if (state.pendingChoice) { toast("Resolve the current moment first."); return; }
 
+  WayfareCrossroads.ensure(state);
+  const crossroadsBefore = WayfareCrossroads.snapshot(state);
   if (!state.timeMachineUsed) { try { _preAgeSnapshot = JSON.stringify(state); } catch(e) { _preAgeSnapshot = null; } }
   state.age++;
+  const focusChanges = WayfareCrossroads.applyFocus(state);
+  if (focusChanges.length) log(`This year, ${state.name} made room for ${WayfareCrossroads.focusById(state.crossroads.focus).short.toLowerCase()}.`, focusChanges.filter(c => ["health", "happiness", "smarts"].includes(c.key)).map(c => [c.key, c.amount]));
   const dailyJourneyCompleted = recordDailyJourneyAction("age_up");
   haptic("medium");
 
@@ -4562,6 +4387,7 @@ function ageUp() {
   ensureBucketListWithLog();
   applyDreamClaims();
 
+  WayfareCrossroads.recordYear(state, crossroadsBefore);
   if ((_healthTick && _healthTick.died) || state.health <= 0 || state.age >= 110) {
     if (_healthTick && _healthTick.causeOfDeath) state.causeOfDeath = _healthTick.causeOfDeath;
     handleDeath();
@@ -4575,9 +4401,13 @@ function ageUp() {
   // Domain chain events (scheduled follow-ups + multi-year narratives) take
   // priority; they're what make choices echo years later. Fall back to the
   // legacy one-shot event pool when no chain event fires this year.
+  const crossroadsEvent = WayfareCrossroads.advance(state);
   let domainEvent = null;
-  try { domainEvent = WayfareCore.events.draw(state); } catch(e) {}
-  if (domainEvent) {
+  if (!crossroadsEvent) { try { domainEvent = WayfareCore.events.draw(state); } catch(e) {} }
+  if (crossroadsEvent) {
+    state.pendingChoice = crossroadsEvent;
+    log(crossroadsEvent.text);
+  } else if (domainEvent) {
     // Normalize the domain choice shape to what resolveChoice expects, and
     // tag it so resolveChoice knows to queue any scheduled follow-up.
     state.pendingChoice = {
@@ -4617,6 +4447,15 @@ function ageUp() {
 }
 
 function resolveChoice(choiceIndex) {
+  if (state.pendingChoice?._crossroads) {
+    const outcome = WayfareCrossroads.resolve(state, choiceIndex);
+    if (!outcome.ok) { toast(outcome.reason); return; }
+    log(outcome.memory.result, outcome.changes.filter(c => ["money", "health", "happiness", "smarts"].includes(c.key)).map(c => [c.key, c.amount]));
+    recordDailyJourneyAction("choice");
+    saveGame(); render(); haptic("medium");
+    toast(outcome.completed ? `${outcome.story} — a story complete.` : `Decision remembered. This story continues at age ${outcome.nextAge}.`);
+    return;
+  }
   if (!hasUsablePendingChoice(state.pendingChoice) || !state.pendingChoice.choices[choiceIndex]) {
     state.pendingChoice = null;
     saveGame();
@@ -4797,7 +4636,7 @@ function buildLegacy(){
 }
 
 function showSavedDeathScreen(allowTimeMachine = false) {
-  try { buildLegacy(); } catch(e) { console.error(e); }
+  try { buildLegacy(); crRenderLegacy(); } catch(e) { console.error(e); }
   const tmBtn = document.getElementById("timemachine-btn");
   tmBtn.style.display = (allowTimeMachine && _preAgeSnapshot && !state.timeMachineUsed) ? "block" : "none";
   document.getElementById("gameover").classList.add("show");
@@ -4896,6 +4735,7 @@ function continueAsChild(childIndex) {
     inheritance = Math.max(0, Math.round(liquidEstate * (state.will[kid.relId]*scale/100)));
   }
 
+  const familyChronicle = crFamilyRecord();
   const oldName = state.name;
   const nextGeneration = (state.generation || 1) + 1;
   // Heir inherits traits from the parent (nature, regressing to the mean with
@@ -4981,6 +4821,7 @@ function continueAsChild(childIndex) {
     activities: null,
     specialItems: (() => { try { return localStorage.getItem(REVIEW_PROMPT.rewardKey) === "1" ? ["wayfarers_compass"] : []; } catch(e) { return []; } })(),
     legacyTotal: dynastyTotal,
+    familyChronicle,
   };
 
   log(`${state.name} inherited ${oldName}'s home and ${fmtMoney(inheritance)}, and is ready to start their own chapter.`);
@@ -5131,14 +4972,16 @@ function render() {
   document.querySelectorAll(".nav-btn[data-tab]").forEach(b=>{
     b.classList.toggle("active", b.dataset.tab === state.activeTab);
   });
-  const secondaryTabs = ["activities", "travel", "home", "education", "vehicles", "bank", "business"];
+  const secondaryTabs = ["activities", "travel", "home", "education", "vehicles", "bank", "business", "chronicle"];
   document.getElementById("more-btn").classList.toggle("active", secondaryTabs.includes(state.activeTab));
 
   const main = document.getElementById("main");
+  main.classList.remove("story-screen", "crossroads-screen", "chronicle-screen");
   main.innerHTML = "";
   if (state.activeTab === "story") renderStory(main);
   else if (state.activeTab === "activities") renderActivities(main);
   else if (state.activeTab === "travel") renderTravel(main);
+  else if (state.activeTab === "chronicle") renderChronicle(main);
   else if (state.activeTab === "home") renderHome(main);
   else if (state.activeTab === "job") renderJob(main);
   else if (state.activeTab === "people") renderPeople(main);
@@ -5223,118 +5066,7 @@ function openDailyJourneyModal() {
   requestAnimationFrame(() => primary.focus());
 }
 
-function renderStory(main) {
-  main.classList.add("story-screen");
-  const achBar = document.createElement("button");
-  achBar.className = "ach-bar";
-  achBar.innerHTML = `🏆 Achievements <span class="ach-count">${Object.keys(unlockedAch).length}/${ACHIEVEMENTS.length}</span>`;
-  achBar.onclick = openAchievementsModal;
-  main.appendChild(achBar);
-  renderDailyJourneyCard(main);
-
-  const currentJob = JOBS.find(job => job.id === state.job);
-  const chapter = document.createElement("section");
-  chapter.className = "story-hero";
-  const lifeStage = state.age < 13 ? "the early years" : state.age < 18 ? "growing up" : state.age < 30 ? "finding a direction" : state.age < 50 ? "building a life" : state.age < 65 ? "a seasoned chapter" : "a life well lived";
-  const role = currentJob && currentJob.id !== "unemployed" ? currentJob.title : "Writing their own next chapter";
-  chapter.innerHTML = `<div class="story-hero-kicker">Age ${state.age} · ${lifeStage}</div><div class="story-hero-title">${role}</div><div class="story-hero-copy">Every choice leaves a mark. Your newest moments appear first in the timeline below.</div>`;
-  main.appendChild(chapter);
-
-  renderLifeSnapshot(main, currentJob);
-  renderCompanionStrip(main);
-  renderAmbitionSummary(main);
-  renderBucketList(main);
-
-  const goals = buildLifeGoals();
-  const goalsSection = document.createElement("section");
-  goalsSection.className = "life-goals";
-  const goalsLabel = document.createElement("div");
-  goalsLabel.className = "life-goals-label";
-  goalsLabel.textContent = "What's next";
-  const goalsList = document.createElement("div");
-  goalsList.className = "life-goal-list";
-  goals.forEach(goal => {
-    const button = document.createElement("button");
-    button.className = "life-goal";
-    button.setAttribute("aria-label", `${goal.title}. ${goal.detail}`);
-    const icon = document.createElement("span");
-    icon.className = "life-goal-icon";
-    icon.setAttribute("aria-hidden", "true");
-    icon.textContent = goal.icon;
-    const copy = document.createElement("span");
-    const title = document.createElement("span");
-    title.className = "life-goal-title";
-    title.textContent = goal.title;
-    const detail = document.createElement("span");
-    detail.className = "life-goal-detail";
-    detail.textContent = goal.detail;
-    const track = document.createElement("span");
-    track.className = "life-goal-track";
-    const fill = document.createElement("span");
-    fill.className = "life-goal-fill";
-    fill.style.width = `${Math.max(4, Math.min(100, goal.progress))}%`;
-    track.appendChild(fill);
-    copy.append(title, detail, track);
-    const arrow = document.createElement("span");
-    arrow.className = "life-goal-arrow";
-    arrow.setAttribute("aria-hidden", "true");
-    arrow.textContent = "›";
-    button.append(icon, copy, arrow);
-    button.onclick = () => { state.activeTab = goal.tab; render(); };
-    goalsList.appendChild(button);
-  });
-  goalsSection.append(goalsLabel, goalsList);
-  main.appendChild(goalsSection);
-
-  const timelineLabel = document.createElement("div");
-  timelineLabel.className = "story-timeline-label";
-  timelineLabel.textContent = "Life timeline";
-  main.appendChild(timelineLabel);
-
-  if (state.pendingChoice) {
-    const card = document.createElement("div");
-    card.className = "event-card pending-choice-card";
-    card.id = "pending-life-choice";
-    card.tabIndex = -1;
-    card.innerHTML = `<div class="decision-card-copy"><div class="decision-card-heading">Decision · Age ${state.age}</div><div class="event-text">${state.pendingChoice.text}</div></div>`;
-    const btns = document.createElement("div");
-    btns.className = "choice-btns";
-    state.pendingChoice.choices.forEach((c,i)=>{
-      const b = document.createElement("button");
-      b.className = "choice-btn";
-      const label = document.createElement("span");
-      label.className = "choice-label";
-      label.textContent = c.label;
-      b.appendChild(label);
-      if (c._stakes) {
-        const stakes = document.createElement("span");
-        stakes.className = "choice-stakes";
-        stakes.textContent = c._stakes;
-        b.appendChild(stakes);
-      }
-      b.disabled = c._costGate !== undefined && state.money < c._costGate;
-      if (b.disabled) b.title = `Requires ${fmtMoney(c._costGate)}`;
-      b.onclick = () => { try { resolveChoice(i); } catch(e) { console.error(e); openErrorModal(e); } };
-      btns.appendChild(b);
-    });
-    card.appendChild(btns);
-    main.appendChild(card);
-  }
-
-  state.feed.forEach((item, index)=>{
-    const card = document.createElement("div");
-    card.className = "event-card" + (index === 0 ? " latest-event" : "");
-    let deltaHtml = "";
-    (item.deltas||[]).forEach(([f,v])=>{
-      if (f==="money") return;
-      const cls = v>=0 ? "delta-pos" : "delta-neg";
-      const label = f.charAt(0).toUpperCase()+f.slice(1);
-      deltaHtml += `<span class="event-delta ${cls}">${label} ${v>=0?"+":""}${v}</span>`;
-    });
-    card.innerHTML = `<div class="event-age">Age ${item.age}</div><div class="event-text">${item.text}</div>${deltaHtml?`<div>${deltaHtml}</div>`:""}`;
-    main.appendChild(card);
-  });
-}
+function renderStory(main) { renderCrossroadsStory(main); }
 
 function renderLifeSnapshot(main, currentJob) {
   const focusRemaining = (() => {
@@ -9023,6 +8755,7 @@ function closeModal() {
   const overlay = document.getElementById("modal-overlay");
   overlay.classList.remove("show", "creator-required", "review-prompt");
   const sheet = document.getElementById("modal-sheet");
+  delete sheet.dataset.crossroadsDialog;
   sheet.removeAttribute("role");
   sheet.removeAttribute("aria-modal");
   sheet.removeAttribute("aria-labelledby");
@@ -9190,6 +8923,7 @@ document.querySelectorAll(".nav-btn[data-tab]").forEach(b=>{
 document.getElementById("life-event-banner").addEventListener("click", openPendingLifeChoice);
 function openMoreHub() {
   const destinations = [
+    { tab:"chronicle", icon:"✧", name:"Your Chronicle", detail:"Choices, consequences, and the story of your family" },
     { tab:"daily", icon:"✦", name:"Daily Journey", detail:"A fresh goal and streak reward" },
     { tab:"activities", icon:"⚡", name:"Activities", detail:"Choose how to spend your focus" },
     { tab:"travel", icon:"✈", name:"Travel", detail:"See the world, one trip a year" },
@@ -9250,21 +8984,22 @@ document.getElementById("restart-btn").addEventListener("click", ()=>{
 /* ---------------- WHAT'S NEW ----------------
    Shown once per release to returning players. Keep APP_VERSION in step with
    MARKETING_VERSION in ios/App/App.xcodeproj/project.pbxproj. */
-const APP_VERSION = "1.9";
+const APP_VERSION = "2.0";
 const WHATS_NEW_KEY = "wayfare-whats-new-seen";
 const WHATS_NEW = {
   version: APP_VERSION,
-  title: "See the World",
-  intro: "Life is bigger than one city. Take a trip every year, fill your passport, and chase the five dreams that only this life will write.",
-  cta: "Start travelling",
-  ctaTab: "travel",
+  title: "Crossroads",
+  cta: "Meet Crossroads",
+  ctaTab: "story",
+  intro: "A life is more than the years that pass. It is the things you choose, the people you make room for, and the stories you carry forward.",
   highlights: [
-    { icon:"✈️", name:"Travel", detail:"Sixteen destinations across five regions. One trip a year — solo or with your partner." },
-    { icon:"🛂", name:"A passport that fills up", detail:"Every trip leaves a stamp and a memory. First visits and new regions hit hardest." },
-    { icon:"🌠", name:"Your bucket list", detail:"Five dreams drawn at 18 and ticked off as you live them. Change your mind once per life." },
-    { icon:"🧭", name:"See the World", detail:"A new life ambition, five achievements, and a tombstone that remembers where you went." },
+    { icon:"01", name:"Eight stories. A lifetime of choices.", detail:"24 connected scenes, with 72 choices to explore. Earlier decisions return in later chapters." },
+    { icon:"02", name:"Give each year a direction", detail:"Six yearly intentions with visible effects. Choose what gets your time before you age up." },
+    { icon:"03", name:"Your Chronicle", detail:"A record of your decisions, their real effects, and the qualities you develop along the way." },
+    { icon:"04", name:"A life worth looking back on", detail:"A new Life screen, year-in-review summaries, and memories that pass to the next generation. Existing saves continue where you left off." },
   ],
 };
+
 function whatsNewSeen() { try { return localStorage.getItem(WHATS_NEW_KEY) === WHATS_NEW.version; } catch(e) { return true; } }
 function markWhatsNewSeen() { try { localStorage.setItem(WHATS_NEW_KEY, WHATS_NEW.version); } catch(e) {} }
 function openWhatsNew() {

@@ -13,7 +13,7 @@ workflows:
         # top-level App.xcworkspace -- build against the .xcodeproj directly.
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
-      node: latest
+      node: "22"
       xcode: latest
     triggering:
       events:
@@ -33,9 +33,11 @@ workflows:
       - name: Build web core bundle
         script: |
           npm run build
-      - name: Run unit tests
+      - name: Validate release
         script: |
+          npm run typecheck
           npm test
+          node scripts/check-ios-release.cjs
       - name: Sync Capacitor iOS project
         script: |
           npx cap sync ios
